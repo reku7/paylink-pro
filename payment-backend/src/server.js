@@ -30,7 +30,10 @@ const app = express();
 // ========== MIDDLEWARE ==========
 app.use(
   cors({
-    origin: "http://localhost:5173", // Your frontend URL
+    origin: [
+      "http://localhost:5173", // for local dev
+      "https://paylink-pro.vercel.app", // production frontend
+    ],
     credentials: true,
   }),
 );
