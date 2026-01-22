@@ -39,14 +39,9 @@ const TransactionSchema = new mongoose.Schema(
       required: true,
     },
 
-    transactionId: {
-      type: String,
-      unique: true,
-      index: true,
-    },
-
     internalRef: {
       type: String,
+      required: true,
       unique: true,
       index: true,
     },
@@ -77,7 +72,7 @@ const TransactionSchema = new mongoose.Schema(
       default: "",
     },
 
-    santimpayResponse: {
+    gatewayResponse: {
       type: Object,
       default: {},
     },
@@ -85,6 +80,16 @@ const TransactionSchema = new mongoose.Schema(
     metadata: {
       type: Object,
       default: {},
+    },
+    paidAt: {
+      type: Date,
+    },
+    santimTxnId: { type: String, index: true, default: null },
+
+    gateway: {
+      type: String,
+      enum: ["santimpay", "chapa"],
+      required: true,
     },
   },
   { timestamps: true }

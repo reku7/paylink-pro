@@ -1,70 +1,67 @@
 // src/services/auth.service.js
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import mongoose from "mongoose"; // needed for transactions
+import mongoose from "mongoose";
 import User from "../models/User.js";
 import Merchant from "../models/Merchant.js";
 import { v4 as uuidv4 } from "uuid";
-import dotenv from "dotenv";
-dotenv.config();
+import { encryptSecret } from "../utils/crypto.js"; // use your existing encryption util
+import axios from "axios";
 
 const SALT_ROUNDS = parseInt(process.env.BCRYPT_SALT_ROUNDS || "10", 10);
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES = process.env.JWT_EXPIRES || "7d";
 
-/**
- * Hash a password using bcrypt
- */
+if (!JWT_SECRET) {
+  throw new Error("❌ JWT_SECRET is missing. Check your .env file");
+}
+
 export async function hashPassword(password) {
   return bcrypt.hash(password, SALT_ROUNDS);
 }
-
-/**
- * Compare plain password with hashed password
- */
-
-console.log("Loaded JWT_SECRET:", process.env.JWT_SECRET);
 
 export async function comparePassword(password, hash) {
   return bcrypt.compare(password, hash);
 }
 
-/**
- * Sign JWT token
- */
 export function signToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: JWT_EXPIRES,
+    algorithm: "HS256",
+  });
 }
 
 /**
- * Create a new user and merchant atomically using MongoDB transaction
+ * Create user + merchant + optional Chapa connection
  */
 export async function createUserAndMerchant({
   name,
   email,
   password,
   merchantName,
+  preferredGateway = "santimpay",
+  business = {},
+  chapaApiKey,
 }) {
   const session = await mongoose.startSession();
-  session.startTransaction(); // start transaction
+  session.startTransaction();
 
   try {
-    // 1️⃣ Hash password
     const passwordHash = await hashPassword(password);
 
-    // 2️⃣ Create User within transaction
+    // Create User
     const [user] = await User.create([{ name, email, passwordHash }], {
       session,
     });
 
-    // 3️⃣ Generate slug for merchant
+    // Generate merchant slug
     const base = merchantName
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
     const slug = `${base}-${uuidv4().slice(0, 6)}`;
 
-    // 4️⃣ Create Merchant within transaction
+    // Create Merchant with full business info
     const [merchant] = await Merchant.create(
       [
         {
@@ -72,32 +69,53 @@ export async function createUserAndMerchant({
           name: merchantName,
           slug,
           status: "active",
+          preferredGateway,
+          business,
         },
       ],
-      { session }
+      { session },
     );
 
-    // 5️⃣ Commit transaction
+    // Optionally connect Chapa if selected
+    if (preferredGateway === "chapa" && chapaApiKey) {
+      const webhookUrl = `${process.env.WEBHOOK_BASE_URL}/api/webhooks/chapa`;
+      const webhookSecret = process.env.CHAPA_WEBHOOK_SECRET;
+
+      if (!webhookUrl || !webhookSecret) {
+        throw new Error("Webhook URL or secret not configured on server");
+      }
+
+      const hashedWebhookSecret = await bcrypt.hash(webhookSecret, 10);
+
+      await Merchant.updateOne(
+        { _id: merchant._id },
+        {
+          $set: {
+            "chapa.secretEncrypted": encryptSecret(chapaApiKey),
+            webhookUrl,
+            webhookSecretHash: hashedWebhookSecret,
+          },
+        },
+        { session },
+      );
+
+      // Optional: you can call Chapa API here to validate the API key
+      // await axios.post("https://api.chapa.co/v1/validate", { apiKey: chapaApiKey });
+    }
+
     await session.commitTransaction();
 
-    // 6️⃣ Sign JWT token
     const token = signToken({
       userId: user._id,
       merchantId: merchant._id,
       roles: user.roles,
     });
-    console.log("JWT_SECRET when signing:", JWT_SECRET);
 
     return { user, merchant, token };
   } catch (error) {
-    // ❗ FIX: Abort only if transaction is still active
-    if (session.inTransaction()) {
-      await session.abortTransaction();
-    }
-
+    if (session.inTransaction()) await session.abortTransaction();
     throw error;
   } finally {
-    // Always end session
     session.endSession();
   }
 }
