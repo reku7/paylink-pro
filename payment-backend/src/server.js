@@ -28,28 +28,29 @@ import { ROLES } from "./constants/roles.js";
 const app = express();
 
 // ========== MIDDLEWARE ==========
+// ========== CORS (FIXED & SAFE) ==========
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow requests with no origin (like Postman)
       if (!origin) return callback(null, true);
 
-      // allow localhost
-      if (origin === "http://localhost:5173") {
+      if (
+        origin === "http://localhost:5173" ||
+        origin.endsWith(".vercel.app")
+      ) {
         return callback(null, true);
       }
 
-      // allow ANY Vercel preview + prod
-      if (origin.endsWith(".vercel.app")) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("Not allowed by CORS"));
+      return callback(null, false);
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
-s;
+
+// 🔥 VERY IMPORTANT: allow preflight requests
+app.options("*", cors());
 
 app.use(
   express.json({
