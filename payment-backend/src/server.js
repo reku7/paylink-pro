@@ -30,13 +30,26 @@ const app = express();
 // ========== MIDDLEWARE ==========
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173", // for local dev
-      "https://paylink-pro.vercel.app", // production frontend
-    ],
+    origin: (origin, callback) => {
+      // allow requests with no origin (like Postman)
+      if (!origin) return callback(null, true);
+
+      // allow localhost
+      if (origin === "http://localhost:5173") {
+        return callback(null, true);
+      }
+
+      // allow ANY Vercel preview + prod
+      if (origin.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   }),
 );
+s;
 
 app.use(
   express.json({
