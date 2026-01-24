@@ -40,15 +40,21 @@ app.use(
         return callback(null, true);
       }
 
-      return callback(null, false);
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "cache-control",
+      "pragma",
+      "expires",
+    ],
   }),
 );
 
-// ✅ Node 22 / Express-safe preflight
+// Explicitly handle preflight
 app.options(/.*/, cors());
 
 /* =======================
