@@ -3,7 +3,6 @@ import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
 
-// Database and jobs
 import connectDB from "./config/db.js";
 import { startReconciliationJob } from "./jobs/reconciliation.job.js";
 
@@ -13,7 +12,6 @@ import adminRoutes from "./routes/adminRoutes.js";
 import publicLinkRoutes from "./routes/publicLink.routes.js";
 import publicPaymentRoutes from "./routes/publicPayment.routes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
-
 import gatewayRoutes from "./routes/gatewayRoutes.js";
 import paymentLinkRoutes from "./routes/paymentLinkRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
@@ -27,8 +25,9 @@ import { ROLES } from "./constants/roles.js";
 
 const app = express();
 
-// ========== MIDDLEWARE ==========
-// ========== CORS (FIXED & SAFE) ==========
+/* =======================
+   CORS
+======================= */
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -49,13 +48,16 @@ app.use(
   }),
 );
 
-// 🔥 VERY IMPORTANT: allow preflight requests
-app.options("*", cors());
+// ✅ Node 22 / Express-safe preflight
+app.options(/.*/, cors());
 
+/* =======================
+   BODY PARSING
+======================= */
 app.use(
   express.json({
     verify: (req, res, buf) => {
-      req.rawBody = buf.toString(); // For webhook verification
+      req.rawBody = buf.toString(); // required for webhook verification
     },
   }),
 );
@@ -63,15 +65,19 @@ app.use(
 app.use(morgan("dev"));
 app.use(helmet());
 
-// ========== ROUTES ==========
+/* =======================
+   ROUTES
+======================= */
 
-// Public routes
+// Public
 app.use("/api/auth", authRoutes);
 app.use("/api", publicLinkRoutes);
-app.use("/api/webhooks", webhookRoutes);
 app.use("/api", publicPaymentRoutes);
 
-// Debug routes
+// Webhooks (ONLY place webhooks live)
+app.use("/api/webhooks", webhookRoutes);
+
+// Health & debug
 app.get("/api/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date() });
 });
@@ -84,20 +90,19 @@ app.get("/api/config-check", (req, res) => {
   });
 });
 
-// Protected routes
+// Protected
 app.use("/api/gateways", gatewayRoutes);
 app.use("/api/admin", adminRoutes);
-
 app.use("/api/links", paymentLinkRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
-// User info endpoint
+// User info
 app.get("/api/me", authMiddleware, (req, res) => {
   res.json({ user: req.user });
 });
 
-// Admin test endpoint
+// Admin test
 app.get(
   "/api/admin/test",
   authMiddleware,
@@ -107,50 +112,14 @@ app.get(
   },
 );
 
-// Transaction status check
-app.get(
-  "/api/payments/status/:transactionRef",
-  authMiddleware,
-  async (req, res) => {
-    try {
-      const Transaction = (await import("./models/Transaction.js")).default;
-      const { transactionRef } = req.params;
-
-      const transaction = await Transaction.findOne({
-        $or: [{ internalRef: transactionRef }, { linkId: transactionRef }],
-      });
-
-      if (!transaction) {
-        return res.status(404).json({
-          success: false,
-          message: "Transaction not found",
-        });
-      }
-
-      res.json({
-        success: true,
-        data: {
-          id: transaction._id,
-          amount: transaction.amount,
-          currency: transaction.currency,
-          status: transaction.status,
-          gateway: transaction.gateway,
-          paidAt: transaction.paidAt,
-        },
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  },
-);
-
-// ========== ERROR HANDLING ==========
+/* =======================
+   ERROR HANDLING
+======================= */
 app.use(errorHandler);
 
-// ========== VALIDATE ENVIRONMENT ==========
+/* =======================
+   ENV VALIDATION
+======================= */
 const requiredEnvVars = [
   "JWT_SECRET",
   "MERCHANT_SECRET_ENCRYPTION_KEY",
@@ -159,35 +128,32 @@ const requiredEnvVars = [
   "SANTIMPAY_PRIVATE_KEY",
 ];
 
-const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
+const missingVars = requiredEnvVars.filter((v) => !process.env[v]);
 
-if (missingVars.length > 0) {
-  console.error("❌ Missing required environment variables:", missingVars);
+if (missingVars.length) {
+  console.error("❌ Missing environment variables:", missingVars);
   process.exit(1);
 }
 
-// ========== START SERVER ==========
-connectDB();
-startReconciliationJob();
-
+/* =======================
+   START SERVER
+======================= */
 const PORT = process.env.PORT || 5000;
 
-app.get("/", (req, res) => {
-  res.send("Backend is running");
-});
+(async () => {
+  try {
+    await connectDB();
+    startReconciliationJob();
 
-// 2️⃣ Chapa webhook route (FIXES your error)
-app.post("/api/webhooks/chapa", (req, res) => {
-  console.log("✅ CHAPA WEBHOOK RECEIVED");
-  console.log(req.body);
-  res.status(200).json({ received: true });
-});
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🔐 JWT Secret: ${process.env.JWT_SECRET ? "✅" : "❌"}`);
-  console.log(
-    `💰 SantimPay: ${process.env.SANTIMPAY_MERCHANT_ID ? "✅" : "❌"}`,
-  );
-  console.log(`🌐 Frontend: http://localhost:5173`);
-});
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🔐 JWT Secret: ${process.env.JWT_SECRET ? "✅" : "❌"}`);
+      console.log(
+        `💰 SantimPay: ${process.env.SANTIMPAY_MERCHANT_ID ? "✅" : "❌"}`,
+      );
+    });
+  } catch (err) {
+    console.error("❌ Server startup failed:", err);
+    process.exit(1);
+  }
+})();
