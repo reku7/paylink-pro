@@ -5,7 +5,6 @@ import { privateApi } from "../api/api";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
 
   // Fetch logged-in user
@@ -48,16 +47,22 @@ export default function Dashboard() {
           </Link>
         </nav>
 
-        {/* Profile at bottom */}
+        {/* Profile section */}
         {user && (
           <div style={styles.profileContainer}>
-            <img
-              src={user.avatar || "https://i.pravatar.cc/40"} // fallback avatar
-              alt="Profile"
-              style={styles.avatar}
-            />
+            {user.avatar ? (
+              <img src={user.avatar} alt="Profile" style={styles.avatar} />
+            ) : (
+              <div style={styles.avatarFallback}>
+                {user.email.charAt(0).toUpperCase()}
+              </div>
+            )}
+
             <div style={styles.profileInfo}>
-              <span style={styles.name}>{user.name || user.email}</span>
+              <span style={styles.name}>
+                {user.name || user.email.split("@")[0]}
+              </span>
+              <span style={styles.email}>{user.email}</span>
               <button onClick={handleLogout} style={styles.logoutButton}>
                 Logout
               </button>
@@ -94,21 +99,18 @@ const styles = {
     position: "sticky",
     top: 0,
     height: "100vh",
-    overflowY: "auto",
   },
 
   brand: {
     fontSize: 32,
     fontWeight: 800,
     marginBottom: "20px",
-    flexShrink: 0,
   },
 
   nav: {
     display: "flex",
     flexDirection: "column",
     gap: "12px",
-    flexShrink: 0,
   },
 
   link: {
@@ -117,23 +119,36 @@ const styles = {
     padding: "10px 12px",
     borderRadius: "8px",
     fontWeight: 500,
-    transition: "background 0.3s",
   },
 
   profileContainer: {
-    marginTop: "auto", // push it to bottom
+    marginTop: "auto",
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    background: "rgba(255,255,255,0.1)",
+    gap: "12px",
+    background: "rgba(255,255,255,0.12)",
     padding: "12px",
-    borderRadius: "12px",
+    borderRadius: "14px",
   },
 
   avatar: {
-    width: "40px",
-    height: "40px",
+    width: "44px",
+    height: "44px",
     borderRadius: "50%",
+    objectFit: "cover",
+  },
+
+  avatarFallback: {
+    width: "44px",
+    height: "44px",
+    borderRadius: "50%",
+    backgroundColor: "#10b981",
+    color: "#ffffff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: 800,
+    fontSize: "18px",
   },
 
   profileInfo: {
@@ -143,12 +158,19 @@ const styles = {
   },
 
   name: {
-    fontWeight: 600,
+    fontWeight: 700,
     fontSize: "14px",
   },
 
+  email: {
+    fontSize: "12px",
+    color: "#d1fae5",
+    opacity: 0.85,
+  },
+
   logoutButton: {
-    padding: "6px 12px",
+    marginTop: "6px",
+    padding: "6px 10px",
     borderRadius: "8px",
     border: "none",
     backgroundColor: "#059669",
@@ -156,6 +178,7 @@ const styles = {
     fontWeight: 600,
     cursor: "pointer",
     fontSize: "12px",
+    width: "fit-content",
   },
 
   main: {
