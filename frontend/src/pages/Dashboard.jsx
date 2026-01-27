@@ -1,7 +1,7 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { clearAuthToken } from "../utils/auth";
-import { useUser } from "../context/UserContext";
+import { useUser } from "../context/userContext";
 
 export default function Dashboard() {
   const navigate = useNavigate();
