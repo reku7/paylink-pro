@@ -122,7 +122,10 @@ const styles = {
     padding: "40px 20px",
     display: "flex",
     flexDirection: "column",
+    position: "sticky", // make it stick in viewport
+    top: 0,
     height: "100vh",
+    overflowY: "auto", // scroll if content exceeds viewport
   },
 
   brand: {
