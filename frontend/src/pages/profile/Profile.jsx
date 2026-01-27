@@ -1,27 +1,26 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { privateApi } from "../../api/api";
 import { useUser } from "../../context/userContext";
 
-export default function Profile() {
+export default function Profile({ onCancel }) {
   const { user, setUser } = useUser();
-  const navigate = useNavigate();
-
   const [name, setName] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Load user data on mount
+  // Load user data
   useEffect(() => {
     if (user) {
       setName(user.name || "");
-      if (user.avatar && !user.avatar.startsWith("http")) {
-        setAvatarPreview(`${import.meta.env.VITE_API_URL}${user.avatar}`);
-      } else {
-        setAvatarPreview(user.avatar || null);
-      }
+      setAvatarPreview(
+        user.avatar?.startsWith("http")
+          ? user.avatar
+          : user.avatar
+            ? `${import.meta.env.VITE_API_BASE_URL}${user.avatar}`
+            : null,
+      );
     }
   }, [user]);
 
@@ -33,14 +32,28 @@ export default function Profile() {
     setAvatarPreview(URL.createObjectURL(file));
   };
 
-  // Save profile
+  // Reset preview and file
+  const handleCancel = () => {
+    setName(user.name || "");
+    setAvatarPreview(
+      user.avatar?.startsWith("http")
+        ? user.avatar
+        : user.avatar
+          ? `${import.meta.env.VITE_API_BASE_URL}${user.avatar}`
+          : null,
+    );
+    setAvatarFile(null);
+    setMessage("");
+    if (onCancel) onCancel();
+  };
+
+  // Save changes
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) {
-      setMessage("Please enter a name");
+      setMessage("Name is required");
       return;
     }
-
     setLoading(true);
     setMessage("");
 
@@ -49,19 +62,16 @@ export default function Profile() {
       formData.append("name", name.trim());
       if (avatarFile) formData.append("avatar", avatarFile);
 
-      const res = await privateApi.put("/me", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await privateApi.put("/me", formData);
 
-      // Update user with absolute avatar URL
       let updatedUser = res.data.user;
       if (updatedUser.avatar && !updatedUser.avatar.startsWith("http")) {
-        updatedUser.avatar = `${import.meta.env.VITE_API_URL}${updatedUser.avatar}`;
+        updatedUser.avatar = `${import.meta.env.VITE_API_BASE_URL}${updatedUser.avatar}`;
       }
 
       setUser(updatedUser);
-      setMessage(res.data.message || "Profile updated!");
       setAvatarFile(null);
+      setMessage(res.data.message || "Profile updated!");
     } catch (err) {
       setMessage(err.response?.data?.error || "Failed to update profile");
     } finally {
@@ -69,7 +79,7 @@ export default function Profile() {
     }
   };
 
-  // Cleanup preview URL
+  // Cleanup blob URLs
   useEffect(() => {
     return () => {
       if (avatarPreview?.startsWith("blob:"))
@@ -77,16 +87,12 @@ export default function Profile() {
     };
   }, [avatarPreview]);
 
-  // Cancel button: go back to dashboard without saving
-  const handleCancel = () => navigate("/dashboard");
-
   return (
     <div style={styles.container}>
       <div style={styles.card}>
         <h2 style={styles.heading}>Edit Profile</h2>
-
         <form onSubmit={handleSubmit} style={styles.form}>
-          {/* Avatar Section */}
+          {/* Avatar */}
           <div style={styles.avatarSection}>
             <div style={styles.avatarWrapper}>
               {avatarPreview ? (
@@ -101,7 +107,6 @@ export default function Profile() {
                 </div>
               )}
             </div>
-
             <div>
               <label style={styles.label}>Change Photo</label>
               <input
@@ -110,19 +115,19 @@ export default function Profile() {
                 onChange={handleAvatarChange}
                 style={styles.inputFile}
               />
-              <p style={styles.helperText}>JPG, PNG (Max 5MB)</p>
+              <p style={styles.helperText}>JPG, PNG (Max 2MB)</p>
             </div>
           </div>
 
-          {/* Name Input */}
+          {/* Name */}
           <div style={styles.inputGroup}>
             <label style={styles.label}>Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
               style={styles.inputField}
+              placeholder="Your name"
             />
           </div>
 
@@ -142,15 +147,15 @@ export default function Profile() {
             </div>
           )}
 
-          {/* Buttons */}
-          <div style={{ display: "flex", gap: 12 }}>
+          {/* Actions */}
+          <div style={{ display: "flex", gap: 10 }}>
             <button type="submit" disabled={loading} style={styles.saveButton}>
               {loading ? "Saving..." : "Save Changes"}
             </button>
             <button
               type="button"
               onClick={handleCancel}
-              style={{ ...styles.saveButton, background: "#f87171" }}
+              style={styles.cancelButton}
             >
               Cancel
             </button>
@@ -161,14 +166,13 @@ export default function Profile() {
   );
 }
 
-// Styles
 const styles = {
   container: {
     display: "flex",
     justifyContent: "center",
     padding: 40,
-    background: "#f3f4f6",
     minHeight: "100vh",
+    background: "#f3f4f6",
   },
   card: {
     background: "#fff",
@@ -208,9 +212,21 @@ const styles = {
   },
   message: { padding: 12, borderRadius: 8 },
   saveButton: {
+    flex: 1,
     padding: 14,
     background: "#10b981",
-    color: "white",
+    color: "#fff",
+    border: "none",
+    borderRadius: 8,
+    fontSize: 16,
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+  cancelButton: {
+    flex: 1,
+    padding: 14,
+    background: "#f87171",
+    color: "#fff",
     border: "none",
     borderRadius: 8,
     fontSize: 16,
