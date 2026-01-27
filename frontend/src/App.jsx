@@ -22,39 +22,38 @@ import { GatewayProvider } from "./context/GatewayContext.jsx";
 
 export default function App() {
   return (
-    // ✅ Wrap the dashboard routes with GatewayProvider
-    <GatewayProvider>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/pay/:linkId" element={<PayPage />} />
-        <Route path="/public-success" element={<PublicSuccess />} />
-        <Route path="/public-failed" element={<PublicFailed />} />
-        <Route path="/public-cancel" element={<PublicCancel />} />
-        <Route path="/success" element={<Success />} />
-        <Route path="/failed" element={<Failed />} />
-        <Route path="/cancel" element={<Cancel />} />
+    <Routes>
+      {/* ===== PUBLIC ROUTES ===== */}
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/pay/:linkId" element={<PayPage />} />
 
-        {/* Protected Dashboard Routes */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
+      <Route path="/public-success" element={<PublicSuccess />} />
+      <Route path="/public-failed" element={<PublicFailed />} />
+      <Route path="/public-cancel" element={<PublicCancel />} />
+
+      <Route path="/success" element={<Success />} />
+      <Route path="/failed" element={<Failed />} />
+      <Route path="/cancel" element={<Cancel />} />
+
+      {/* ===== PROTECTED DASHBOARD ===== */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <GatewayProvider>
               <Dashboard />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<DashboardHome />} />
-          <Route path="transactions" element={<TransactionsPage />} />
-          <Route path="create-link" element={<CreateLinkPage />} />
-
-          {/* ✅ Payment Settings Routes */}
-          <Route path="settings/payments" element={<PaymentGatewaysPage />} />
-          <Route path="connect-chapa" element={<ConnectChapaPage />} />
-        </Route>
-      </Routes>
-    </GatewayProvider>
+            </GatewayProvider>
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<DashboardHome />} />
+        <Route path="transactions" element={<TransactionsPage />} />
+        <Route path="create-link" element={<CreateLinkPage />} />
+        <Route path="settings/payments" element={<PaymentGatewaysPage />} />
+        <Route path="connect-chapa" element={<ConnectChapaPage />} />
+      </Route>
+    </Routes>
   );
 }
