@@ -4,59 +4,78 @@ import { useUser } from "../../context/userContext";
 
 export default function Profile() {
   const { user, setUser } = useUser();
-  const [name, setName] = useState("");
-  const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [form, setForm] = useState({
+    name: "",
+    avatarFile: null,
+    avatarPreview: null,
+  });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Load user data
+  // Initialize form
   useEffect(() => {
     if (user) {
-      setName(user.name || "");
-      // Make avatar absolute URL if coming from backend
-      if (user.avatar && !user.avatar.startsWith("http")) {
-        setAvatarPreview(`${import.meta.env.VITE_API_URL}${user.avatar}`);
-      } else {
-        setAvatarPreview(user.avatar || null);
-      }
+      const avatarUrl =
+        user.avatar && !user.avatar.startsWith("http")
+          ? `${import.meta.env.VITE_API_URL}${user.avatar}`
+          : user.avatar || null;
+      setForm({
+        name: user.name || "",
+        avatarFile: null,
+        avatarPreview: avatarUrl,
+      });
     }
   }, [user]);
 
+  // Handle file change
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
+    setForm((prev) => ({
+      ...prev,
+      avatarFile: file,
+      avatarPreview: URL.createObjectURL(file),
+    }));
   };
 
+  // Cancel changes
+  const handleCancel = () => {
+    if (user) {
+      const avatarUrl =
+        user.avatar && !user.avatar.startsWith("http")
+          ? `${import.meta.env.VITE_API_URL}${user.avatar}`
+          : user.avatar || null;
+      setForm({
+        name: user.name || "",
+        avatarFile: null,
+        avatarPreview: avatarUrl,
+      });
+      setMessage("");
+    }
+  };
+
+  // Submit changes
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim()) {
-      setMessage("Please enter a name");
-      return;
-    }
+    if (!form.name.trim()) return setMessage("Please enter a name");
 
     setLoading(true);
     setMessage("");
 
     try {
-      const formData = new FormData();
-      formData.append("name", name.trim());
-      if (avatarFile) formData.append("avatar", avatarFile);
+      const data = new FormData();
+      data.append("name", form.name.trim());
+      if (form.avatarFile) data.append("avatar", form.avatarFile);
 
-      const res = await privateApi.put("/me", formData);
-
-      // Ensure avatar URL is absolute
+      const res = await privateApi.put("/me", data);
       let updatedUser = res.data.user;
       if (updatedUser.avatar && !updatedUser.avatar.startsWith("http")) {
         updatedUser.avatar = `${import.meta.env.VITE_API_URL}${updatedUser.avatar}`;
       }
 
       setUser(updatedUser);
+      setForm((prev) => ({ ...prev, avatarFile: null }));
       setMessage(res.data.message || "Profile updated!");
-      setAvatarFile(null);
     } catch (err) {
       setMessage(err.response?.data?.error || "Failed to update profile");
     } finally {
@@ -64,36 +83,35 @@ export default function Profile() {
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (avatarPreview?.startsWith("blob:")) {
-        URL.revokeObjectURL(avatarPreview);
-      }
-    };
-  }, [avatarPreview]);
+  // Revoke preview URL on unmount
+  useEffect(
+    () => () => {
+      form.avatarPreview?.startsWith("blob:") &&
+        URL.revokeObjectURL(form.avatarPreview);
+    },
+    [form.avatarPreview],
+  );
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.heading}>Edit Profile</h2>
-
+        <h2>Edit Profile</h2>
         <form onSubmit={handleSubmit} style={styles.form}>
-          {/* Avatar Section */}
+          {/* Avatar */}
           <div style={styles.avatarSection}>
             <div style={styles.avatarWrapper}>
-              {avatarPreview ? (
+              {form.avatarPreview ? (
                 <img
-                  src={avatarPreview}
+                  src={form.avatarPreview}
                   alt="Avatar"
                   style={styles.avatarImg}
                 />
               ) : (
                 <div style={styles.avatarPlaceholder}>
-                  {name.charAt(0).toUpperCase()}
+                  {form.name.charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
-
             <div>
               <label style={styles.label}>Change Photo</label>
               <input
@@ -106,13 +124,13 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Name Input */}
+          {/* Name */}
           <div style={styles.inputGroup}>
             <label style={styles.label}>Name</label>
             <input
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="Your name"
               style={styles.inputField}
             />
@@ -134,17 +152,26 @@ export default function Profile() {
             </div>
           )}
 
-          {/* Submit */}
-          <button type="submit" disabled={loading} style={styles.saveButton}>
-            {loading ? "Saving..." : "Save Changes"}
-          </button>
+          {/* Buttons */}
+          <div style={{ display: "flex", gap: 12 }}>
+            <button type="submit" disabled={loading} style={styles.saveButton}>
+              {loading ? "Saving..." : "Save Changes"}
+            </button>
+            <button
+              type="button"
+              onClick={handleCancel}
+              style={styles.cancelButton}
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       </div>
     </div>
   );
 }
 
-// Styles
+// Styles (unchanged except added cancelButton)
 const styles = {
   container: {
     display: "flex",
@@ -161,7 +188,6 @@ const styles = {
     width: "100%",
     maxWidth: 500,
   },
-  heading: { marginBottom: 20 },
   form: { display: "flex", flexDirection: "column", gap: 20 },
   avatarSection: { display: "flex", alignItems: "center", gap: 20 },
   avatarWrapper: {
@@ -191,9 +217,21 @@ const styles = {
   },
   message: { padding: 12, borderRadius: 8 },
   saveButton: {
+    flex: 1,
     padding: 14,
     background: "#10b981",
     color: "white",
+    border: "none",
+    borderRadius: 8,
+    fontSize: 16,
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+  cancelButton: {
+    flex: 1,
+    padding: 14,
+    background: "#e5e7eb",
+    color: "#374151",
     border: "none",
     borderRadius: 8,
     fontSize: 16,
