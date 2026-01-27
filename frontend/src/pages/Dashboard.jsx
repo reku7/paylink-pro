@@ -198,7 +198,7 @@ const styles = {
     bottom: "70px",
     left: 0,
     width: "100%",
-    background: "#fff",
+    background: "#18d1a9",
     color: "#111827",
     borderRadius: "12px",
     boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
