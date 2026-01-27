@@ -1,11 +1,26 @@
-// Dashboard.js
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { clearAuthToken } from "../utils/auth";
+import { useState, useEffect } from "react";
+import { clearAuthToken, getAuthToken } from "../utils/auth";
+import { privateApi } from "../api/api";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  // Fetch logged-in user
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await privateApi.get("/me");
+        setUser(res.data.user);
+      } catch (err) {
+        console.error("Failed to fetch user:", err);
+      }
+    };
+
+    if (getAuthToken()) fetchUser();
+  }, []);
 
   const handleLogout = () => {
     clearAuthToken();
@@ -33,9 +48,22 @@ export default function Dashboard() {
           </Link>
         </nav>
 
-        <button onClick={handleLogout} style={styles.logoutButton}>
-          Logout
-        </button>
+        {/* Profile at bottom */}
+        {user && (
+          <div style={styles.profileContainer}>
+            <img
+              src={user.avatar || "https://i.pravatar.cc/40"} // fallback avatar
+              alt="Profile"
+              style={styles.avatar}
+            />
+            <div style={styles.profileInfo}>
+              <span style={styles.name}>{user.name || user.email}</span>
+              <button onClick={handleLogout} style={styles.logoutButton}>
+                Logout
+              </button>
+            </div>
+          </div>
+        )}
       </aside>
 
       {/* Main Content */}
@@ -63,24 +91,26 @@ const styles = {
     padding: "40px 20px",
     display: "flex",
     flexDirection: "column",
-    position: "sticky", // make it stick in viewport
+    position: "sticky",
     top: 0,
     height: "100vh",
-    overflowY: "auto", // scroll if content exceeds viewport
+    overflowY: "auto",
   },
 
   brand: {
     fontSize: 32,
     fontWeight: 800,
-    marginBottom: "20px", // reduce gap here
+    marginBottom: "20px",
     flexShrink: 0,
   },
+
   nav: {
     display: "flex",
     flexDirection: "column",
-    gap: "12px", // slightly tighter between links
+    gap: "12px",
     flexShrink: 0,
   },
+
   link: {
     color: "#ecfdf5",
     textDecoration: "none",
@@ -89,24 +119,50 @@ const styles = {
     fontWeight: 500,
     transition: "background 0.3s",
   },
-  logoutButton: {
-    marginTop: "auto",
+
+  profileContainer: {
+    marginTop: "auto", // push it to bottom
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    background: "rgba(255,255,255,0.1)",
     padding: "12px",
     borderRadius: "12px",
+  },
+
+  avatar: {
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
+  },
+
+  profileInfo: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "4px",
+  },
+
+  name: {
+    fontWeight: 600,
+    fontSize: "14px",
+  },
+
+  logoutButton: {
+    padding: "6px 12px",
+    borderRadius: "8px",
     border: "none",
     backgroundColor: "#059669",
     color: "#fff",
     fontWeight: 600,
     cursor: "pointer",
-    transition: "background 0.3s",
-    position: "sticky", // stick it at bottom
-    bottom: "40px", // spacing from bottom
+    fontSize: "12px",
   },
 
   main: {
     flex: 1,
     padding: "40px",
   },
+
   panel: {
     background: "#fff",
     borderRadius: "16px",
