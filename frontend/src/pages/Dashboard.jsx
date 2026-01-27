@@ -1,11 +1,13 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { clearAuthToken, getAuthToken } from "../utils/auth";
 import { privateApi } from "../api/api";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const profileRef = useRef(null);
 
   // Fetch logged-in user
   useEffect(() => {
@@ -21,6 +23,17 @@ export default function Dashboard() {
     if (getAuthToken()) fetchUser();
   }, []);
 
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleLogout = () => {
     clearAuthToken();
     navigate("/login");
@@ -28,7 +41,6 @@ export default function Dashboard() {
 
   return (
     <div style={styles.page}>
-      {/* Sidebar */}
       <aside style={styles.sidebar}>
         <h2 style={styles.brand}>PayFlow</h2>
 
@@ -47,31 +59,45 @@ export default function Dashboard() {
           </Link>
         </nav>
 
-        {/* Profile section */}
         {user && (
-          <div style={styles.profileContainer}>
-            {user.avatar ? (
-              <img src={user.avatar} alt="Profile" style={styles.avatar} />
-            ) : (
-              <div style={styles.avatarFallback}>
-                {user.email.charAt(0).toUpperCase()}
+          <div ref={profileRef} style={styles.profileWrapper}>
+            <div
+              style={styles.profileButton}
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              {user.avatar ? (
+                <img src={user.avatar} alt="Profile" style={styles.avatar} />
+              ) : (
+                <div style={styles.avatarFallback}>
+                  {user.email.charAt(0).toUpperCase()}
+                </div>
+              )}
+
+              <div style={styles.profileInfo}>
+                <span style={styles.name}>
+                  {user.name || user.email.split("@")[0]}
+                </span>
+                <span style={styles.email}>{user.email}</span>
+              </div>
+            </div>
+
+            {menuOpen && (
+              <div style={styles.dropdown}>
+                <button
+                  style={styles.dropdownItem}
+                  onClick={() => navigate("/dashboard/profile")}
+                >
+                  ✏️ Edit Profile
+                </button>
+                <button style={styles.dropdownItem} onClick={handleLogout}>
+                  🚪 Logout
+                </button>
               </div>
             )}
-
-            <div style={styles.profileInfo}>
-              <span style={styles.name}>
-                {user.name || user.email.split("@")[0]}
-              </span>
-              <span style={styles.email}>{user.email}</span>
-              <button onClick={handleLogout} style={styles.logoutButton}>
-                Logout
-              </button>
-            </div>
           </div>
         )}
       </aside>
 
-      {/* Main Content */}
       <main style={styles.main}>
         <div style={styles.panel}>
           <Outlet />
@@ -96,8 +122,6 @@ const styles = {
     padding: "40px 20px",
     display: "flex",
     flexDirection: "column",
-    position: "sticky",
-    top: 0,
     height: "100vh",
   },
 
@@ -121,64 +145,75 @@ const styles = {
     fontWeight: 500,
   },
 
-  profileContainer: {
+  profileWrapper: {
     marginTop: "auto",
+    position: "relative",
+  },
+
+  profileButton: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
+    gap: "10px",
     background: "rgba(255,255,255,0.12)",
     padding: "12px",
-    borderRadius: "14px",
+    borderRadius: "12px",
+    cursor: "pointer",
   },
 
   avatar: {
-    width: "44px",
-    height: "44px",
+    width: "40px",
+    height: "40px",
     borderRadius: "50%",
-    objectFit: "cover",
   },
 
   avatarFallback: {
-    width: "44px",
-    height: "44px",
+    width: "40px",
+    height: "40px",
     borderRadius: "50%",
     backgroundColor: "#10b981",
-    color: "#ffffff",
+    color: "#fff",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontWeight: 800,
-    fontSize: "18px",
   },
 
   profileInfo: {
     display: "flex",
     flexDirection: "column",
-    gap: "4px",
   },
 
   name: {
-    fontWeight: 700,
+    fontWeight: 600,
     fontSize: "14px",
   },
 
   email: {
     fontSize: "12px",
-    color: "#d1fae5",
-    opacity: 0.85,
+    opacity: 0.8,
   },
 
-  logoutButton: {
-    marginTop: "6px",
-    padding: "6px 10px",
-    borderRadius: "8px",
+  dropdown: {
+    position: "absolute",
+    bottom: "70px",
+    left: 0,
+    width: "100%",
+    background: "#fff",
+    color: "#111827",
+    borderRadius: "12px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
+    overflow: "hidden",
+    zIndex: 10,
+  },
+
+  dropdownItem: {
+    width: "100%",
+    padding: "12px",
     border: "none",
-    backgroundColor: "#059669",
-    color: "#fff",
-    fontWeight: 600,
+    background: "none",
+    textAlign: "left",
     cursor: "pointer",
-    fontSize: "12px",
-    width: "fit-content",
+    fontWeight: 500,
   },
 
   main: {
@@ -190,7 +225,6 @@ const styles = {
     background: "#fff",
     borderRadius: "16px",
     padding: "30px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
     minHeight: "calc(100vh - 80px)",
   },
 };
