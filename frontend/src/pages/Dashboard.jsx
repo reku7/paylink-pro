@@ -143,6 +143,11 @@ const styles = {
     padding: "10px 12px",
     borderRadius: "8px",
     fontWeight: 500,
+    transition: "background 0.2s",
+  },
+
+  linkHover: {
+    background: "rgba(255,255,255,0.1)",
   },
 
   profileWrapper: {
@@ -158,6 +163,7 @@ const styles = {
     padding: "12px",
     borderRadius: "12px",
     cursor: "pointer",
+    transition: "background 0.2s",
   },
 
   avatar: {
@@ -198,8 +204,8 @@ const styles = {
     bottom: "70px",
     left: 0,
     width: "100%",
-    background: "#18d1a9",
-    color: "#111827",
+    background: "#059669", // Emerald green (matches sidebar feel)
+    color: "#ffffff", // white text for contrast
     borderRadius: "12px",
     boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
     overflow: "hidden",
@@ -214,6 +220,12 @@ const styles = {
     textAlign: "left",
     cursor: "pointer",
     fontWeight: 500,
+    color: "#fff",
+    transition: "background 0.2s",
+  },
+
+  dropdownItemHover: {
+    background: "rgba(255,255,255,0.1)",
   },
 
   main: {
