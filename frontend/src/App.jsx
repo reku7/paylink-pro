@@ -22,7 +22,7 @@ import Profile from "./pages/profile/Profile.jsx";
 
 // CONTEXTS
 import { GatewayProvider } from "./context/GatewayContext.jsx";
-import { UserProvider } from "./context/UserContext.jsx";
+import { UserProvider } from "./context/userContext.jsx";
 
 export default function App() {
   return (
