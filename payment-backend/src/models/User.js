@@ -13,10 +13,15 @@ const UserSchema = new mongoose.Schema(
     },
     passwordHash: { type: String, required: true },
     roles: { type: [String], default: ["merchant_owner"] },
+    avatar: {
+      type: String,
+      default: null,
+    },
+
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.models.User || mongoose.model("User", UserSchema);

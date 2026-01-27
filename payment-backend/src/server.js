@@ -16,6 +16,7 @@ import gatewayRoutes from "./routes/gatewayRoutes.js";
 import paymentLinkRoutes from "./routes/paymentLinkRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 // Middleware
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -104,9 +105,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 // User info
-app.get("/api/me", authMiddleware, (req, res) => {
-  res.json({ user: req.user });
-});
+app.use("/api", userRoutes);
 
 // Admin test
 app.get(
