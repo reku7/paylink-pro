@@ -1,14 +1,15 @@
 import User from "../models/User.js";
+import fs from "fs";
+import path from "path";
 
+// GET /me
 export async function getMe(req, res) {
   try {
     const user = await User.findById(req.user.id).select(
-      "name email avatar roles",
+      "name avatar roles email",
     );
 
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    if (!user) return res.status(404).json({ error: "User not found" });
 
     res.json({ user });
   } catch (err) {
@@ -17,22 +18,33 @@ export async function getMe(req, res) {
   }
 }
 
+// PUT /me
 export async function updateMe(req, res) {
   try {
     const { name } = req.body;
+    const updateData = {};
 
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { name },
-      { new: true },
-    ).select("name email avatar roles");
+    if (name) updateData.name = name;
 
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+    // Handle avatar upload
+    if (req.file) {
+      const avatarPath = `/uploads/avatars/${req.file.filename}`;
+      updateData.avatar = avatarPath;
+
+      // delete old avatar if exists
+      const user = await User.findById(req.user.id);
+      if (user?.avatar) {
+        const oldPath = path.join(process.cwd(), "public", user.avatar);
+        fs.unlink(oldPath, () => {});
+      }
     }
 
+    const updatedUser = await User.findByIdAndUpdate(req.user.id, updateData, {
+      new: true,
+    }).select("name avatar roles email");
+
     res.json({
-      user,
+      user: updatedUser,
       message: "Profile updated successfully",
     });
   } catch (err) {
