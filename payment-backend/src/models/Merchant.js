@@ -27,8 +27,12 @@ const merchantSchema = new mongoose.Schema(
         content: { type: String, default: null },
         tag: { type: String, default: null },
       },
+      apiKeyHash: {
+        type: String,
+        index: true,
+        sparse: true, // allows null when disconnected
+      },
     },
-    apiKeyHash: { type: String, index: true },
 
     preferredGateway: {
       type: String,
