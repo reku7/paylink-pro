@@ -19,6 +19,7 @@ import PublicCancel from "./pages/PublicCancel.jsx";
 import ConnectChapaPage from "./pages/ConnectChapaPage.jsx";
 import PaymentGatewaysPage from "./pages/PaymentGatewaysPage.jsx"; // NEW
 import { GatewayProvider } from "./context/GatewayContext.jsx";
+import Profile from "./pages/profile/Profile.jsx";
 
 export default function App() {
   return (
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="create-link" element={<CreateLinkPage />} />
         <Route path="settings/payments" element={<PaymentGatewaysPage />} />
         <Route path="connect-chapa" element={<ConnectChapaPage />} />
+        <Route path="profile" element={<Profile />} />
       </Route>
     </Routes>
   );
