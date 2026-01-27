@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { privateApi } from "../../api/api";
-import { useUser } from "../../context/UserContext";
+import { useUser } from "../../context/userContext";
 
 export default function Profile() {
   const { user, setUser } = useUser();
