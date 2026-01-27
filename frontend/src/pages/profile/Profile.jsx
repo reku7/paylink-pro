@@ -64,6 +64,14 @@ export default function Profile() {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      if (avatarPreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+    };
+  }, [avatarPreview]);
+
   return (
     <div style={styles.container}>
       <div style={styles.card}>
