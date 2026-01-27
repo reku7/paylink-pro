@@ -132,7 +132,7 @@ const styles = {
     background: "#f9fafb",
   },
   card: {
-    width: "100%",
+    width: "auto", // change from 100% to auto
     maxWidth: "800px",
     padding: "30px",
     borderRadius: "16px",
@@ -142,7 +142,9 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: "20px",
+    margin: "0 auto", // ensures horizontal centering
   },
+
   title: {
     fontSize: "2.5rem",
     fontWeight: 800,
