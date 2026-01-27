@@ -1,27 +1,13 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { clearAuthToken, getAuthToken } from "../utils/auth";
-import { privateApi } from "../api/api";
+import { clearAuthToken } from "../utils/auth";
+import { useUser } from "../context/userContext";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user } = useUser(); // ✅ GLOBAL USER
   const [menuOpen, setMenuOpen] = useState(false);
   const profileRef = useRef(null);
-
-  // Fetch logged-in user
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await privateApi.get("/me");
-        setUser(res.data.user);
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-      }
-    };
-
-    if (getAuthToken()) fetchUser();
-  }, []);
 
   // Close dropdown on outside click
   useEffect(() => {

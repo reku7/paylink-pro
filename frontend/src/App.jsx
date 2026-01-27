@@ -17,9 +17,12 @@ import PublicSuccess from "./pages/PublicSuccess.jsx";
 import PublicFailed from "./pages/PublicFailed.jsx";
 import PublicCancel from "./pages/PublicCancel.jsx";
 import ConnectChapaPage from "./pages/ConnectChapaPage.jsx";
-import PaymentGatewaysPage from "./pages/PaymentGatewaysPage.jsx"; // NEW
-import { GatewayProvider } from "./context/GatewayContext.jsx";
+import PaymentGatewaysPage from "./pages/PaymentGatewaysPage.jsx";
 import Profile from "./pages/profile/Profile.jsx";
+
+// CONTEXTS
+import { GatewayProvider } from "./context/GatewayContext.jsx";
+import { UserProvider } from "./context/UserContext.jsx";
 
 export default function App() {
   return (
@@ -43,9 +46,11 @@ export default function App() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <GatewayProvider>
-              <Dashboard />
-            </GatewayProvider>
+            <UserProvider>
+              <GatewayProvider>
+                <Dashboard />
+              </GatewayProvider>
+            </UserProvider>
           </ProtectedRoute>
         }
       >
