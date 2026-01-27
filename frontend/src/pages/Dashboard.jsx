@@ -1,11 +1,11 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { clearAuthToken } from "../utils/auth";
-import { useUser } from "../context/userContext";
+import { useUser } from "../context/UserContext";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useUser(); // ✅ GLOBAL USER
+  const { user, setUser } = useUser();
   const [menuOpen, setMenuOpen] = useState(false);
   const profileRef = useRef(null);
 
@@ -27,6 +27,7 @@ export default function Dashboard() {
 
   return (
     <div style={styles.page}>
+      {/* Sidebar */}
       <aside style={styles.sidebar}>
         <h2 style={styles.brand}>PayFlow</h2>
 
@@ -45,20 +46,31 @@ export default function Dashboard() {
           </Link>
         </nav>
 
+        {/* Profile Section */}
         {user && (
           <div ref={profileRef} style={styles.profileWrapper}>
             <div
               style={styles.profileButton}
               onClick={() => setMenuOpen(!menuOpen)}
             >
+              {/* Avatar */}
               {user.avatar ? (
-                <img src={user.avatar} alt="Profile" style={styles.avatar} />
+                <img
+                  src={
+                    user.avatar.startsWith("http")
+                      ? user.avatar
+                      : `${import.meta.env.VITE_API_URL}${user.avatar}`
+                  }
+                  alt="Profile"
+                  style={styles.avatar}
+                />
               ) : (
                 <div style={styles.avatarFallback}>
-                  {user.email.charAt(0).toUpperCase()}
+                  {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                 </div>
               )}
 
+              {/* Name and Email */}
               <div style={styles.profileInfo}>
                 <span style={styles.name}>
                   {user.name || user.email.split("@")[0]}
@@ -67,6 +79,7 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {/* Dropdown Menu */}
             {menuOpen && (
               <div style={styles.dropdown}>
                 <button
@@ -84,6 +97,7 @@ export default function Dashboard() {
         )}
       </aside>
 
+      {/* Main Panel */}
       <main style={styles.main}>
         <div style={styles.panel}>
           <Outlet />
@@ -93,6 +107,7 @@ export default function Dashboard() {
   );
 }
 
+// Styles
 const styles = {
   page: {
     display: "flex",
@@ -100,110 +115,69 @@ const styles = {
     fontFamily: "'Inter', sans-serif",
     background: "#f9fafb",
   },
-
   sidebar: {
-    width: "240px",
+    width: 240,
     background: "linear-gradient(135deg, #117c60 0%, #022c22 100%)",
     color: "#ecfdf5",
     padding: "40px 20px",
     display: "flex",
     flexDirection: "column",
-    position: "sticky", // make it stick in viewport
+    position: "sticky",
     top: 0,
     height: "100vh",
-    overflowY: "auto", // scroll if content exceeds viewport
+    overflowY: "auto",
   },
-
-  brand: {
-    fontSize: 32,
-    fontWeight: 800,
-    marginBottom: "20px",
-  },
-
-  nav: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-  },
-
+  brand: { fontSize: 32, fontWeight: 800, marginBottom: 20 },
+  nav: { display: "flex", flexDirection: "column", gap: 12 },
   link: {
     color: "#ecfdf5",
     textDecoration: "none",
     padding: "10px 12px",
-    borderRadius: "8px",
+    borderRadius: 8,
     fontWeight: 500,
     transition: "background 0.2s",
   },
-
-  linkHover: {
-    background: "rgba(255,255,255,0.1)",
-  },
-
-  profileWrapper: {
-    marginTop: "auto",
-    position: "relative",
-  },
-
+  profileWrapper: { marginTop: "auto", position: "relative" },
   profileButton: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
+    gap: 12,
     background: "rgba(255,255,255,0.12)",
-    padding: "12px",
-    borderRadius: "12px",
+    padding: 12,
+    borderRadius: 12,
     cursor: "pointer",
     transition: "background 0.2s",
   },
-
-  avatar: {
-    width: "40px",
-    height: "40px",
-    borderRadius: "50%",
-  },
-
+  avatar: { width: 50, height: 50, borderRadius: "50%" },
   avatarFallback: {
-    width: "40px",
-    height: "40px",
+    width: 50,
+    height: 50,
     borderRadius: "50%",
     backgroundColor: "#10b981",
     color: "#fff",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontWeight: 800,
+    fontWeight: 700,
   },
-
-  profileInfo: {
-    display: "flex",
-    flexDirection: "column",
-  },
-
-  name: {
-    fontWeight: 600,
-    fontSize: "14px",
-  },
-
-  email: {
-    fontSize: "12px",
-    opacity: 0.8,
-  },
-
+  profileInfo: { display: "flex", flexDirection: "column" },
+  name: { fontWeight: 600, fontSize: 14 },
+  email: { fontSize: 12, opacity: 0.8 },
   dropdown: {
     position: "absolute",
-    bottom: "70px",
+    bottom: 70,
     left: 0,
     width: "100%",
-    background: "#059669", // Emerald green (matches sidebar feel)
-    color: "#ffffff", // white text for contrast
-    borderRadius: "12px",
+    background: "#059669",
+    color: "#ffffff",
+    borderRadius: 12,
     boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
     overflow: "hidden",
     zIndex: 10,
   },
-
   dropdownItem: {
     width: "100%",
-    padding: "12px",
+    padding: 12,
     border: "none",
     background: "none",
     textAlign: "left",
@@ -212,20 +186,11 @@ const styles = {
     color: "#fff",
     transition: "background 0.2s",
   },
-
-  dropdownItemHover: {
-    background: "rgba(255,255,255,0.1)",
-  },
-
-  main: {
-    flex: 1,
-    padding: "40px",
-  },
-
+  main: { flex: 1, padding: 40 },
   panel: {
     background: "#fff",
-    borderRadius: "16px",
-    padding: "30px",
+    borderRadius: 16,
+    padding: 30,
     minHeight: "calc(100vh - 80px)",
   },
 };
