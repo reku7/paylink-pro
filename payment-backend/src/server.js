@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
+import path from "path";
 
 import connectDB from "./config/db.js";
 import { startReconciliationJob } from "./jobs/reconciliation.job.js";
@@ -25,6 +26,8 @@ import requireRole from "./middleware/roleMiddleware.js";
 import { ROLES } from "./constants/roles.js";
 
 const app = express();
+
+app.use("/uploads", express.static(path.join(process.cwd(), "public/uploads")));
 
 /* =======================
    CORS

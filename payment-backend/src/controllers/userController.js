@@ -27,6 +27,7 @@ export async function updateMe(req, res) {
     if (name) updateData.name = name;
 
     // Handle avatar upload
+    // Handle avatar upload
     if (req.file) {
       const avatarPath = `/uploads/avatars/${req.file.filename}`;
       updateData.avatar = avatarPath;
@@ -35,7 +36,9 @@ export async function updateMe(req, res) {
       const user = await User.findById(req.user.id);
       if (user?.avatar) {
         const oldPath = path.join(process.cwd(), "public", user.avatar);
-        fs.unlink(oldPath, () => {});
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+        }
       }
     }
 
