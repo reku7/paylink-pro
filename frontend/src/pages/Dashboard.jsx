@@ -2,7 +2,6 @@ import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { clearAuthToken } from "../utils/auth";
 import { useUser } from "../context/userContext";
-import { getAvatarUrl } from "../utils/avatarUrl";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -57,19 +56,22 @@ export default function Dashboard() {
               {/* Avatar */}
               {user.avatar ? (
                 <img
-                  src={getAvatarUrl(user.avatar)}
+                  src={user.avatar} // ✅ already normalized in UserContext
                   alt="Profile"
                   style={styles.avatar}
                 />
               ) : (
                 <div style={styles.avatarFallback}>
-                  {user.email.charAt(0).toUpperCase()}
+                  {user.name?.charAt(0)?.toUpperCase() ||
+                    user.email.charAt(0).toUpperCase()}
                 </div>
               )}
 
-              {/* Email only */}
+              {/* Name + Email */}
               <div style={styles.profileInfo}>
-                <span style={styles.name}>{user.email.split("@")[0]}</span>
+                <span style={styles.name}>
+                  {user.name || user.email.split("@")[0]}
+                </span>
                 <span style={styles.email}>{user.email}</span>
               </div>
             </div>

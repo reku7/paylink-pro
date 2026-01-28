@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { privateApi } from "../../api/api";
 import { useUser } from "../../context/userContext";
-import { getAvatarUrl } from "../../utils/avatarUrl";
 
 export default function Profile({ onCancel }) {
   const { user, setUser } = useUser();
@@ -18,7 +17,7 @@ export default function Profile({ onCancel }) {
     if (!user) return;
 
     setName(user.name || "");
-    setAvatarPreview(getAvatarUrl(user.avatar));
+    setAvatarPreview(user.avatar || null); // ✅ use normalized avatar from context
   }, [user]);
 
   /* =======================
@@ -37,7 +36,7 @@ export default function Profile({ onCancel }) {
   ======================= */
   const handleCancel = () => {
     setName(user?.name || "");
-    setAvatarPreview(getAvatarUrl(user?.avatar));
+    setAvatarPreview(user?.avatar || null); // ✅ reset to context avatar
     setAvatarFile(null);
     setMessage("");
     onCancel?.();
@@ -63,12 +62,9 @@ export default function Profile({ onCancel }) {
       if (avatarFile) formData.append("avatar", avatarFile);
 
       const res = await privateApi.put("/me", formData);
-      let updatedUser = res.data.user;
 
-      // ✅ Fix avatar URL after update
-      updatedUser.avatar = getAvatarUrl(updatedUser.avatar);
-
-      setUser(updatedUser);
+      // ✅ directly use the returned avatar (already relative path)
+      setUser(res.data.user);
       setAvatarFile(null);
       setMessage(res.data.message || "Profile updated successfully!");
     } catch (err) {
