@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { privateApi } from "../../api/api";
 import { useUser } from "../../context/userContext";
 
 export default function Profile({ onCancel }) {
+  const navigate = useNavigate(); // ✅ initialize navigate
   const { user, setUser } = useUser();
   const [name, setName] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
@@ -36,9 +38,14 @@ export default function Profile({ onCancel }) {
   ======================= */
   const handleCancel = () => {
     setName(user?.name || "");
-    setAvatarPreview(user?.avatar || null); // ✅ reset to context avatar
+    setAvatarPreview(getAvatarUrl(user?.avatar));
     setAvatarFile(null);
     setMessage("");
+
+    // navigate back to previous page (Dashboard)
+    navigate(-1);
+
+    // optional: call onCancel if parent passed it
     onCancel?.();
   };
 
