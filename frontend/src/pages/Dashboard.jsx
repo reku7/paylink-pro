@@ -114,24 +114,18 @@ const styles = {
   },
 
   sidebar: {
-    width: 240,
+    width: "240px",
     background: "linear-gradient(135deg, #117c60 0%, #022c22 100%)",
     color: "#ecfdf5",
     padding: "40px 20px",
     display: "flex",
     flexDirection: "column",
-    position: "fixed", // <-- change sticky → fixed
+    position: "sticky", // make it stick in viewport
     top: 0,
-    left: 0,
     height: "100vh",
-    overflowY: "auto",
+    overflowY: "auto", // scroll if content exceeds viewport
   },
 
-  main: {
-    marginLeft: 240, // <-- push content right of sidebar
-    flex: 1,
-    padding: 40,
-  },
   brand: { fontSize: 32, fontWeight: 800, marginBottom: 20 },
   nav: { display: "flex", flexDirection: "column", gap: 12 },
   link: {
