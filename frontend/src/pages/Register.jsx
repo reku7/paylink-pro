@@ -232,7 +232,11 @@ function Input({ label, type = "text", value, onChange }) {
 
 /* ---------- Styles ---------- */
 const styles = {
-  page: { minHeight: "100vh", display: "grid", gridTemplateColumns: "1fr 1fr" },
+  page: {
+    minHeight: "100vh",
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+  },
   left: {
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
@@ -249,35 +253,46 @@ const styles = {
     lineHeight: 1.9,
   },
   trust: { fontSize: 14, color: "#99f6e4" },
-  right: { background: "#ffffff", padding: "64px", overflowY: "auto" },
-  formWrapper: { maxWidth: 500, margin: "0 auto" },
-  header: { marginBottom: 32 },
-  subHeader: { color: "#6b7280", marginTop: 4 },
+
+  right: {
+    background: "#ffffff",
+    padding: "64px",
+    overflowY: "auto",
+  },
+  formWrapper: {
+    maxWidth: 600, // <-- increased width
+    margin: "0 auto",
+  },
+  header: { marginBottom: 24 }, // reduce spacing
+  subHeader: { color: "#6b7280", marginTop: 2 }, // tighter spacing
   error: {
     background: "#fef2f2",
     color: "#991b1b",
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 20,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
   },
-  formGrid: { display: "grid", gap: 24 },
+
+  formGrid: { display: "grid", gap: 16 }, // reduced vertical gap
   section: {
-    marginBottom: 24,
-    paddingBottom: 16,
+    marginBottom: 16,
+    paddingBottom: 8,
     borderBottom: "1px solid #e5e7eb",
-  },
-  sectionTitle: { fontWeight: 700, marginBottom: 12 },
-  row: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 },
-  field: { marginBottom: 16 },
-  label: { display: "block", marginBottom: 6, fontWeight: 500 },
+  }, // tighter section
+  sectionTitle: { fontWeight: 700, marginBottom: 8 },
+  row: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }, // tighter row spacing
+  field: { marginBottom: 12 },
+  label: { display: "block", marginBottom: 4, fontWeight: 500 },
   input: {
     width: "100%",
-    padding: 12,
+    padding: 14, // slightly taller input
     paddingRight: 40,
     borderRadius: 8,
     border: "1px solid #ccc",
     boxSizing: "border-box",
+    fontSize: 14,
   },
+
   button: {
     padding: 16,
     background: "#059669",
@@ -294,5 +309,5 @@ const styles = {
     borderRadius: 14,
     border: "none",
   },
-  login: { marginTop: 16, textAlign: "center" },
+  login: { marginTop: 12, textAlign: "center" },
 };
