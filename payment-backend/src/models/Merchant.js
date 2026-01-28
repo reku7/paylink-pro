@@ -34,15 +34,6 @@ const merchantSchema = new mongoose.Schema(
       },
     },
 
-    santimpay: {
-      connected: { type: Boolean, default: false },
-      merchantId: { type: String },
-      privateKeyEncrypted: {
-        iv: { type: String, default: null },
-        content: { type: String, default: null },
-        tag: { type: String, default: null },
-      },
-    },
     preferredGateway: {
       type: String,
       enum: ["santimpay", "chapa"],

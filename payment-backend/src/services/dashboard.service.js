@@ -227,12 +227,15 @@ export async function getGatewayStatus(merchantId) {
     };
   }
 
+  const santimPayOperational =
+    process.env.SANTIMPAY_MERCHANT_ID && process.env.SANTIMPAY_PRIVATE_KEY;
+
   return {
     santimpay: {
-      status: merchant.santimpay?.connected ? "operational" : "degraded",
-      message: merchant.santimpay?.connected
-        ? "SantimPay is connected and ready"
-        : "SantimPay not fully configured",
+      status: santimPayOperational ? "operational" : "down",
+      message: santimPayOperational
+        ? "SantimPay is configured at platform level"
+        : "SantimPay not configured at platform level",
     },
     chapa: {
       status: merchant.chapa?.connected ? "operational" : "degraded",
