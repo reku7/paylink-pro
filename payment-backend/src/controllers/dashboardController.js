@@ -3,6 +3,7 @@ import {
   getRevenueStats,
   getMerchantTransactions,
   getLinkPerformance,
+  getGatewayStatus,
 } from "../services/dashboard.service.js";
 
 export async function dashboardSummary(req, res) {
@@ -64,6 +65,15 @@ export async function linkPerformance(req, res) {
 
     const data = await getLinkPerformance(merchantId);
 
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+export async function gatewayStatus(req, res) {
+  try {
+    const data = await getGatewayStatus();
     res.json({ success: true, data });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

@@ -107,7 +107,7 @@ export async function getDashboardSummary(merchantId, { start, end } = {}) {
 
 export async function getRevenueStats(
   merchantId,
-  { from, to, group = "day" } = {}
+  { from, to, group = "day" } = {},
 ) {
   const merchantObjectId = toObjectId(merchantId);
 
@@ -148,7 +148,7 @@ export async function getRevenueStats(
 
 export async function getMerchantTransactions(
   merchantId,
-  { page = 1, limit = 20, status } = {}
+  { page = 1, limit = 20, status } = {},
 ) {
   const query = {
     merchantId: toObjectId(merchantId),
@@ -210,4 +210,25 @@ export async function getLinkPerformance(merchantId) {
       },
     },
   ]);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Gateway Status                                                              */
+/* -------------------------------------------------------------------------- */
+
+export async function getGatewayStatus() {
+  return {
+    santimpay: {
+      status: process.env.SANTIMPAY_MERCHANT_ID ? "operational" : "down",
+      message: process.env.SANTIMPAY_MERCHANT_ID
+        ? "SantimPay is configured and reachable"
+        : "SantimPay is not configured",
+    },
+    chapa: {
+      status: process.env.CHAPA_SECRET_KEY ? "operational" : "degraded",
+      message: process.env.CHAPA_SECRET_KEY
+        ? "Chapa is connected and ready"
+        : "Chapa not fully configured",
+    },
+  };
 }

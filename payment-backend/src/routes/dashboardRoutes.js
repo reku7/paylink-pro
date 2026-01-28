@@ -8,6 +8,7 @@ import {
   revenueStats,
   merchantTransactions,
   linkPerformance,
+  gatewayStatus,
 } from "../controllers/dashboardController.js";
 
 const router = express.Router();
@@ -18,7 +19,7 @@ router.get(
   "/summary",
   authMiddleware,
   requireRole([ROLES.MERCHANT_OWNER]),
-  dashboardSummary
+  dashboardSummary,
 );
 
 // GET /api/dashboard/revenue
@@ -26,7 +27,7 @@ router.get(
   "/revenue",
   authMiddleware,
   requireRole([ROLES.MERCHANT_OWNER]),
-  revenueStats
+  revenueStats,
 );
 
 // GET /api/dashboard/transactions
@@ -34,7 +35,7 @@ router.get(
   "/transactions",
   authMiddleware,
   requireRole([ROLES.MERCHANT_OWNER]),
-  merchantTransactions
+  merchantTransactions,
 );
 
 // GET /api/dashboard/links/performance
@@ -42,7 +43,15 @@ router.get(
   "/links/performance",
   authMiddleware,
   requireRole([ROLES.MERCHANT_OWNER]),
-  linkPerformance
+  linkPerformance,
+);
+
+// GET /api/dashboard/gateway-status
+router.get(
+  "/gateway-status",
+  authMiddleware,
+  requireRole([ROLES.MERCHANT_OWNER]),
+  gatewayStatus,
 );
 
 export default router;
