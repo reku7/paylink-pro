@@ -3,6 +3,18 @@ import { useState, useEffect } from "react";
 import { privateApi as api } from "../api/api";
 import { useNavigate } from "react-router-dom";
 
+function mapGateway(status) {
+  switch (status) {
+    case "operational":
+      return { label: "Operational", color: "#059669" };
+    case "degraded":
+      return { label: "Degraded", color: "#f97316" };
+    case "down":
+      return { label: "Down", color: "#dc2626" };
+    default:
+      return { label: "Unknown", color: "#6b7280" };
+  }
+}
 export default function DashboardHome() {
   const [stats, setStats] = useState({
     totalRevenue: 0,
@@ -15,6 +27,7 @@ export default function DashboardHome() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [gatewayStatus, setGatewayStatus] = useState(null);
 
   const navigate = useNavigate();
 
@@ -27,19 +40,29 @@ export default function DashboardHome() {
       setLoading(true);
       setError("");
 
-      const res = await api.get("/dashboard/summary");
-      if (res.data.success) {
+      const [summaryRes, gatewayRes] = await Promise.all([
+        api.get("/dashboard/summary"),
+        api.get("/dashboard/gateway-status"),
+      ]);
+
+      if (summaryRes.data.success) {
         setStats({
-          totalRevenue: res.data.data?.totalRevenue || 0,
-          successfulCount: res.data.data?.successfulCount || 0,
-          failedCount: res.data.data?.failedCount || 0,
-          processingCount: res.data.data?.processingCount || 0,
-          totalLinks: res.data.data?.totalLinks || 0,
-          paidLinks: res.data.data?.paidLinks || 0,
-          activeLinks: res.data.data?.activeLinks || 0,
+          totalRevenue: summaryRes.data.data?.totalRevenue || 0,
+          successfulCount: summaryRes.data.data?.successfulCount || 0,
+          failedCount: summaryRes.data.data?.failedCount || 0,
+          processingCount: summaryRes.data.data?.processingCount || 0,
+          totalLinks: summaryRes.data.data?.totalLinks || 0,
+          paidLinks: summaryRes.data.data?.paidLinks || 0,
+          activeLinks: summaryRes.data.data?.activeLinks || 0,
         });
       } else {
-        throw new Error(res.data.message || "Failed to fetch dashboard data");
+        throw new Error(
+          summaryRes.data.message || "Failed to fetch dashboard summary",
+        );
+      }
+
+      if (gatewayRes.data.success) {
+        setGatewayStatus(gatewayRes.data.data);
       }
     } catch (err) {
       console.error(err);
@@ -174,20 +197,38 @@ export default function DashboardHome() {
       </Section>
 
       {/* Gateway Status */}
+
       <Section title="Gateway Status">
         <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-          <GatewayCard
-            name="SantimPay (Type A)"
-            color="#059669"
-            status="Operational"
-            description="Primary Ethiopian payment gateway for Type A transactions"
-          />
-          <GatewayCard
-            name="Chapa (Type B Lite)"
-            color="#0d6efd"
-            status="Operational"
-            description="Fallback multi-currency gateway for Type B Lite transactions"
-          />
+          {gatewayStatus ? (
+            <>
+              {(() => {
+                const g = mapGateway(gatewayStatus.santimpay.status);
+                return (
+                  <GatewayCard
+                    name="SantimPay (Type A)"
+                    color={g.color}
+                    status={g.label}
+                    description={gatewayStatus.santimpay.message}
+                  />
+                );
+              })()}
+
+              {(() => {
+                const g = mapGateway(gatewayStatus.chapa.status);
+                return (
+                  <GatewayCard
+                    name="Chapa (Type B Lite)"
+                    color={g.color}
+                    status={g.label}
+                    description={gatewayStatus.chapa.message}
+                  />
+                );
+              })()}
+            </>
+          ) : (
+            <p style={{ color: "#666" }}>Checking gateway health…</p>
+          )}
         </div>
       </Section>
     </div>
