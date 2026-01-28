@@ -5,11 +5,11 @@ import { useUser } from "../context/userContext";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user } = useUser(); // use normalized user
   const [menuOpen, setMenuOpen] = useState(false);
   const profileRef = useRef(null);
 
-  // Close dropdown on outside click
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -46,7 +46,7 @@ export default function Dashboard() {
           </Link>
         </nav>
 
-        {/* Profile */}
+        {/* Profile Section */}
         {user && (
           <div ref={profileRef} style={styles.profileWrapper}>
             <div
@@ -55,19 +55,14 @@ export default function Dashboard() {
             >
               {/* Avatar */}
               {user.avatar ? (
-                <img
-                  src={user.avatar} // ✅ already normalized in UserContext
-                  alt="Profile"
-                  style={styles.avatar}
-                />
+                <img src={user.avatar} alt="Profile" style={styles.avatar} />
               ) : (
                 <div style={styles.avatarFallback}>
-                  {user.name?.charAt(0)?.toUpperCase() ||
-                    user.email.charAt(0).toUpperCase()}
+                  {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                 </div>
               )}
 
-              {/* Name + Email */}
+              {/* Name & Email */}
               <div style={styles.profileInfo}>
                 <span style={styles.name}>
                   {user.name || user.email.split("@")[0]}
@@ -94,7 +89,7 @@ export default function Dashboard() {
         )}
       </aside>
 
-      {/* Main */}
+      {/* Main Panel */}
       <main style={styles.main}>
         <div style={styles.panel}>
           <Outlet />
