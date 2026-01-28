@@ -108,7 +108,10 @@ function Input({ label, type = "text", value, onChange }) {
           type={inputType}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          style={{ ...styles.input, paddingRight: isPassword ? 40 : 12 }}
+          style={{
+            ...styles.input,
+            paddingRight: isPassword ? 40 : 12, // only extra padding for password
+          }}
           required
         />
         {isPassword && (
@@ -116,6 +119,7 @@ function Input({ label, type = "text", value, onChange }) {
             onClick={() => setShowPassword(!showPassword)}
             style={{
               position: "absolute",
+              right: 10,
               top: "50%",
               transform: "translateY(-50%)",
               cursor: "pointer",
@@ -126,49 +130,7 @@ function Input({ label, type = "text", value, onChange }) {
               justifyContent: "center",
             }}
           >
-            {showPassword ? (
-              // Eye icon
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                style={{ width: 20, height: 20, color: "#555" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
-              </svg>
-            ) : (
-              // Eye-slash icon
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                style={{ width: 20, height: 20, color: "#555" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.056 10.056 0 012.018-3.36m3.7-2.7A9.959 9.959 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-1.46 2.73M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3 3l18 18"
-                />
-              </svg>
-            )}
+            {/* Eye icon */}
           </span>
         )}
       </div>
