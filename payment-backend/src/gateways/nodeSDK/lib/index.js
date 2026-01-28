@@ -2,7 +2,7 @@ import axios from "axios";
 import { signES256 } from "./utils/cryptography.js";
 import { PRODUCTION_BASE_URL, TEST_BASE_URL } from "./utils/constants.js";
 export class SantimpaySdk {
-  constructor(merchantId, privateKey, testBed = false) {
+  constructor(merchantId, privateKey, testBed = true) {
     this.privateKey = privateKey;
     this.merchantId = merchantId;
     this.baseUrl = PRODUCTION_BASE_URL;
@@ -24,7 +24,7 @@ export class SantimpaySdk {
     amount,
     paymentReason,
     paymentMethod,
-    phoneNumber
+    phoneNumber,
   ) {
     const time = Math.floor(Date.now() / 1000);
     const payload = {
@@ -54,12 +54,12 @@ export class SantimpaySdk {
     failureRedirectUrl,
     notifyUrl,
     phoneNumber = "",
-    cancelRedirectUrl = ""
+    cancelRedirectUrl = "",
   ) {
     try {
       const token = this.generateSignedTokenForInitiatePayment(
         amount,
-        paymentReason
+        paymentReason,
       );
       const payload = {
         id,
@@ -82,7 +82,7 @@ export class SantimpaySdk {
       console.log(payload);
       const response = await axios.post(
         `${this.baseUrl}/initiate-payment`,
-        payload
+        payload,
 
         // {
         // headers: {
@@ -109,7 +109,7 @@ export class SantimpaySdk {
     paymentReason,
     phoneNumber,
     paymentMethod,
-    notifyUrl
+    notifyUrl,
   ) {
     try {
       const token = this.generateSignedTokenForDirectPaymentOrB2C(
@@ -117,7 +117,7 @@ export class SantimpaySdk {
         paymentReason,
         this.merchantId,
         paymentMethod,
-        phoneNumber
+        phoneNumber,
       );
       const payload = {
         id,
@@ -132,7 +132,7 @@ export class SantimpaySdk {
       };
       const response = await axios.post(
         `${this.baseUrl}/payout-transfer`,
-        payload
+        payload,
       );
       if (response.status === 200) {
         return response.data;
@@ -150,7 +150,7 @@ export class SantimpaySdk {
     amount,
     paymentReason,
     paymentMethod,
-    phoneNumber
+    phoneNumber,
   ) {
     const time = Math.floor(Date.now() / 1000);
     const payload = {
@@ -171,14 +171,14 @@ export class SantimpaySdk {
     paymentReason,
     notifyUrl,
     phoneNumber,
-    paymentMethod
+    paymentMethod,
   ) {
     try {
       const token = this.generateSignedTokenForDirectPayment(
         amount,
         paymentReason,
         paymentMethod,
-        phoneNumber
+        phoneNumber,
       );
       const payload = {
         id,
@@ -195,7 +195,7 @@ export class SantimpaySdk {
       }
       const response = await axios.post(
         `${this.baseUrl}/direct-payment`,
-        payload
+        payload,
 
         // {
         // headers: {
@@ -233,7 +233,7 @@ export class SantimpaySdk {
           id,
           merchantId: this.merchantId,
           signedToken: token,
-        }
+        },
         // {
         // headers: {
         //   Authorization: `Bearer ${this.token}`
