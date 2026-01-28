@@ -118,15 +118,14 @@ const styles = {
     width: "240px",
     background: "linear-gradient(135deg, #117c60 0%, #022c22 100%)",
     color: "#ecfdf5",
-    padding: "40px 20px",
+    padding: "40px 20px 150px 20px", // Combined padding with 150px at bottom
     display: "flex",
     flexDirection: "column",
-    position: "fixed", // Changed from sticky to fixed
+    position: "fixed",
     top: 0,
     left: 0,
-    height: "100vh", // Fixed height to viewport height
+    minHeight: "100vh", // Changed from height to minHeight
     overflowY: "auto",
-    paddingBottom: "150px",
   },
 
   brand: { fontSize: 32, fontWeight: 800, marginBottom: 20 },
