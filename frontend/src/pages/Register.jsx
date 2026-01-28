@@ -13,11 +13,15 @@ export default function Register() {
   // Merchant
   const [merchantName, setMerchantName] = useState("");
 
-  // Optional business
+  // Full business info
   const [business, setBusiness] = useState({
+    businessName: "",
     businessAddress: "",
     businessPhone: "",
     businessEmail: "",
+    businessType: "",
+    tinNumber: "",
+    fydaId: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -105,13 +109,23 @@ export default function Register() {
 
             <Section title="Merchant Details">
               <Input
-                label="Merchant / Business Name *"
+                label="Merchant Name *"
                 value={merchantName}
                 onChange={setMerchantName}
               />
             </Section>
 
             <Section title="Business Information (Optional)">
+              <Input
+                label="Business Name"
+                value={business.businessName}
+                onChange={(v) => setBusiness({ ...business, businessName: v })}
+              />
+              <Input
+                label="Business Type"
+                value={business.businessType}
+                onChange={(v) => setBusiness({ ...business, businessType: v })}
+              />
               <div style={styles.row}>
                 <Input
                   label="Business Phone"
@@ -128,7 +142,6 @@ export default function Register() {
                   }
                 />
               </div>
-
               <Input
                 label="Business Address"
                 value={business.businessAddress}
@@ -136,6 +149,18 @@ export default function Register() {
                   setBusiness({ ...business, businessAddress: v })
                 }
               />
+              <div style={styles.row}>
+                <Input
+                  label="TIN Number"
+                  value={business.tinNumber}
+                  onChange={(v) => setBusiness({ ...business, tinNumber: v })}
+                />
+                <Input
+                  label="FYDA ID"
+                  value={business.fydaId}
+                  onChange={(v) => setBusiness({ ...business, fydaId: v })}
+                />
+              </div>
             </Section>
 
             <button
@@ -180,7 +205,6 @@ function Input({ label, type = "text", value, onChange }) {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           style={{ ...styles.input, paddingRight: isPassword ? 40 : 12 }}
-          required
         />
         {isPassword && (
           <span
@@ -198,47 +222,7 @@ function Input({ label, type = "text", value, onChange }) {
               justifyContent: "center",
             }}
           >
-            {showPassword ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                style={{ width: 20, height: 20, color: "#555" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                style={{ width: 20, height: 20, color: "#555" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.056 10.056 0 012.018-3.36m3.7-2.7A9.959 9.959 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-1.46 2.73M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3 3l18 18"
-                />
-              </svg>
-            )}
+            {showPassword ? "👁" : "👁‍🗨"}
           </span>
         )}
       </div>
@@ -248,11 +232,7 @@ function Input({ label, type = "text", value, onChange }) {
 
 /* ---------- Styles ---------- */
 const styles = {
-  page: {
-    minHeight: "100vh",
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr", // <- Left & Right equal width
-  },
+  page: { minHeight: "100vh", display: "grid", gridTemplateColumns: "1fr 1fr" },
   left: {
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
@@ -269,7 +249,6 @@ const styles = {
     lineHeight: 1.9,
   },
   trust: { fontSize: 14, color: "#99f6e4" },
-
   right: { background: "#ffffff", padding: "64px", overflowY: "auto" },
   formWrapper: { maxWidth: 500, margin: "0 auto" },
   header: { marginBottom: 32 },
@@ -281,7 +260,6 @@ const styles = {
     borderRadius: 10,
     marginBottom: 20,
   },
-
   formGrid: { display: "grid", gap: 24 },
   section: {
     marginBottom: 24,
@@ -300,7 +278,6 @@ const styles = {
     border: "1px solid #ccc",
     boxSizing: "border-box",
   },
-
   button: {
     padding: 16,
     background: "#059669",
