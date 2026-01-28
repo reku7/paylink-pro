@@ -56,7 +56,7 @@ export default function Register() {
 
   return (
     <div style={styles.page}>
-      {/* LEFT */}
+      {/* LEFT — Branding */}
       <section style={styles.left}>
         <div>
           <h1 style={styles.brand}>PayFlow</h1>
@@ -76,7 +76,7 @@ export default function Register() {
         </div>
       </section>
 
-      {/* RIGHT */}
+      {/* RIGHT — Registration Form */}
       <section style={styles.right}>
         <div style={styles.formWrapper}>
           <header style={styles.header}>
@@ -87,58 +87,56 @@ export default function Register() {
           {error && <div style={styles.error}>{error}</div>}
 
           <form onSubmit={handleRegister} style={styles.formGrid}>
-            <div>
-              <Section title="Personal Information">
-                <Input label="Full Name *" value={name} onChange={setName} />
-                <Input
-                  label="Email *"
-                  type="email"
-                  value={email}
-                  onChange={setEmail}
-                />
-                <Input
-                  label="Password *"
-                  type="password"
-                  value={password}
-                  onChange={setPassword}
-                />
-              </Section>
+            <Section title="Personal Information">
+              <Input label="Full Name *" value={name} onChange={setName} />
+              <Input
+                label="Email *"
+                type="email"
+                value={email}
+                onChange={setEmail}
+              />
+              <Input
+                label="Password *"
+                type="password"
+                value={password}
+                onChange={setPassword}
+              />
+            </Section>
 
-              <Section title="Merchant Details">
-                <Input
-                  label="Merchant / Business Name *"
-                  value={merchantName}
-                  onChange={setMerchantName}
-                />
-              </Section>
+            <Section title="Merchant Details">
+              <Input
+                label="Merchant / Business Name *"
+                value={merchantName}
+                onChange={setMerchantName}
+              />
+            </Section>
 
-              <Section title="Business Information (Optional)">
-                <div style={styles.row}>
-                  <Input
-                    label="Business Phone"
-                    value={business.businessPhone}
-                    onChange={(v) =>
-                      setBusiness({ ...business, businessPhone: v })
-                    }
-                  />
-                  <Input
-                    label="Business Email"
-                    value={business.businessEmail}
-                    onChange={(v) =>
-                      setBusiness({ ...business, businessEmail: v })
-                    }
-                  />
-                </div>
-
+            <Section title="Business Information (Optional)">
+              <div style={styles.row}>
                 <Input
-                  label="Business Address"
-                  value={business.businessAddress}
+                  label="Business Phone"
+                  value={business.businessPhone}
                   onChange={(v) =>
-                    setBusiness({ ...business, businessAddress: v })
+                    setBusiness({ ...business, businessPhone: v })
                   }
                 />
-              </Section>
-            </div>
+                <Input
+                  label="Business Email"
+                  value={business.businessEmail}
+                  onChange={(v) =>
+                    setBusiness({ ...business, businessEmail: v })
+                  }
+                />
+              </div>
+
+              <Input
+                label="Business Address"
+                value={business.businessAddress}
+                onChange={(v) =>
+                  setBusiness({ ...business, businessAddress: v })
+                }
+              />
+            </Section>
 
             <button
               type="submit"
@@ -159,7 +157,6 @@ export default function Register() {
 }
 
 /* ---------- Reusable Components ---------- */
-
 function Section({ title, children }) {
   return (
     <div style={styles.section}>
@@ -182,10 +179,7 @@ function Input({ label, type = "text", value, onChange }) {
           type={inputType}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          style={{
-            ...styles.input,
-            paddingRight: isPassword ? 40 : 12, // extra space for eye icon
-          }}
+          style={{ ...styles.input, paddingRight: isPassword ? 40 : 12 }}
           required
         />
         {isPassword && (
@@ -253,14 +247,12 @@ function Input({ label, type = "text", value, onChange }) {
 }
 
 /* ---------- Styles ---------- */
-
 const styles = {
   page: {
     minHeight: "100vh",
     display: "grid",
-    gridTemplateColumns: "1fr 1.4fr",
+    gridTemplateColumns: "1fr 1fr", // <- Left & Right equal width
   },
-
   left: {
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
@@ -268,7 +260,6 @@ const styles = {
     display: "flex",
     alignItems: "center",
   },
-
   brand: { fontSize: 40, fontWeight: 800, marginBottom: 12 },
   tagline: { fontSize: 18, marginBottom: 32, color: "#a7f3d0" },
   features: {
@@ -299,18 +290,18 @@ const styles = {
   },
   sectionTitle: { fontWeight: 700, marginBottom: 12 },
   row: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 },
-  field: { marginBottom: 12 },
-  label: { display: "block", marginBottom: 6, fontSize: 14 },
+  field: { marginBottom: 16 },
+  label: { display: "block", marginBottom: 6, fontWeight: 500 },
   input: {
     width: "100%",
     padding: 12,
-    borderRadius: 10,
-    border: "1px solid #d1d5db",
+    paddingRight: 40,
+    borderRadius: 8,
+    border: "1px solid #ccc",
+    boxSizing: "border-box",
   },
 
   button: {
-    width: "100%",
-    marginTop: 16,
     padding: 16,
     background: "#059669",
     color: "#fff",
@@ -321,13 +312,10 @@ const styles = {
     cursor: "pointer",
   },
   buttonDisabled: {
-    width: "100%",
-    marginTop: 16,
     padding: 16,
     background: "#a7f3d0",
     borderRadius: 14,
     border: "none",
   },
-
-  login: { marginTop: 24, textAlign: "center" },
+  login: { marginTop: 16, textAlign: "center" },
 };
