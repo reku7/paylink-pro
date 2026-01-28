@@ -3,6 +3,7 @@
 import mongoose from "mongoose";
 import Transaction from "../models/Transaction.js";
 import PaymentLink from "../models/PaymentLink.js";
+import Merchant from "../models/Merchant.js";
 
 /* -------------------------------------------------------------------------- */
 /* Helpers                                                                     */
@@ -216,19 +217,35 @@ export async function getLinkPerformance(merchantId) {
 /* Gateway Status                                                              */
 /* -------------------------------------------------------------------------- */
 
-export async function getGatewayStatus() {
+export async function getGatewayStatus(merchantId) {
+  const merchant = await Merchant.findById(merchantId).lean();
+
+  if (!merchant) {
+    return {
+      santimpay: { status: "down", message: "Merchant not found" },
+      chapa: { status: "down", message: "Merchant not found" },
+    };
+  }
+
   return {
     santimpay: {
-      status: process.env.SANTIMPAY_MERCHANT_ID ? "operational" : "down",
-      message: process.env.SANTIMPAY_MERCHANT_ID
-        ? "SantimPay is configured and reachable"
-        : "SantimPay is not configured",
+      status:
+        merchant.preferredGateway === "santimpay" &&
+        merchant.santimpay?.connected
+          ? "operational"
+          : "degraded",
+      message:
+        merchant.preferredGateway === "santimpay" &&
+        merchant.santimpay?.connected
+          ? "SantimPay is configured and reachable"
+          : "SantimPay not fully configured",
     },
     chapa: {
-      status: process.env.CHAPA_SECRET_KEY ? "operational" : "degraded",
-      message: process.env.CHAPA_SECRET_KEY
+      status: merchant.chapa?.connected ? "operational" : "degraded",
+      message: merchant.chapa?.connected
         ? "Chapa is connected and ready"
         : "Chapa not fully configured",
     },
   };
 }
+s;

@@ -73,7 +73,8 @@ export async function linkPerformance(req, res) {
 
 export async function gatewayStatus(req, res) {
   try {
-    const data = await getGatewayStatus();
+    const merchantId = req.user.merchantId;
+    const data = await getGatewayStatus(merchantId);
     res.json({ success: true, data });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
