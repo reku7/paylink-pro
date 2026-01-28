@@ -1,7 +1,7 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { privateApi } from "../api/api";
 import { getAuthToken } from "../utils/auth";
-import { getAvatarUrl } from "../utils/avatarUrl"; // ✅ import helper
+import { getAvatarUrl } from "../utils/avatarUrl";
 
 const UserContext = createContext(null);
 
@@ -13,7 +13,7 @@ export const UserProvider = ({ children }) => {
     if (!rawUser) return null;
     return {
       ...rawUser,
-      avatar: getAvatarUrl(rawUser.avatar), // ✅ convert avatar to full URL
+      avatar: getAvatarUrl(rawUser.avatar), // always full URL
     };
   };
 
@@ -34,6 +34,11 @@ export const UserProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
+  // Fetch user once when provider mounts
+  useEffect(() => {
+    fetchUser();
+  }, []);
 
   return (
     <UserContext.Provider

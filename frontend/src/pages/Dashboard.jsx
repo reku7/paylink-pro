@@ -5,11 +5,11 @@ import { useUser } from "../context/userContext";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useUser(); // use normalized user
+  const { user, loading } = useUser(); // get user from context
   const [menuOpen, setMenuOpen] = useState(false);
   const profileRef = useRef(null);
 
-  // Close dropdown when clicking outside
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -47,7 +47,7 @@ export default function Dashboard() {
         </nav>
 
         {/* Profile Section */}
-        {user && (
+        {!loading && user && (
           <div ref={profileRef} style={styles.profileWrapper}>
             <div
               style={styles.profileButton}
@@ -62,7 +62,7 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {/* Name & Email */}
+              {/* Name and Email */}
               <div style={styles.profileInfo}>
                 <span style={styles.name}>
                   {user.name || user.email.split("@")[0]}
@@ -71,7 +71,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Dropdown */}
+            {/* Dropdown Menu */}
             {menuOpen && (
               <div style={styles.dropdown}>
                 <button
@@ -87,6 +87,11 @@ export default function Dashboard() {
             )}
           </div>
         )}
+
+        {/* Loading placeholder */}
+        {!loading && !user && (
+          <div style={{ marginTop: "auto", color: "#fff" }}>Not logged in</div>
+        )}
       </aside>
 
       {/* Main Panel */}
@@ -99,7 +104,7 @@ export default function Dashboard() {
   );
 }
 
-// Styles (unchanged)
+// Styles
 const styles = {
   page: {
     display: "flex",
