@@ -229,16 +229,10 @@ export async function getGatewayStatus(merchantId) {
 
   return {
     santimpay: {
-      status:
-        merchant.preferredGateway === "santimpay" &&
-        merchant.santimpay?.connected
-          ? "operational"
-          : "degraded",
-      message:
-        merchant.preferredGateway === "santimpay" &&
-        merchant.santimpay?.connected
-          ? "SantimPay is configured and reachable"
-          : "SantimPay not fully configured",
+      status: merchant.santimpay?.connected ? "operational" : "degraded",
+      message: merchant.santimpay?.connected
+        ? "SantimPay is connected and ready"
+        : "SantimPay not fully configured",
     },
     chapa: {
       status: merchant.chapa?.connected ? "operational" : "degraded",
@@ -248,4 +242,3 @@ export async function getGatewayStatus(merchantId) {
     },
   };
 }
-s;
