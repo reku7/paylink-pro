@@ -280,7 +280,7 @@ const styles = {
   trust: { fontSize: 14, color: "#99f6e4" },
 
   right: { background: "#ffffff", padding: "64px", overflowY: "auto" },
-  formWrapper: { maxWidth: 720, margin: "0 auto" },
+  formWrapper: { maxWidth: 500, margin: "0 auto" },
   header: { marginBottom: 32 },
   subHeader: { color: "#6b7280", marginTop: 4 },
   error: {
@@ -291,7 +291,7 @@ const styles = {
     marginBottom: 20,
   },
 
-  formGrid: { display: "grid", gap: 32 },
+  formGrid: { display: "grid", gap: 24 },
   section: {
     marginBottom: 24,
     paddingBottom: 16,
