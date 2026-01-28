@@ -150,6 +150,7 @@ const styles = {
     marginTop: "auto",
     position: "relative",
     width: "100%", // Ensure it takes full width
+    paddingBottom: 40, // ✅ creates gap below profile
   },
   profileButton: {
     display: "flex",
