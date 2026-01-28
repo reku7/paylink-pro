@@ -190,7 +190,6 @@ function Input({ label, type = "text", value, onChange }) {
             onClick={() => setShowPassword(!showPassword)}
             style={{
               position: "absolute",
-              right: 10,
               top: "50%",
               transform: "translateY(-50%)",
               cursor: "pointer",
