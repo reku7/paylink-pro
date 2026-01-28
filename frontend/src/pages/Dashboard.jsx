@@ -126,7 +126,7 @@ const styles = {
     left: 0,
     height: "100vh", // Fixed height to viewport height
     overflowY: "auto",
-    paddingBottom: "50px",
+    paddingBottom: "150px",
   },
 
   brand: { fontSize: 32, fontWeight: 800, marginBottom: 20 },
