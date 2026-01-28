@@ -216,9 +216,12 @@ const styles = {
   input: {
     width: "100%",
     padding: 12,
+    paddingRight: 40, // only if password field
     borderRadius: 8,
     border: "1px solid #ccc",
+    boxSizing: "border-box", // ensures padding is inside the width
   },
+
   button: {
     padding: 16,
     background: "#059669",
