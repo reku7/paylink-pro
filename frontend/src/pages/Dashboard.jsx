@@ -149,7 +149,7 @@ const styles = {
   profileWrapper: {
     marginTop: "auto",
     position: "relative",
-    width: "100%", // Ensure it takes full width
+    width: "80%", // Ensure it takes full width
     paddingBottom: 40, // ✅ creates gap below profile
     paddingRight: 40,
   },
