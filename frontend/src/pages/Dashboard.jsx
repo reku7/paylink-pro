@@ -112,6 +112,7 @@ const styles = {
     fontFamily: "'Inter', sans-serif",
     background: "#f9fafb",
   },
+
   sidebar: {
     width: 240,
     background: "linear-gradient(135deg, #117c60 0%, #022c22 100%)",
@@ -119,11 +120,13 @@ const styles = {
     padding: "40px 20px",
     display: "flex",
     flexDirection: "column",
-    position: "sticky",
+    position: "fixed", // <-- change sticky → fixed
     top: 0,
+    left: 0,
     height: "100vh",
     overflowY: "auto",
   },
+
   brand: { fontSize: 32, fontWeight: 800, marginBottom: 20 },
   nav: { display: "flex", flexDirection: "column", gap: 12 },
   link: {
