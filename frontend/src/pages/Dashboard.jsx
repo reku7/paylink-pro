@@ -111,6 +111,7 @@ const styles = {
     minHeight: "100vh",
     fontFamily: "'Inter', sans-serif",
     background: "#f9fafb",
+    margin: 0, // Ensure no default margins
   },
 
   sidebar: {
@@ -120,14 +121,20 @@ const styles = {
     padding: "40px 20px",
     display: "flex",
     flexDirection: "column",
-    position: "sticky", // make it stick in viewport
+    position: "fixed", // Changed from sticky to fixed
     top: 0,
-    height: "100vh",
-    overflowY: "auto", // scroll if content exceeds viewport
+    left: 0,
+    height: "100vh", // Fixed height to viewport height
+    overflowY: "auto",
   },
 
   brand: { fontSize: 32, fontWeight: 800, marginBottom: 20 },
-  nav: { display: "flex", flexDirection: "column", gap: 12 },
+  nav: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    flex: 1, // Take available space between brand and profile
+  },
   link: {
     color: "#ecfdf5",
     textDecoration: "none",
@@ -135,8 +142,15 @@ const styles = {
     borderRadius: 8,
     fontWeight: 500,
     transition: "background 0.2s",
+    "&:hover": {
+      background: "rgba(255, 255, 255, 0.1)",
+    },
   },
-  profileWrapper: { marginTop: "auto", position: "relative" },
+  profileWrapper: {
+    marginTop: "auto",
+    position: "relative",
+    width: "100%", // Ensure it takes full width
+  },
   profileButton: {
     display: "flex",
     alignItems: "center",
@@ -146,6 +160,10 @@ const styles = {
     borderRadius: 12,
     cursor: "pointer",
     transition: "background 0.2s",
+    width: "100%", // Ensure it takes full width
+    "&:hover": {
+      background: "rgba(255,255,255,0.18)",
+    },
   },
   avatar: { width: 50, height: 50, borderRadius: "50%" },
   avatarFallback: {
@@ -158,13 +176,30 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     fontWeight: 700,
+    flexShrink: 0, // Prevent shrinking
   },
-  profileInfo: { display: "flex", flexDirection: "column" },
-  name: { fontWeight: 600, fontSize: 14 },
-  email: { fontSize: 12, opacity: 0.8 },
+  profileInfo: {
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden", // Handle long text
+  },
+  name: {
+    fontWeight: 600,
+    fontSize: 14,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+  email: {
+    fontSize: 12,
+    opacity: 0.8,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
   dropdown: {
     position: "absolute",
-    bottom: 70,
+    bottom: "calc(100% + 10px)", // Position above the profile button
     left: 0,
     width: "100%",
     background: "#059669",
@@ -184,12 +219,34 @@ const styles = {
     fontWeight: 500,
     color: "#fff",
     transition: "background 0.2s",
+    "&:hover": {
+      background: "rgba(255, 255, 255, 0.2)",
+    },
   },
-  main: { flex: 1, padding: 40 },
+  main: {
+    flex: 1,
+    padding: 40,
+    marginLeft: "240px", // Offset for fixed sidebar
+    minHeight: "100vh", // Ensure main content stretches
+    boxSizing: "border-box",
+  },
   panel: {
     background: "#fff",
     borderRadius: 16,
     padding: 30,
     minHeight: "calc(100vh - 80px)",
+    boxSizing: "border-box",
   },
 };
+
+// Add CSS animation for spinner
+const styleSheet = document.styleSheets[0];
+styleSheet.insertRule(
+  `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`,
+  styleSheet.cssRules.length,
+);
