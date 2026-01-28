@@ -151,6 +151,7 @@ const styles = {
     position: "relative",
     width: "100%", // Ensure it takes full width
     paddingBottom: 40, // ✅ creates gap below profile
+    paddingRight: 40,
   },
   profileButton: {
     display: "flex",
