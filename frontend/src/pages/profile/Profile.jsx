@@ -37,15 +37,16 @@ export default function Profile({ onCancel }) {
      Cancel changes
   ======================= */
   const handleCancel = () => {
+    // Reset form
     setName(user?.name || "");
-    setAvatarPreview(getAvatarUrl(user?.avatar));
+    setAvatarPreview(user?.avatar || null);
     setAvatarFile(null);
     setMessage("");
 
-    // navigate back to previous page (Dashboard)
-    navigate(-1);
+    // Explicitly go back to Dashboard home
+    navigate("/dashboard");
 
-    // optional: call onCancel if parent passed it
+    // Optional: if parent passed a callback
     onCancel?.();
   };
 
