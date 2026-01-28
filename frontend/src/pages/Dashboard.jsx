@@ -150,6 +150,7 @@ const styles = {
     marginTop: "auto",
     position: "relative",
     width: "100%", // Ensure it takes full width
+    buttom: "50",
   },
   profileButton: {
     display: "flex",
@@ -182,7 +183,6 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     overflow: "hidden", // Handle long text
-    marginBottom: "50px",
   },
   name: {
     fontWeight: 600,
