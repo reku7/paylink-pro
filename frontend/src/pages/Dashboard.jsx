@@ -182,6 +182,7 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     overflow: "hidden", // Handle long text
+    marginBottom: "50px",
   },
   name: {
     fontWeight: 600,
