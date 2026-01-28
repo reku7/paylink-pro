@@ -127,6 +127,11 @@ const styles = {
     overflowY: "auto",
   },
 
+  main: {
+    marginLeft: 240, // <-- push content right of sidebar
+    flex: 1,
+    padding: 40,
+  },
   brand: { fontSize: 32, fontWeight: 800, marginBottom: 20 },
   nav: { display: "flex", flexDirection: "column", gap: 12 },
   link: {
