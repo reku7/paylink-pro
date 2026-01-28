@@ -36,23 +36,28 @@ export default function Profile({ onCancel }) {
   /* =======================
      Cancel changes
   ======================= */
-  setName(user?.name || "");
-  setAvatarPreview(
-    user?.avatar?.startsWith("http")
-      ? user.avatar
-      : user.avatar
-        ? `${import.meta.env.VITE_API_BASE_URL}${user.avatar}`
-        : null
-  );
-  setAvatarFile(null);
-  setMessage("");
+  /* =======================
+   Cancel changes
+======================= */
+  const handleCancel = () => {
+    // Reset form fields
+    setName(user?.name || "");
+    setAvatarPreview(
+      user?.avatar?.startsWith("http")
+        ? user.avatar
+        : user.avatar
+          ? `${import.meta.env.VITE_API_BASE_URL}${user.avatar}`
+          : null,
+    );
+    setAvatarFile(null);
+    setMessage("");
 
-  // Navigate back to dashboard home
-  navigate("/dashboard");
+    // Navigate back to dashboard home
+    navigate("/dashboard");
 
-  // Call parent callback if provided
-  onCancel?.();
-};
+    // Call parent callback if provided
+    onCancel?.();
+  };
 
   /* =======================
      Submit form
