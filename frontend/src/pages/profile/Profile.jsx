@@ -36,19 +36,23 @@ export default function Profile({ onCancel }) {
   /* =======================
      Cancel changes
   ======================= */
-  const handleCancel = () => {
-    // Reset form
-    setName(user?.name || "");
-    setAvatarPreview(user?.avatar || null);
-    setAvatarFile(null);
-    setMessage("");
+  setName(user?.name || "");
+  setAvatarPreview(
+    user?.avatar?.startsWith("http")
+      ? user.avatar
+      : user.avatar
+        ? `${import.meta.env.VITE_API_BASE_URL}${user.avatar}`
+        : null
+  );
+  setAvatarFile(null);
+  setMessage("");
 
-    // Explicitly go back to Dashboard home
-    navigate("/dashboard");
+  // Navigate back to dashboard home
+  navigate("/dashboard");
 
-    // Optional: if parent passed a callback
-    onCancel?.();
-  };
+  // Call parent callback if provided
+  onCancel?.();
+};
 
   /* =======================
      Submit form
