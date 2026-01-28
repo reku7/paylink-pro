@@ -205,7 +205,6 @@ function Input({ label, type = "text", value, onChange }) {
             }}
           >
             {showPassword ? (
-              // Eye icon (visible)
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -226,7 +225,6 @@ function Input({ label, type = "text", value, onChange }) {
                 />
               </svg>
             ) : (
-              // Eye-slash icon (hidden)
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
