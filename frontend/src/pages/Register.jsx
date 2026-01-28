@@ -240,74 +240,79 @@ const styles = {
   left: {
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
-    padding: "80px 64px",
+    padding: "60px 48px", // slightly smaller padding
     display: "flex",
     alignItems: "center",
   },
-  brand: { fontSize: 40, fontWeight: 800, marginBottom: 12 },
-  tagline: { fontSize: 18, marginBottom: 32, color: "#a7f3d0" },
+  brand: { fontSize: 36, fontWeight: 800, marginBottom: 8 },
+  tagline: { fontSize: 16, marginBottom: 24, color: "#a7f3d0" },
   features: {
     listStyle: "none",
     padding: 0,
-    marginBottom: 32,
-    lineHeight: 1.9,
+    marginBottom: 24,
+    lineHeight: 1.6,
   },
-  trust: { fontSize: 14, color: "#99f6e4" },
+  trust: { fontSize: 12, color: "#99f6e4" },
 
   right: {
     background: "#ffffff",
-    padding: "64px",
+    padding: "48px 32px", // tighter padding
     overflowY: "auto",
   },
   formWrapper: {
-    maxWidth: 600, // <-- increased width
+    maxWidth: 650, // wider fields
     margin: "0 auto",
   },
-  header: { marginBottom: 24 }, // reduce spacing
-  subHeader: { color: "#6b7280", marginTop: 2 }, // tighter spacing
+  header: { marginBottom: 16 }, // reduce spacing
+  subHeader: { color: "#6b7280", marginTop: 2 },
+
   error: {
     background: "#fef2f2",
     color: "#991b1b",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
+    padding: 10,
+    borderRadius: 6,
+    marginBottom: 10,
   },
 
-  formGrid: { display: "grid", gap: 16 }, // reduced vertical gap
+  formGrid: { display: "grid", gap: 12 }, // less vertical gap
   section: {
-    marginBottom: 16,
-    paddingBottom: 8,
+    marginBottom: 12,
+    paddingBottom: 4,
     borderBottom: "1px solid #e5e7eb",
-  }, // tighter section
-  sectionTitle: { fontWeight: 700, marginBottom: 8 },
-  row: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }, // tighter row spacing
-  field: { marginBottom: 12 },
-  label: { display: "block", marginBottom: 4, fontWeight: 500 },
+  },
+  sectionTitle: { fontWeight: 700, marginBottom: 6, fontSize: 14 },
+  row: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }, // tighter row spacing
+  field: { marginBottom: 8 }, // less vertical gap between inputs
+  label: { display: "block", marginBottom: 2, fontWeight: 500, fontSize: 13 },
   input: {
     width: "100%",
-    padding: 14, // slightly taller input
+    padding: 14,
     paddingRight: 40,
-    borderRadius: 8,
+    borderRadius: 6,
     border: "1px solid #ccc",
     boxSizing: "border-box",
     fontSize: 14,
   },
 
   button: {
+    width: "100%",
     padding: 16,
     background: "#059669",
     color: "#fff",
     border: "none",
-    borderRadius: 14,
+    borderRadius: 10,
     fontSize: 16,
     fontWeight: 700,
     cursor: "pointer",
+    marginTop: 8,
   },
   buttonDisabled: {
+    width: "100%",
     padding: 16,
     background: "#a7f3d0",
-    borderRadius: 14,
+    borderRadius: 10,
     border: "none",
+    marginTop: 8,
   },
-  login: { marginTop: 12, textAlign: "center" },
+  login: { marginTop: 8, textAlign: "center", fontSize: 13 },
 };
