@@ -5,7 +5,7 @@ import { useUser } from "../context/userContext";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user, setUser } = useUser();
+  const { user } = useUser();
   const [menuOpen, setMenuOpen] = useState(false);
   const profileRef = useRef(null);
 
@@ -24,6 +24,8 @@ export default function Dashboard() {
     clearAuthToken();
     navigate("/login");
   };
+
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
   return (
     <div style={styles.page}>
@@ -46,7 +48,7 @@ export default function Dashboard() {
           </Link>
         </nav>
 
-        {/* Profile Section */}
+        {/* Profile */}
         {user && (
           <div ref={profileRef} style={styles.profileWrapper}>
             <div
@@ -59,27 +61,25 @@ export default function Dashboard() {
                   src={
                     user.avatar.startsWith("http")
                       ? user.avatar
-                      : `${import.meta.env.VITE_API_URL}${user.avatar}`
+                      : `${API_BASE}${user.avatar}`
                   }
                   alt="Profile"
                   style={styles.avatar}
                 />
               ) : (
                 <div style={styles.avatarFallback}>
-                  {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                  {user.email.charAt(0).toUpperCase()}
                 </div>
               )}
 
-              {/* Name and Email */}
+              {/* Email only */}
               <div style={styles.profileInfo}>
-                <span style={styles.name}>
-                  {user.name || user.email.split("@")[0]}
-                </span>
+                <span style={styles.name}>{user.email.split("@")[0]}</span>
                 <span style={styles.email}>{user.email}</span>
               </div>
             </div>
 
-            {/* Dropdown Menu */}
+            {/* Dropdown */}
             {menuOpen && (
               <div style={styles.dropdown}>
                 <button
@@ -97,7 +97,7 @@ export default function Dashboard() {
         )}
       </aside>
 
-      {/* Main Panel */}
+      {/* Main */}
       <main style={styles.main}>
         <div style={styles.panel}>
           <Outlet />

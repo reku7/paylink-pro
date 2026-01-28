@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { privateApi } from "../../api/api";
 import { useUser } from "../../context/userContext";
 
+// ✅ API base without /api (for images)
+const API_BASE = import.meta.env.VITE_API_BASE_URL.replace("/api", "");
+
 export default function Profile({ onCancel }) {
   const { user, setUser } = useUser();
   const [name, setName] = useState("");
@@ -10,50 +13,68 @@ export default function Profile({ onCancel }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Load user data
+  /* =======================
+     Load user data
+  ======================= */
   useEffect(() => {
-    if (user) {
-      setName(user.name || "");
+    if (!user) return;
+
+    setName(user.name || "");
+
+    if (user.avatar) {
       setAvatarPreview(
-        user.avatar?.startsWith("http")
+        user.avatar.startsWith("http")
           ? user.avatar
-          : user.avatar
-            ? `${import.meta.env.VITE_API_BASE_URL}${user.avatar}`
-            : null,
+          : `${API_BASE}${user.avatar}`,
       );
+    } else {
+      setAvatarPreview(null);
     }
   }, [user]);
 
-  // Handle avatar selection
+  /* =======================
+     Handle avatar change
+  ======================= */
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
     setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(file));
   };
 
-  // Reset preview and file
+  /* =======================
+     Cancel changes
+  ======================= */
   const handleCancel = () => {
-    setName(user.name || "");
-    setAvatarPreview(
-      user.avatar?.startsWith("http")
-        ? user.avatar
-        : user.avatar
-          ? `${import.meta.env.VITE_API_BASE_URL}${user.avatar}`
-          : null,
-    );
+    setName(user?.name || "");
+
+    if (user?.avatar) {
+      setAvatarPreview(
+        user.avatar.startsWith("http")
+          ? user.avatar
+          : `${API_BASE}${user.avatar}`,
+      );
+    } else {
+      setAvatarPreview(null);
+    }
+
     setAvatarFile(null);
     setMessage("");
-    if (onCancel) onCancel();
+    onCancel?.();
   };
 
-  // Save changes
+  /* =======================
+     Submit form
+  ======================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!name.trim()) {
       setMessage("Name is required");
       return;
     }
+
     setLoading(true);
     setMessage("");
 
@@ -65,13 +86,15 @@ export default function Profile({ onCancel }) {
       const res = await privateApi.put("/me", formData);
 
       let updatedUser = res.data.user;
+
+      // ✅ Fix avatar URL after update
       if (updatedUser.avatar && !updatedUser.avatar.startsWith("http")) {
-        updatedUser.avatar = `${import.meta.env.VITE_API_BASE_URL}${updatedUser.avatar}`;
+        updatedUser.avatar = `${API_BASE}${updatedUser.avatar}`;
       }
 
       setUser(updatedUser);
       setAvatarFile(null);
-      setMessage(res.data.message || "Profile updated!");
+      setMessage(res.data.message || "Profile updated successfully!");
     } catch (err) {
       setMessage(err.response?.data?.error || "Failed to update profile");
     } finally {
@@ -79,11 +102,14 @@ export default function Profile({ onCancel }) {
     }
   };
 
-  // Cleanup blob URLs
+  /* =======================
+     Cleanup blob URLs
+  ======================= */
   useEffect(() => {
     return () => {
-      if (avatarPreview?.startsWith("blob:"))
+      if (avatarPreview?.startsWith("blob:")) {
         URL.revokeObjectURL(avatarPreview);
+      }
     };
   }, [avatarPreview]);
 
@@ -91,6 +117,7 @@ export default function Profile({ onCancel }) {
     <div style={styles.container}>
       <div style={styles.card}>
         <h2 style={styles.heading}>Edit Profile</h2>
+
         <form onSubmit={handleSubmit} style={styles.form}>
           {/* Avatar */}
           <div style={styles.avatarSection}>
@@ -103,10 +130,11 @@ export default function Profile({ onCancel }) {
                 />
               ) : (
                 <div style={styles.avatarPlaceholder}>
-                  {name.charAt(0).toUpperCase()}
+                  {name?.charAt(0)?.toUpperCase() || "U"}
                 </div>
               )}
             </div>
+
             <div>
               <label style={styles.label}>Change Photo</label>
               <input
@@ -136,9 +164,13 @@ export default function Profile({ onCancel }) {
             <div
               style={{
                 ...styles.message,
-                background: message.includes("Failed") ? "#fee2e2" : "#d1fae5",
-                color: message.includes("Failed") ? "#dc2626" : "#059669",
-                border: message.includes("Failed")
+                background: message.toLowerCase().includes("fail")
+                  ? "#fee2e2"
+                  : "#d1fae5",
+                color: message.toLowerCase().includes("fail")
+                  ? "#dc2626"
+                  : "#059669",
+                border: message.toLowerCase().includes("fail")
                   ? "1px solid #fca5a5"
                   : "1px solid #10b981",
               }}
@@ -152,6 +184,7 @@ export default function Profile({ onCancel }) {
             <button type="submit" disabled={loading} style={styles.saveButton}>
               {loading ? "Saving..." : "Save Changes"}
             </button>
+
             <button
               type="button"
               onClick={handleCancel}
@@ -166,6 +199,9 @@ export default function Profile({ onCancel }) {
   );
 }
 
+/* =======================
+   Styles
+======================= */
 const styles = {
   container: {
     display: "flex",
