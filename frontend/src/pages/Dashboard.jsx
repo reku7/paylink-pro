@@ -2,6 +2,7 @@ import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { clearAuthToken } from "../utils/auth";
 import { useUser } from "../context/userContext";
+import { getAvatarUrl } from "../utils/avatarUrl";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -24,8 +25,6 @@ export default function Dashboard() {
     clearAuthToken();
     navigate("/login");
   };
-
-  const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
   return (
     <div style={styles.page}>
@@ -58,11 +57,7 @@ export default function Dashboard() {
               {/* Avatar */}
               {user.avatar ? (
                 <img
-                  src={
-                    user.avatar.startsWith("http")
-                      ? user.avatar
-                      : `${API_BASE}${user.avatar}`
-                  }
+                  src={getAvatarUrl(user.avatar)}
                   alt="Profile"
                   style={styles.avatar}
                 />
@@ -107,7 +102,7 @@ export default function Dashboard() {
   );
 }
 
-// Styles
+// Styles (unchanged)
 const styles = {
   page: {
     display: "flex",

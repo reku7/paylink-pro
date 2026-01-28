@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { privateApi } from "../../api/api";
 import { useUser } from "../../context/userContext";
-
-// ✅ API base without /api (for images)
-const API_BASE = import.meta.env.VITE_API_BASE_URL.replace("/api", "");
+import { getAvatarUrl } from "../../utils/avatarUrl";
 
 export default function Profile({ onCancel }) {
   const { user, setUser } = useUser();
@@ -20,16 +18,7 @@ export default function Profile({ onCancel }) {
     if (!user) return;
 
     setName(user.name || "");
-
-    if (user.avatar) {
-      setAvatarPreview(
-        user.avatar.startsWith("http")
-          ? user.avatar
-          : `${API_BASE}${user.avatar}`,
-      );
-    } else {
-      setAvatarPreview(null);
-    }
+    setAvatarPreview(getAvatarUrl(user.avatar));
   }, [user]);
 
   /* =======================
@@ -48,17 +37,7 @@ export default function Profile({ onCancel }) {
   ======================= */
   const handleCancel = () => {
     setName(user?.name || "");
-
-    if (user?.avatar) {
-      setAvatarPreview(
-        user.avatar.startsWith("http")
-          ? user.avatar
-          : `${API_BASE}${user.avatar}`,
-      );
-    } else {
-      setAvatarPreview(null);
-    }
-
+    setAvatarPreview(getAvatarUrl(user?.avatar));
     setAvatarFile(null);
     setMessage("");
     onCancel?.();
@@ -84,13 +63,10 @@ export default function Profile({ onCancel }) {
       if (avatarFile) formData.append("avatar", avatarFile);
 
       const res = await privateApi.put("/me", formData);
-
       let updatedUser = res.data.user;
 
       // ✅ Fix avatar URL after update
-      if (updatedUser.avatar && !updatedUser.avatar.startsWith("http")) {
-        updatedUser.avatar = `${API_BASE}${updatedUser.avatar}`;
-      }
+      updatedUser.avatar = getAvatarUrl(updatedUser.avatar);
 
       setUser(updatedUser);
       setAvatarFile(null);
@@ -200,7 +176,7 @@ export default function Profile({ onCancel }) {
 }
 
 /* =======================
-   Styles
+   Styles (unchanged)
 ======================= */
 const styles = {
   container: {
