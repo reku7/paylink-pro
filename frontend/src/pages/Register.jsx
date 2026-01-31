@@ -350,12 +350,10 @@ const styles = {
     flex: 1,
     background: "#ffffff",
     padding: "60px 48px",
-    marginLeft: "40%", // Offset for fixed left section
+    marginLeft: "40%", // still offset for left
     minWidth: "60%",
     overflowY: "auto",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    display: "block", // remove flex
     minHeight: "100vh",
   },
 
