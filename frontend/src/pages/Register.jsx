@@ -300,7 +300,7 @@ const styles = {
 
   /* RIGHT — SCROLLABLE FORM */
   right: {
-    marginLeft: "420px", // ✅ SAME AS LEFT WIDTH
+    marginLeft: "580px", // ✅ SAME AS LEFT WIDTH
     width: "calc(100% - 580px)",
     minHeight: "100vh",
     background: "#ffffff",
