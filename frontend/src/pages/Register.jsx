@@ -60,9 +60,9 @@ export default function Register() {
 
   return (
     <div style={styles.page}>
-      {/* LEFT — Branding */}
+      {/* LEFT — Fixed Branding Section */}
       <section style={styles.left}>
-        <div>
+        <div style={styles.leftContent}>
           <h1 style={styles.brand}>PayFlow</h1>
           <p style={styles.tagline}>
             Accept payments securely with SantimPay & Chapa
@@ -80,7 +80,7 @@ export default function Register() {
         </div>
       </section>
 
-      {/* RIGHT — Registration Form */}
+      {/* RIGHT — Scrollable Registration Form */}
       <section style={styles.right}>
         <div style={styles.formWrapper}>
           <header style={styles.header}>
@@ -117,7 +117,7 @@ export default function Register() {
             <Section title="Merchant Details">
               <Input
                 label="Merchant Name"
-                placeholder="Enter your merchant/store name"
+                placeholder="Enter your merchant name"
                 value={merchantName}
                 onChange={setMerchantName}
               />
@@ -245,7 +245,6 @@ function Input({ label, type = "text", placeholder, value, onChange }) {
             }}
           >
             {showPassword ? (
-              // Eye icon (visible) - same as Login component
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -266,7 +265,6 @@ function Input({ label, type = "text", placeholder, value, onChange }) {
                 />
               </svg>
             ) : (
-              // Eye-slash icon (hidden) - same as Login component
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -294,21 +292,36 @@ function Input({ label, type = "text", placeholder, value, onChange }) {
   );
 }
 
-/* ---------- Updated Styles ---------- */
+/* ---------- Updated Styles with Fixed Left Section ---------- */
 const styles = {
   page: {
+    display: "flex",
     minHeight: "100vh",
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
+    fontFamily: "'Inter', sans-serif",
+    margin: 0,
   },
+
   left: {
+    width: "40%",
+    minWidth: "400px",
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
-    padding: "60px 48px",
+    padding: "40px 48px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    position: "fixed",
+    top: 0,
+    left: 0,
+    bottom: 0,
+    overflowY: "auto",
   },
+
+  leftContent: {
+    maxWidth: "500px",
+    width: "100%",
+  },
+
   brand: {
     fontSize: 40,
     fontWeight: 800,
@@ -334,15 +347,21 @@ const styles = {
   },
 
   right: {
+    flex: 1,
     background: "#ffffff",
     padding: "60px 48px",
+    marginLeft: "40%", // Offset for fixed left section
+    minWidth: "60%",
     overflowY: "auto",
     display: "flex",
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: "100vh",
   },
+
   formWrapper: {
     width: "100%",
-    maxWidth: 500,
+    maxWidth: "500px",
     margin: "0 auto",
   },
   header: {
