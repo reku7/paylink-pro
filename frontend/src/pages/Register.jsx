@@ -256,13 +256,15 @@ const styles = {
   page: {
     minHeight: "100vh",
     display: "flex",
-    width: "100%",
   },
 
-  /* LEFT — BRANDING */
+  /* LEFT — FIXED BRANDING */
   left: {
-    width: "420px", // ✅ fixed like dashboard sidebar
-    minHeight: "100vh",
+    width: "420px",
+    position: "fixed", // ✅ FIXED
+    top: 0,
+    left: 0,
+    bottom: 0,
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
     padding: "60px 48px",
@@ -296,13 +298,13 @@ const styles = {
     color: "#99f6e4",
   },
 
-  /* RIGHT — FORM */
+  /* RIGHT — SCROLLABLE FORM */
   right: {
-    flex: 1, // ✅ THIS IS THE KEY FIX
+    marginLeft: "420px", // ✅ SAME AS LEFT WIDTH
+    minHeight: "100vh",
     background: "#ffffff",
     padding: "40px 24px",
-    minHeight: "100vh",
-    overflowY: "auto",
+    overflowY: "auto", // ✅ ONLY FORM SCROLLS
     boxSizing: "border-box",
   },
 
@@ -366,7 +368,6 @@ const styles = {
   input: {
     width: "100%",
     padding: 14,
-    paddingRight: 40,
     borderRadius: 6,
     border: "1px solid #d1d5db",
     background: "#ffffff",
