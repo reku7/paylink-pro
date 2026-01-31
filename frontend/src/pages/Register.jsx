@@ -255,23 +255,19 @@ function Input({ label, placeholder, type = "text", value, onChange }) {
 const styles = {
   page: {
     minHeight: "100vh",
-    position: "relative", // <-- make right panel position work correctly
+    display: "flex",
   },
 
   /* LEFT — FIXED BRANDING */
   left: {
     width: "580px",
-    position: "fixed", // ✅ FIXED
-    top: 0,
-    left: 0,
-    bottom: 0,
+    flexShrink: 0,
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
     padding: "60px 48px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxSizing: "border-box",
   },
 
   brand: {
@@ -300,22 +296,17 @@ const styles = {
 
   /* RIGHT — SCROLLABLE FORM */
   right: {
-    position: "absolute", // fill remaining space
-    top: 0,
-    left: "580px", // start after left panel
-    right: 0, // stretch to right edge
-    bottom: 0,
+    flex: 1,
     background: "#ffffff",
-    padding: "40px 0", // remove horizontal padding to fill width
     overflowY: "auto",
-    boxSizing: "border-box",
+    display: "flex",
+    justifyContent: "center",
   },
 
   formWrapper: {
-    width: "100%", // take full width of right panel
-    maxWidth: "none", // no restriction
-    margin: 0, // no auto-centering
-    padding: "0 24px", // optional: breathing room inside form
+    width: "100%",
+    maxWidth: "700px",
+    padding: "40px 24px",
   },
 
   header: {
