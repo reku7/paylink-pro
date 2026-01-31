@@ -303,22 +303,17 @@ function Input({ label, type = "text", placeholder, value, onChange }) {
 /* ---------- Fixed Styles with Proper Centering ---------- */
 const styles = {
   page: {
-    display: "flex",
     minHeight: "100vh",
     fontFamily: "'Inter', sans-serif",
     margin: 0,
-    overflow: "hidden",
   },
 
   sidebar: {
-    width: "45%",
-    background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
-    color: "#ecfdf5",
     position: "fixed",
+    width: "45%",
     top: 0,
     left: 0,
     bottom: 0,
-    overflowY: "auto",
   },
 
   sidebarInner: {
@@ -363,11 +358,9 @@ const styles = {
   },
 
   main: {
-    flex: 1,
-    padding: "60px",
     marginLeft: "45%",
+    padding: "60px",
     minHeight: "100vh",
-    boxSizing: "border-box",
     overflowY: "auto",
   },
 
@@ -375,7 +368,6 @@ const styles = {
     background: "#fff",
     borderRadius: 16,
     padding: 50,
-    minHeight: "calc(100vh - 120px)",
     boxSizing: "border-box",
   },
 
