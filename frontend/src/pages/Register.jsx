@@ -260,7 +260,7 @@ const styles = {
 
   /* LEFT — FIXED BRANDING */
   left: {
-    width: "420px",
+    width: "580px",
     position: "fixed", // ✅ FIXED
     top: 0,
     left: 0,
@@ -301,6 +301,7 @@ const styles = {
   /* RIGHT — SCROLLABLE FORM */
   right: {
     marginLeft: "420px", // ✅ SAME AS LEFT WIDTH
+    width: "calc(100% - 580px)",
     minHeight: "100vh",
     background: "#ffffff",
     padding: "40px 24px",
@@ -403,3 +404,4 @@ const styles = {
     fontSize: 13,
   },
 };
+s;
