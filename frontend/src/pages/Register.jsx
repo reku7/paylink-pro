@@ -60,27 +60,29 @@ export default function Register() {
 
   return (
     <div style={styles.page}>
-      {/* LEFT — Fixed Branding Section (like Dashboard sidebar) */}
+      {/* LEFT — Fixed Branding Section */}
       <aside style={styles.sidebar}>
-        <div style={styles.sidebarContent}>
-          <h1 style={styles.brand}>PayFlow</h1>
-          <p style={styles.tagline}>
-            Accept payments securely with SantimPay & Chapa
-          </p>
+        <div style={styles.sidebarInner}>
+          <div style={styles.sidebarContent}>
+            <h1 style={styles.brand}>PayFlow</h1>
+            <p style={styles.tagline}>
+              Accept payments securely with SantimPay & Chapa
+            </p>
 
-          <ul style={styles.features}>
-            <li>✓ Built for Ethiopian merchants</li>
-            <li>✓ Secure & compliant onboarding</li>
-            <li>✓ SantimPay enabled instantly</li>
-          </ul>
+            <ul style={styles.features}>
+              <li>✓ Built for Ethiopian merchants</li>
+              <li>✓ Secure & compliant onboarding</li>
+              <li>✓ SantimPay enabled instantly</li>
+            </ul>
 
-          <p style={styles.trust}>
-            You can connect Chapa anytime from your dashboard
-          </p>
+            <p style={styles.trust}>
+              You can connect Chapa anytime from your dashboard
+            </p>
+          </div>
         </div>
       </aside>
 
-      {/* RIGHT — Scrollable Registration Form (like Dashboard main content) */}
+      {/* RIGHT — Scrollable Registration Form */}
       <main style={styles.main}>
         <div style={styles.panel}>
           <div style={styles.formWrapper}>
@@ -298,7 +300,7 @@ function Input({ label, type = "text", placeholder, value, onChange }) {
   );
 }
 
-/* ---------- Styles (mirroring Dashboard layout) ---------- */
+/* ---------- Fixed Styles with Proper Centering ---------- */
 const styles = {
   page: {
     display: "flex",
@@ -312,14 +314,21 @@ const styles = {
     width: "45%",
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
-    padding: "80px 60px",
-    display: "flex",
-    flexDirection: "column",
     position: "fixed",
     top: 0,
     left: 0,
     bottom: 0,
     overflowY: "auto",
+  },
+
+  sidebarInner: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "100vh",
+    width: "100%",
+    padding: "80px 60px",
+    boxSizing: "border-box",
   },
 
   sidebarContent: {
@@ -356,7 +365,7 @@ const styles = {
   main: {
     flex: 1,
     padding: "60px",
-    marginLeft: "45%", // Offset for fixed sidebar
+    marginLeft: "45%",
     minHeight: "100vh",
     boxSizing: "border-box",
     overflowY: "auto",
