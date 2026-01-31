@@ -65,12 +65,14 @@ export default function Login() {
               <Input
                 label="Email"
                 type="email"
+                placeholder="Enter your email"
                 value={email}
                 onChange={setEmail}
               />
               <Input
                 label="Password"
                 type="password"
+                placeholder="Enter your password"
                 value={password}
                 onChange={setPassword}
               />
@@ -95,7 +97,7 @@ export default function Login() {
 }
 
 /* ---------- Reusable Components ---------- */
-function Input({ label, type = "text", value, onChange }) {
+function Input({ label, type = "text", placeholder, value, onChange }) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
   const inputType = isPassword && showPassword ? "text" : type;
@@ -107,6 +109,7 @@ function Input({ label, type = "text", value, onChange }) {
         <input
           type={inputType}
           value={value}
+          placeholder={placeholder}
           onChange={(e) => onChange(e.target.value)}
           style={{
             ...styles.input,
@@ -180,12 +183,15 @@ function Input({ label, type = "text", value, onChange }) {
   );
 }
 
-/* ---------- Styles (same as register page) ---------- */
+/* ---------- Updated Styles ---------- */
 const styles = {
   page: {
     minHeight: "100vh",
     display: "grid",
     gridTemplateColumns: "1fr 1.4fr",
+    "@media (max-width: 768px)": {
+      gridTemplateColumns: "1fr", // single column for mobile
+    },
   },
   left: {
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
@@ -215,14 +221,27 @@ const styles = {
   },
   formGrid: { display: "grid", gap: 24 },
   field: { marginBottom: 16 },
-  label: { display: "block", marginBottom: 6, fontWeight: 500 },
+  label: {
+    display: "block",
+    marginBottom: 6,
+    fontWeight: 500,
+    color: "#374151",
+  },
   input: {
     width: "100%",
-    padding: 12,
-    paddingRight: 40, // only if password field
-    borderRadius: 8,
-    border: "1px solid #ccc",
-    boxSizing: "border-box", // ensures padding is inside the width
+    padding: "12px",
+    borderRadius: "8px",
+    border: "1px solid #D1D5DB",
+    backgroundColor: "#FFFFFF",
+    fontSize: "16px",
+    color: "#111827",
+    boxSizing: "border-box",
+    transition: "border-color 0.2s, box-shadow 0.2s",
+    outline: "none",
+    ":focus": {
+      borderColor: "#059669",
+      boxShadow: "0 0 0 2px rgba(5, 150, 105, 0.2)",
+    },
   },
 
   button: {
@@ -234,12 +253,18 @@ const styles = {
     fontSize: 16,
     fontWeight: 700,
     cursor: "pointer",
+    transition: "background-color 0.2s",
   },
   buttonDisabled: {
     padding: 16,
     background: "#a7f3d0",
     borderRadius: 14,
     border: "none",
+    cursor: "not-allowed",
   },
-  login: { marginTop: 16, textAlign: "center" },
+  login: {
+    marginTop: 16,
+    textAlign: "center",
+    color: "#6B7280",
+  },
 };
