@@ -256,9 +256,12 @@ const styles = {
   page: {
     minHeight: "100vh",
     display: "flex",
+    width: "100%",
   },
+
+  /* LEFT — BRANDING */
   left: {
-    width: "50%",
+    width: "420px", // ✅ fixed like dashboard sidebar
     minHeight: "100vh",
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
@@ -266,24 +269,41 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    boxSizing: "border-box",
   },
 
-  brand: { fontSize: 36, fontWeight: 800, marginBottom: 8 },
-  tagline: { fontSize: 16, marginBottom: 24, color: "#a7f3d0" },
+  brand: {
+    fontSize: 36,
+    fontWeight: 800,
+    marginBottom: 8,
+  },
+
+  tagline: {
+    fontSize: 16,
+    marginBottom: 24,
+    color: "#a7f3d0",
+  },
+
   features: {
     listStyle: "none",
     padding: 0,
     marginBottom: 24,
     lineHeight: 1.6,
   },
-  trust: { fontSize: 12, color: "#99f6e4" },
 
+  trust: {
+    fontSize: 12,
+    color: "#99f6e4",
+  },
+
+  /* RIGHT — FORM */
   right: {
-    width: "50%",
+    flex: 1, // ✅ THIS IS THE KEY FIX
     background: "#ffffff",
     padding: "40px 24px",
     minHeight: "100vh",
     overflowY: "auto",
+    boxSizing: "border-box",
   },
 
   formWrapper: {
@@ -292,8 +312,14 @@ const styles = {
     margin: "0 auto",
   },
 
-  header: { marginBottom: 16 }, // reduce spacing
-  subHeader: { color: "#6b7280", marginTop: 2 },
+  header: {
+    marginBottom: 16,
+  },
+
+  subHeader: {
+    color: "#6b7280",
+    marginTop: 2,
+  },
 
   error: {
     background: "#fef2f2",
@@ -303,16 +329,40 @@ const styles = {
     marginBottom: 10,
   },
 
-  formGrid: { display: "grid", gap: 12 }, // less vertical gap
+  formGrid: {
+    display: "grid",
+    gap: 12,
+  },
+
   section: {
     marginBottom: 12,
     paddingBottom: 4,
     borderBottom: "1px solid #e5e7eb",
   },
-  sectionTitle: { fontWeight: 700, marginBottom: 6, fontSize: 14 },
-  row: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }, // tighter row spacing
-  field: { marginBottom: 8 }, // less vertical gap between inputs
-  label: { display: "block", marginBottom: 2, fontWeight: 500, fontSize: 13 },
+
+  sectionTitle: {
+    fontWeight: 700,
+    marginBottom: 6,
+    fontSize: 14,
+  },
+
+  row: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 8,
+  },
+
+  field: {
+    marginBottom: 8,
+  },
+
+  label: {
+    display: "block",
+    marginBottom: 2,
+    fontWeight: 500,
+    fontSize: 13,
+  },
+
   input: {
     width: "100%",
     padding: 14,
@@ -336,6 +386,7 @@ const styles = {
     cursor: "pointer",
     marginTop: 8,
   },
+
   buttonDisabled: {
     width: "100%",
     padding: 16,
@@ -344,5 +395,10 @@ const styles = {
     border: "none",
     marginTop: 8,
   },
-  login: { marginTop: 8, textAlign: "center", fontSize: 13 },
+
+  login: {
+    marginTop: 8,
+    textAlign: "center",
+    fontSize: 13,
+  },
 };
