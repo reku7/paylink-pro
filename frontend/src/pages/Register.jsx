@@ -63,22 +63,20 @@ export default function Register() {
       {/* LEFT — Fixed Branding Section */}
       <section style={styles.left}>
         <div style={styles.leftContent}>
-          <div style={styles.brandingContainer}>
-            <h1 style={styles.brand}>PayFlow</h1>
-            <p style={styles.tagline}>
-              Accept payments securely with SantimPay & Chapa
-            </p>
+          <h1 style={styles.brand}>PayFlow</h1>
+          <p style={styles.tagline}>
+            Accept payments securely with SantimPay & Chapa
+          </p>
 
-            <ul style={styles.features}>
-              <li>✓ Built for Ethiopian merchants</li>
-              <li>✓ Secure & compliant onboarding</li>
-              <li>✓ SantimPay enabled instantly</li>
-            </ul>
+          <ul style={styles.features}>
+            <li>✓ Built for Ethiopian merchants</li>
+            <li>✓ Secure & compliant onboarding</li>
+            <li>✓ SantimPay enabled instantly</li>
+          </ul>
 
-            <p style={styles.trust}>
-              You can connect Chapa anytime from your dashboard
-            </p>
-          </div>
+          <p style={styles.trust}>
+            You can connect Chapa anytime from your dashboard
+          </p>
         </div>
       </section>
 
@@ -294,43 +292,34 @@ function Input({ label, type = "text", placeholder, value, onChange }) {
   );
 }
 
-/* ---------- Updated Styles with Better Alignment ---------- */
+/* ---------- Fixed Styles with Proper Centering ---------- */
 const styles = {
   page: {
     display: "flex",
     minHeight: "100vh",
     fontFamily: "'Inter', sans-serif",
     margin: 0,
-    overflow: "hidden",
   },
 
   left: {
     width: "45%",
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
+    padding: "80px 60px",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
     position: "fixed",
     top: 0,
     left: 0,
     bottom: 0,
     overflowY: "auto",
+    boxSizing: "border-box",
   },
 
   leftContent: {
     width: "100%",
-    height: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  brandingContainer: {
-    maxWidth: "440px",
-    width: "100%",
-    padding: "0 60px",
-    marginTop: "-40px", // Adjust vertical centering
+    maxWidth: "500px",
+    margin: "0 auto",
   },
 
   brand: {
@@ -338,7 +327,6 @@ const styles = {
     fontWeight: 800,
     marginBottom: "20px",
     lineHeight: 1.1,
-    letterSpacing: "-0.5px",
   },
   tagline: {
     fontSize: "18px",
@@ -357,26 +345,26 @@ const styles = {
     fontSize: "14px",
     color: "#99f6e4",
     lineHeight: 1.5,
-    opacity: 0.9,
   },
 
   right: {
     flex: 1,
     background: "#ffffff",
-    marginLeft: "45%", // Offset for fixed left section
+    marginLeft: "45%",
     minWidth: "55%",
     overflowY: "auto",
+    padding: "80px 0",
     display: "flex",
-    alignItems: "flex-start", // Changed from center to flex-start
+    alignItems: "center",
     justifyContent: "center",
-    padding: "60px 0",
+    minHeight: "100vh",
+    boxSizing: "border-box",
   },
 
   formWrapper: {
     width: "100%",
-    maxWidth: "520px",
-    margin: "0 auto",
-    padding: "0 40px",
+    maxWidth: "500px",
+    padding: "0 60px",
   },
   header: {
     marginBottom: "40px",
