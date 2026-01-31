@@ -60,9 +60,9 @@ export default function Register() {
 
   return (
     <div style={styles.page}>
-      {/* LEFT — Fixed Branding Section */}
-      <section style={styles.left}>
-        <div style={styles.leftContent}>
+      {/* LEFT — Fixed Branding Section (like Dashboard sidebar) */}
+      <aside style={styles.sidebar}>
+        <div style={styles.sidebarContent}>
           <h1 style={styles.brand}>PayFlow</h1>
           <p style={styles.tagline}>
             Accept payments securely with SantimPay & Chapa
@@ -78,120 +78,126 @@ export default function Register() {
             You can connect Chapa anytime from your dashboard
           </p>
         </div>
-      </section>
+      </aside>
 
-      {/* RIGHT — Scrollable Registration Form */}
-      <section style={styles.right}>
-        <div style={styles.formWrapper}>
-          <header style={styles.header}>
-            <h2 style={styles.formTitle}>Create your merchant account</h2>
-            <p style={styles.subHeader}>SantimPay is enabled by default</p>
-          </header>
+      {/* RIGHT — Scrollable Registration Form (like Dashboard main content) */}
+      <main style={styles.main}>
+        <div style={styles.panel}>
+          <div style={styles.formWrapper}>
+            <header style={styles.header}>
+              <h2 style={styles.formTitle}>Create your merchant account</h2>
+              <p style={styles.subHeader}>SantimPay is enabled by default</p>
+            </header>
 
-          {error && <div style={styles.error}>{error}</div>}
+            {error && <div style={styles.error}>{error}</div>}
 
-          <form onSubmit={handleRegister} style={styles.formGrid}>
-            <Section title="Personal Information">
-              <Input
-                label="Full Name"
-                placeholder="Enter your full name"
-                value={name}
-                onChange={setName}
-              />
-              <Input
-                label="Email"
-                type="email"
-                placeholder="Enter your email address"
-                value={email}
-                onChange={setEmail}
-              />
-              <Input
-                label="Password"
-                type="password"
-                placeholder="Create a secure password"
-                value={password}
-                onChange={setPassword}
-              />
-            </Section>
-
-            <Section title="Merchant Details">
-              <Input
-                label="Merchant Name"
-                placeholder="Enter your merchant name"
-                value={merchantName}
-                onChange={setMerchantName}
-              />
-            </Section>
-
-            <Section title="Business Information (Optional)">
-              <Input
-                label="Business Name"
-                placeholder="Legal business name"
-                value={business.businessName}
-                onChange={(v) => setBusiness({ ...business, businessName: v })}
-              />
-              <Input
-                label="Business Type"
-                placeholder="e.g., Retail, Restaurant, Service"
-                value={business.businessType}
-                onChange={(v) => setBusiness({ ...business, businessType: v })}
-              />
-              <div style={styles.row}>
+            <form onSubmit={handleRegister} style={styles.formGrid}>
+              <Section title="Personal Information">
                 <Input
-                  label="Business Phone"
-                  placeholder="+251 ..."
-                  value={business.businessPhone}
+                  label="Full Name"
+                  placeholder="Enter your full name"
+                  value={name}
+                  onChange={setName}
+                />
+                <Input
+                  label="Email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={setEmail}
+                />
+                <Input
+                  label="Password"
+                  type="password"
+                  placeholder="Create a secure password"
+                  value={password}
+                  onChange={setPassword}
+                />
+              </Section>
+
+              <Section title="Merchant Details">
+                <Input
+                  label="Merchant Name"
+                  placeholder="Enter your merchant name"
+                  value={merchantName}
+                  onChange={setMerchantName}
+                />
+              </Section>
+
+              <Section title="Business Information (Optional)">
+                <Input
+                  label="Business Name"
+                  placeholder="Legal business name"
+                  value={business.businessName}
                   onChange={(v) =>
-                    setBusiness({ ...business, businessPhone: v })
+                    setBusiness({ ...business, businessName: v })
                   }
                 />
                 <Input
-                  label="Business Email"
-                  placeholder="business@example.com"
-                  value={business.businessEmail}
+                  label="Business Type"
+                  placeholder="e.g., Retail, Restaurant, Service"
+                  value={business.businessType}
                   onChange={(v) =>
-                    setBusiness({ ...business, businessEmail: v })
+                    setBusiness({ ...business, businessType: v })
                   }
                 />
-              </div>
-              <Input
-                label="Business Address"
-                placeholder="Full business address"
-                value={business.businessAddress}
-                onChange={(v) =>
-                  setBusiness({ ...business, businessAddress: v })
-                }
-              />
-              <div style={styles.row}>
+                <div style={styles.row}>
+                  <Input
+                    label="Business Phone"
+                    placeholder="+251 ..."
+                    value={business.businessPhone}
+                    onChange={(v) =>
+                      setBusiness({ ...business, businessPhone: v })
+                    }
+                  />
+                  <Input
+                    label="Business Email"
+                    placeholder="business@example.com"
+                    value={business.businessEmail}
+                    onChange={(v) =>
+                      setBusiness({ ...business, businessEmail: v })
+                    }
+                  />
+                </div>
                 <Input
-                  label="TIN Number"
-                  placeholder="Tax Identification Number"
-                  value={business.tinNumber}
-                  onChange={(v) => setBusiness({ ...business, tinNumber: v })}
+                  label="Business Address"
+                  placeholder="Full business address"
+                  value={business.businessAddress}
+                  onChange={(v) =>
+                    setBusiness({ ...business, businessAddress: v })
+                  }
                 />
-                <Input
-                  label="FYDA ID"
-                  placeholder="Enter Your FIN"
-                  value={business.fydaId}
-                  onChange={(v) => setBusiness({ ...business, fydaId: v })}
-                />
-              </div>
-            </Section>
+                <div style={styles.row}>
+                  <Input
+                    label="TIN Number"
+                    placeholder="Tax Identification Number"
+                    value={business.tinNumber}
+                    onChange={(v) => setBusiness({ ...business, tinNumber: v })}
+                  />
+                  <Input
+                    label="FYDA ID"
+                    placeholder="Enter Your FIN"
+                    value={business.fydaId}
+                    onChange={(v) => setBusiness({ ...business, fydaId: v })}
+                  />
+                </div>
+              </Section>
 
-            <button
-              type="submit"
-              disabled={loading}
-              style={loading ? styles.buttonDisabled : styles.button}
-            >
-              {loading ? "Creating Account..." : "Create Account"}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading}
+                style={loading ? styles.buttonDisabled : styles.button}
+              >
+                {loading ? "Creating Account..." : "Create Account"}
+              </button>
+            </form>
 
-          <p style={styles.login}>
-            Already have an account? <Link to="/login">Sign in</Link>
-          </p>
+            <p style={styles.login}>
+              Already have an account? <Link to="/login">Sign in</Link>
+            </p>
+          </div>
         </div>
-      </section>
+      </main>
     </div>
   );
 }
@@ -292,31 +298,31 @@ function Input({ label, type = "text", placeholder, value, onChange }) {
   );
 }
 
-/* ---------- Fixed Styles with Proper Centering ---------- */
+/* ---------- Styles (mirroring Dashboard layout) ---------- */
 const styles = {
   page: {
     display: "flex",
     minHeight: "100vh",
     fontFamily: "'Inter', sans-serif",
     margin: 0,
+    overflow: "hidden",
   },
 
-  left: {
+  sidebar: {
     width: "45%",
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
     padding: "80px 60px",
     display: "flex",
-    alignItems: "center",
+    flexDirection: "column",
     position: "fixed",
     top: 0,
     left: 0,
     bottom: 0,
     overflowY: "auto",
-    boxSizing: "border-box",
   },
 
-  leftContent: {
+  sidebarContent: {
     width: "100%",
     maxWidth: "500px",
     margin: "0 auto",
@@ -347,25 +353,29 @@ const styles = {
     lineHeight: 1.5,
   },
 
-  right: {
+  main: {
     flex: 1,
-    background: "#ffffff",
-    marginLeft: "45%",
-    minWidth: "55%",
-    overflowY: "auto",
-    padding: "80px 0",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    padding: "60px",
+    marginLeft: "45%", // Offset for fixed sidebar
     minHeight: "100vh",
+    boxSizing: "border-box",
+    overflowY: "auto",
+  },
+
+  panel: {
+    background: "#fff",
+    borderRadius: 16,
+    padding: 50,
+    minHeight: "calc(100vh - 120px)",
     boxSizing: "border-box",
   },
 
   formWrapper: {
     width: "100%",
     maxWidth: "500px",
-    padding: "0 60px",
+    margin: "0 auto",
   },
+
   header: {
     marginBottom: "40px",
   },
