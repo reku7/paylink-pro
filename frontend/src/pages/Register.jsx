@@ -256,14 +256,10 @@ const styles = {
   page: {
     minHeight: "100vh",
     display: "flex",
-    gridTemplateColumns: "1fr 1fr",
   },
   left: {
     width: "50%",
-    position: "fixed",
-    left: 0,
-    top: 0,
-    bottom: 0,
+    minHeight: "100vh",
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
     padding: "60px 48px",
@@ -284,10 +280,9 @@ const styles = {
 
   right: {
     width: "50%",
-    marginLeft: "50%",
     background: "#ffffff",
     padding: "40px 24px",
-    height: "100vh",
+    minHeight: "100vh",
     overflowY: "auto",
   },
 
