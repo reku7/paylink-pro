@@ -255,7 +255,6 @@ function Input({ label, placeholder, type = "text", value, onChange }) {
 const styles = {
   page: {
     minHeight: "100vh",
-    display: "flex",
   },
 
   /* LEFT — FIXED BRANDING */
