@@ -60,9 +60,9 @@ export default function Register() {
 
   return (
     <div style={styles.page}>
-      {/* LEFT — Fixed Branding Section */}
-      <div style={styles.left}>
-        <div style={styles.leftContent}>
+      {/* LEFT — Branding */}
+      <section style={styles.left}>
+        <div>
           <h1 style={styles.brand}>PayFlow</h1>
           <p style={styles.tagline}>
             Accept payments securely with SantimPay & Chapa
@@ -78,13 +78,13 @@ export default function Register() {
             You can connect Chapa anytime from your dashboard
           </p>
         </div>
-      </div>
+      </section>
 
-      {/* RIGHT — Scrollable Registration Form */}
-      <div style={styles.right}>
+      {/* RIGHT — Registration Form */}
+      <section style={styles.right}>
         <div style={styles.formWrapper}>
           <header style={styles.header}>
-            <h2 style={styles.formTitle}>Create your merchant account</h2>
+            <h2>Create your merchant account</h2>
             <p style={styles.subHeader}>SantimPay is enabled by default</p>
           </header>
 
@@ -98,6 +98,7 @@ export default function Register() {
                 value={name}
                 onChange={setName}
               />
+
               <Input
                 label="Email"
                 type="email"
@@ -105,10 +106,11 @@ export default function Register() {
                 value={email}
                 onChange={setEmail}
               />
+
               <Input
                 label="Password"
                 type="password"
-                placeholder="Create a secure password"
+                placeholder="Enter your password"
                 value={password}
                 onChange={setPassword}
               />
@@ -117,7 +119,7 @@ export default function Register() {
             <Section title="Merchant Details">
               <Input
                 label="Merchant Name"
-                placeholder="Enter your merchant name"
+                placeholder="Enter merchant or business name"
                 value={merchantName}
                 onChange={setMerchantName}
               />
@@ -126,52 +128,58 @@ export default function Register() {
             <Section title="Business Information (Optional)">
               <Input
                 label="Business Name"
-                placeholder="Legal business name"
+                placeholder="Enter registered business name"
                 value={business.businessName}
                 onChange={(v) => setBusiness({ ...business, businessName: v })}
               />
+
               <Input
                 label="Business Type"
-                placeholder="e.g., Retail, Restaurant, Service"
+                placeholder="Retail, Service, Digital, etc"
                 value={business.businessType}
                 onChange={(v) => setBusiness({ ...business, businessType: v })}
               />
+
               <div style={styles.row}>
                 <Input
                   label="Business Phone"
-                  placeholder="+251 ..."
+                  placeholder="+2519XXXXXXXX"
                   value={business.businessPhone}
                   onChange={(v) =>
                     setBusiness({ ...business, businessPhone: v })
                   }
                 />
+
                 <Input
                   label="Business Email"
-                  placeholder="business@example.com"
+                  placeholder="business@email.com"
                   value={business.businessEmail}
                   onChange={(v) =>
                     setBusiness({ ...business, businessEmail: v })
                   }
                 />
               </div>
+
               <Input
                 label="Business Address"
-                placeholder="Full business address"
+                placeholder="City, Subcity, Street"
                 value={business.businessAddress}
                 onChange={(v) =>
                   setBusiness({ ...business, businessAddress: v })
                 }
               />
+
               <div style={styles.row}>
                 <Input
                   label="TIN Number"
-                  placeholder="Tax Identification Number"
+                  placeholder="Enter TIN number"
                   value={business.tinNumber}
                   onChange={(v) => setBusiness({ ...business, tinNumber: v })}
                 />
+
                 <Input
                   label="FYDA ID"
-                  placeholder="Enter Your FIN"
+                  placeholder="Enter FYDA ID"
                   value={business.fydaId}
                   onChange={(v) => setBusiness({ ...business, fydaId: v })}
                 />
@@ -191,7 +199,7 @@ export default function Register() {
             Already have an account? <Link to="/login">Sign in</Link>
           </p>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
@@ -206,7 +214,7 @@ function Section({ title, children }) {
   );
 }
 
-function Input({ label, type = "text", placeholder, value, onChange }) {
+function Input({ label, placeholder, type = "text", value, onChange }) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
   const inputType = isPassword && showPassword ? "text" : type;
@@ -214,20 +222,16 @@ function Input({ label, type = "text", placeholder, value, onChange }) {
   return (
     <div style={styles.field}>
       <label style={styles.label}>{label}</label>
+
       <div style={{ position: "relative" }}>
         <input
           type={inputType}
           value={value}
           placeholder={placeholder}
           onChange={(e) => onChange(e.target.value)}
-          style={{
-            ...styles.input,
-            paddingRight: isPassword ? 40 : 12,
-            outline: "none",
-          }}
-          onFocus={(e) => (e.target.style.borderColor = "#059669")}
-          onBlur={(e) => (e.target.style.borderColor = "#D1D5DB")}
+          style={{ ...styles.input, paddingRight: isPassword ? 40 : 12 }}
         />
+
         {isPassword && (
           <span
             onClick={() => setShowPassword(!showPassword)}
@@ -237,54 +241,9 @@ function Input({ label, type = "text", placeholder, value, onChange }) {
               top: "50%",
               transform: "translateY(-50%)",
               cursor: "pointer",
-              width: 24,
-              height: 24,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
             }}
           >
-            {showPassword ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                style={{ width: 20, height: 20, color: "#555" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                style={{ width: 20, height: 20, color: "#555" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.056 10.056 0 012.018-3.36m3.7-2.7A9.959 9.959 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-1.46 2.73M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3 3l18 18"
-                />
-              </svg>
-            )}
+            {showPassword ? "👁" : "👁‍🗨"}
           </span>
         )}
       </div>
@@ -292,163 +251,98 @@ function Input({ label, type = "text", placeholder, value, onChange }) {
   );
 }
 
-/* ---------- SIMPLE FIXED LAYOUT ---------- */
+/* ---------- Styles ---------- */
 const styles = {
   page: {
-    display: "flex",
     minHeight: "100vh",
-    fontFamily: "'Inter', sans-serif",
-    margin: 0,
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
   },
-
   left: {
-    width: "45%",
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
+    padding: "60px 48px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    position: "fixed",
+    position: "sticky",
     top: 0,
-    left: 0,
-    bottom: 0,
+    height: "100vh",
   },
 
-  leftContent: {
-    padding: "60px",
-    maxWidth: "500px",
-    width: "100%",
-  },
-
-  brand: {
-    fontSize: "44px",
-    fontWeight: 800,
-    marginBottom: "20px",
-    lineHeight: 1.1,
-  },
-  tagline: {
-    fontSize: "18px",
-    marginBottom: "40px",
-    color: "#a7f3d0",
-    lineHeight: 1.5,
-  },
+  brand: { fontSize: 36, fontWeight: 800, marginBottom: 8 },
+  tagline: { fontSize: 16, marginBottom: 24, color: "#a7f3d0" },
   features: {
     listStyle: "none",
     padding: 0,
-    margin: "0 0 40px 0",
-    lineHeight: 1.8,
-    fontSize: "16px",
+    marginBottom: 24,
+    lineHeight: 1.6,
   },
-  trust: {
-    fontSize: "14px",
-    color: "#99f6e4",
-    lineHeight: 1.5,
-  },
+  trust: { fontSize: 12, color: "#99f6e4" },
 
   right: {
-    flex: 1,
     background: "#ffffff",
-    marginLeft: "45%",
-    padding: "80px",
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    padding: "40px 24px",
+    overflowY: "auto",
   },
 
   formWrapper: {
     width: "100%",
-    maxWidth: "500px",
+    maxWidth: 520,
+    margin: "0 auto",
   },
 
-  header: {
-    marginBottom: "40px",
-  },
-  formTitle: {
-    fontSize: "28px",
-    fontWeight: 700,
-    marginBottom: "8px",
-    color: "#111827",
-    lineHeight: 1.2,
-  },
-  subHeader: {
-    color: "#6b7280",
-    fontSize: "15px",
-    lineHeight: 1.4,
-  },
+  header: { marginBottom: 16 }, // reduce spacing
+  subHeader: { color: "#6b7280", marginTop: 2 },
 
   error: {
     background: "#fef2f2",
     color: "#991b1b",
-    padding: "16px",
-    borderRadius: "10px",
-    marginBottom: "24px",
-    fontSize: "14px",
+    padding: 10,
+    borderRadius: 6,
+    marginBottom: 10,
   },
 
-  formGrid: { display: "grid", gap: "32px" },
+  formGrid: { display: "grid", gap: 12 }, // less vertical gap
   section: {
-    marginBottom: "0",
-    paddingBottom: "24px",
+    marginBottom: 12,
+    paddingBottom: 4,
     borderBottom: "1px solid #e5e7eb",
   },
-  sectionTitle: {
-    fontWeight: 600,
-    marginBottom: "20px",
-    fontSize: "16px",
-    color: "#374151",
-  },
-  row: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "16px",
-  },
-  field: { marginBottom: "20px" },
-  label: {
-    display: "block",
-    marginBottom: "8px",
-    fontWeight: 500,
-    fontSize: "14px",
-    color: "#374151",
-  },
+  sectionTitle: { fontWeight: 700, marginBottom: 6, fontSize: 14 },
+  row: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }, // tighter row spacing
+  field: { marginBottom: 8 }, // less vertical gap between inputs
+  label: { display: "block", marginBottom: 2, fontWeight: 500, fontSize: 13 },
   input: {
     width: "100%",
-    padding: "14px 16px",
-    borderRadius: "8px",
-    border: "1px solid #D1D5DB",
-    backgroundColor: "#FFFFFF",
+    padding: 14,
+    paddingRight: 40,
+    borderRadius: 6,
+    border: "1px solid #d1d5db",
+    background: "#ffffff",
     boxSizing: "border-box",
-    fontSize: "15px",
-    color: "#111827",
-    transition: "border-color 0.2s, box-shadow 0.2s",
+    fontSize: 14,
   },
 
   button: {
     width: "100%",
-    padding: "16px",
+    padding: 16,
     background: "#059669",
     color: "#fff",
     border: "none",
-    borderRadius: "12px",
-    fontSize: "16px",
-    fontWeight: 600,
+    borderRadius: 10,
+    fontSize: 16,
+    fontWeight: 700,
     cursor: "pointer",
-    marginTop: "8px",
-    transition: "background-color 0.2s",
+    marginTop: 8,
   },
   buttonDisabled: {
     width: "100%",
-    padding: "16px",
+    padding: 16,
     background: "#a7f3d0",
-    borderRadius: "12px",
+    borderRadius: 10,
     border: "none",
-    marginTop: "8px",
-    cursor: "not-allowed",
+    marginTop: 8,
   },
-  login: {
-    marginTop: "32px",
-    textAlign: "center",
-    fontSize: "14px",
-    color: "#6B7280",
-  },
+  login: { marginTop: 8, textAlign: "center", fontSize: 13 },
 };
