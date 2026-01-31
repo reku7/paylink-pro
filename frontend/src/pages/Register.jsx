@@ -255,8 +255,7 @@ function Input({ label, placeholder, type = "text", value, onChange }) {
 const styles = {
   page: {
     minHeight: "100vh",
-    paddingLeft: "580px", // 🔥 this replaces marginLeft logic
-    boxSizing: "border-box",
+    position: "relative", // <-- make right panel position work correctly
   },
 
   /* LEFT — FIXED BRANDING */
@@ -301,7 +300,11 @@ const styles = {
 
   /* RIGHT — SCROLLABLE FORM */
   right: {
-    minHeight: "100vh",
+    position: "absolute", // <-- fill the remaining space
+    top: 0,
+    left: "580px", // <-- start after the left panel
+    right: 0, // <-- stretch to the right edge
+    bottom: 0,
     background: "#ffffff",
     padding: "40px 24px",
     overflowY: "auto",
@@ -309,10 +312,10 @@ const styles = {
   },
 
   formWrapper: {
-    width: "100%",
-    maxWidth: "100%", // ← allow full width
-    margin: 0, // ← remove auto centering
-    paddingRight: 0, // optional
+    width: "100%", // <-- take full width of right panel
+    maxWidth: "100%", // <-- prevent limiting width
+    margin: 0, // <-- no centering
+    paddingRight: 0, // <-- remove extra padding
   },
 
   header: {
