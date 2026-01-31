@@ -255,19 +255,21 @@ function Input({ label, placeholder, type = "text", value, onChange }) {
 const styles = {
   page: {
     minHeight: "100vh",
-    display: "grid",
+    display: "flex",
     gridTemplateColumns: "1fr 1fr",
   },
   left: {
+    width: "50%",
+    position: "fixed",
+    left: 0,
+    top: 0,
+    bottom: 0,
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
     padding: "60px 48px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    position: "sticky",
-    top: 0,
-    height: "100vh",
   },
 
   brand: { fontSize: 36, fontWeight: 800, marginBottom: 8 },
@@ -281,8 +283,11 @@ const styles = {
   trust: { fontSize: 12, color: "#99f6e4" },
 
   right: {
+    width: "50%",
+    marginLeft: "50%",
     background: "#ffffff",
     padding: "40px 24px",
+    height: "100vh",
     overflowY: "auto",
   },
 
