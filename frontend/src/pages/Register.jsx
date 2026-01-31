@@ -310,8 +310,9 @@ const styles = {
 
   formWrapper: {
     width: "100%",
-    maxWidth: 520,
-    margin: "0 auto",
+    maxWidth: "100%", // ← allow full width
+    margin: 0, // ← remove auto centering
+    paddingRight: 0, // optional
   },
 
   header: {
