@@ -300,22 +300,22 @@ const styles = {
 
   /* RIGHT — SCROLLABLE FORM */
   right: {
-    position: "absolute", // <-- fill the remaining space
+    position: "absolute", // fill remaining space
     top: 0,
-    left: "580px", // <-- start after the left panel
-    right: 0, // <-- stretch to the right edge
+    left: "580px", // start after left panel
+    right: 0, // stretch to right edge
     bottom: 0,
     background: "#ffffff",
-    padding: "40px 24px",
+    padding: "40px 0", // remove horizontal padding to fill width
     overflowY: "auto",
     boxSizing: "border-box",
   },
 
   formWrapper: {
-    width: "100%", // <-- take full width of right panel
-    maxWidth: "100%", // <-- prevent limiting width
-    margin: 0, // <-- no centering
-    paddingRight: 0, // <-- remove extra padding
+    width: "100%", // take full width of right panel
+    maxWidth: "none", // no restriction
+    margin: 0, // no auto-centering
+    padding: "0 24px", // optional: breathing room inside form
   },
 
   header: {
