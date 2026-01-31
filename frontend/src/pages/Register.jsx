@@ -63,20 +63,22 @@ export default function Register() {
       {/* LEFT — Fixed Branding Section */}
       <section style={styles.left}>
         <div style={styles.leftContent}>
-          <h1 style={styles.brand}>PayFlow</h1>
-          <p style={styles.tagline}>
-            Accept payments securely with SantimPay & Chapa
-          </p>
+          <div style={styles.brandingContainer}>
+            <h1 style={styles.brand}>PayFlow</h1>
+            <p style={styles.tagline}>
+              Accept payments securely with SantimPay & Chapa
+            </p>
 
-          <ul style={styles.features}>
-            <li>✓ Built for Ethiopian merchants</li>
-            <li>✓ Secure & compliant onboarding</li>
-            <li>✓ SantimPay enabled instantly</li>
-          </ul>
+            <ul style={styles.features}>
+              <li>✓ Built for Ethiopian merchants</li>
+              <li>✓ Secure & compliant onboarding</li>
+              <li>✓ SantimPay enabled instantly</li>
+            </ul>
 
-          <p style={styles.trust}>
-            You can connect Chapa anytime from your dashboard
-          </p>
+            <p style={styles.trust}>
+              You can connect Chapa anytime from your dashboard
+            </p>
+          </div>
         </div>
       </section>
 
@@ -84,7 +86,7 @@ export default function Register() {
       <section style={styles.right}>
         <div style={styles.formWrapper}>
           <header style={styles.header}>
-            <h2>Create your merchant account</h2>
+            <h2 style={styles.formTitle}>Create your merchant account</h2>
             <p style={styles.subHeader}>SantimPay is enabled by default</p>
           </header>
 
@@ -292,21 +294,20 @@ function Input({ label, type = "text", placeholder, value, onChange }) {
   );
 }
 
-/* ---------- Updated Styles with Fixed Left Section ---------- */
+/* ---------- Updated Styles with Better Alignment ---------- */
 const styles = {
   page: {
     display: "flex",
     minHeight: "100vh",
     fontFamily: "'Inter', sans-serif",
     margin: 0,
+    overflow: "hidden",
   },
 
   left: {
-    width: "40%",
-    minWidth: "400px",
+    width: "45%",
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
-    padding: "40px 48px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -318,131 +319,153 @@ const styles = {
   },
 
   leftContent: {
-    maxWidth: "500px",
     width: "100%",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  brandingContainer: {
+    maxWidth: "440px",
+    width: "100%",
+    padding: "0 60px",
+    marginTop: "-40px", // Adjust vertical centering
   },
 
   brand: {
-    fontSize: 40,
+    fontSize: "44px",
     fontWeight: 800,
-    marginBottom: 12,
-    lineHeight: 1,
+    marginBottom: "20px",
+    lineHeight: 1.1,
+    letterSpacing: "-0.5px",
   },
   tagline: {
-    fontSize: 18,
-    marginBottom: 32,
+    fontSize: "18px",
+    marginBottom: "40px",
     color: "#a7f3d0",
-    lineHeight: 1.4,
+    lineHeight: 1.5,
   },
   features: {
     listStyle: "none",
     padding: 0,
-    margin: "0 0 32px 0",
+    margin: "0 0 40px 0",
     lineHeight: 1.8,
+    fontSize: "16px",
   },
   trust: {
-    fontSize: 14,
+    fontSize: "14px",
     color: "#99f6e4",
-    lineHeight: 1.4,
+    lineHeight: 1.5,
+    opacity: 0.9,
   },
 
   right: {
     flex: 1,
     background: "#ffffff",
-    padding: "60px 48px",
-    marginLeft: "40%", // still offset for left
-    minWidth: "60%",
+    marginLeft: "45%", // Offset for fixed left section
+    minWidth: "55%",
     overflowY: "auto",
-    display: "block", // remove flex
-    minHeight: "100vh",
+    display: "flex",
+    alignItems: "flex-start", // Changed from center to flex-start
+    justifyContent: "center",
+    padding: "60px 0",
   },
 
   formWrapper: {
     width: "100%",
-    maxWidth: "500px",
+    maxWidth: "520px",
     margin: "0 auto",
+    padding: "0 40px",
   },
   header: {
-    marginBottom: 32,
+    marginBottom: "40px",
+  },
+  formTitle: {
+    fontSize: "28px",
+    fontWeight: 700,
+    marginBottom: "8px",
+    color: "#111827",
     lineHeight: 1.2,
   },
   subHeader: {
     color: "#6b7280",
-    marginTop: 8,
-    fontSize: 14,
+    fontSize: "15px",
+    lineHeight: 1.4,
   },
 
   error: {
     background: "#fef2f2",
     color: "#991b1b",
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 20,
+    padding: "16px",
+    borderRadius: "10px",
+    marginBottom: "24px",
+    fontSize: "14px",
   },
 
-  formGrid: { display: "grid", gap: 24 },
+  formGrid: { display: "grid", gap: "32px" },
   section: {
-    marginBottom: 24,
-    paddingBottom: 16,
+    marginBottom: "0",
+    paddingBottom: "24px",
     borderBottom: "1px solid #e5e7eb",
   },
   sectionTitle: {
-    fontWeight: 700,
-    marginBottom: 16,
-    fontSize: 16,
+    fontWeight: 600,
+    marginBottom: "20px",
+    fontSize: "16px",
     color: "#374151",
   },
   row: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: 16,
+    gap: "16px",
   },
-  field: { marginBottom: 16 },
+  field: { marginBottom: "20px" },
   label: {
     display: "block",
-    marginBottom: 8,
+    marginBottom: "8px",
     fontWeight: 500,
-    fontSize: 14,
+    fontSize: "14px",
     color: "#374151",
   },
   input: {
     width: "100%",
-    padding: 14,
-    borderRadius: 8,
+    padding: "14px 16px",
+    borderRadius: "8px",
     border: "1px solid #D1D5DB",
     backgroundColor: "#FFFFFF",
     boxSizing: "border-box",
-    fontSize: 16,
+    fontSize: "15px",
     color: "#111827",
     transition: "border-color 0.2s, box-shadow 0.2s",
   },
 
   button: {
     width: "100%",
-    padding: 16,
+    padding: "16px",
     background: "#059669",
     color: "#fff",
     border: "none",
-    borderRadius: 14,
-    fontSize: 16,
-    fontWeight: 700,
+    borderRadius: "12px",
+    fontSize: "16px",
+    fontWeight: 600,
     cursor: "pointer",
-    marginTop: 16,
+    marginTop: "8px",
     transition: "background-color 0.2s",
   },
   buttonDisabled: {
     width: "100%",
-    padding: 16,
+    padding: "16px",
     background: "#a7f3d0",
-    borderRadius: 14,
+    borderRadius: "12px",
     border: "none",
-    marginTop: 16,
+    marginTop: "8px",
     cursor: "not-allowed",
   },
   login: {
-    marginTop: 24,
+    marginTop: "32px",
     textAlign: "center",
-    fontSize: 14,
+    fontSize: "14px",
     color: "#6B7280",
   },
 };
