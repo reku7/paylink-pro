@@ -93,20 +93,20 @@ export default function Register() {
           <form onSubmit={handleRegister} style={styles.formGrid}>
             <Section title="Personal Information">
               <Input
-                label="Full Name *"
+                label="Full Name"
                 placeholder="Enter your full name"
                 value={name}
                 onChange={setName}
               />
               <Input
-                label="Email *"
+                label="Email"
                 type="email"
                 placeholder="Enter your email address"
                 value={email}
                 onChange={setEmail}
               />
               <Input
-                label="Password *"
+                label="Password"
                 type="password"
                 placeholder="Create a secure password"
                 value={password}
@@ -116,7 +116,7 @@ export default function Register() {
 
             <Section title="Merchant Details">
               <Input
-                label="Merchant Name *"
+                label="Merchant Name"
                 placeholder="Enter your merchant/store name"
                 value={merchantName}
                 onChange={setMerchantName}
@@ -171,7 +171,7 @@ export default function Register() {
                 />
                 <Input
                   label="FYDA ID"
-                  placeholder="Federal Yellow Pages ID"
+                  placeholder="Enter Your FIN"
                   value={business.fydaId}
                   onChange={(v) => setBusiness({ ...business, fydaId: v })}
                 />
@@ -244,7 +244,49 @@ function Input({ label, type = "text", placeholder, value, onChange }) {
               justifyContent: "center",
             }}
           >
-            {showPassword ? "👁" : "👁‍🗨"}
+            {showPassword ? (
+              // Eye icon (visible) - same as Login component
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: 20, height: 20, color: "#555" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
+              </svg>
+            ) : (
+              // Eye-slash icon (hidden) - same as Login component
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: 20, height: 20, color: "#555" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.056 10.056 0 012.018-3.36m3.7-2.7A9.959 9.959 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-1.46 2.73M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 3l18 18"
+                />
+              </svg>
+            )}
           </span>
         )}
       </div>
@@ -252,15 +294,12 @@ function Input({ label, type = "text", placeholder, value, onChange }) {
   );
 }
 
-/* ---------- Styles ---------- */
+/* ---------- Updated Styles ---------- */
 const styles = {
   page: {
     minHeight: "100vh",
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    "@media (max-width: 768px)": {
-      gridTemplateColumns: "1fr",
-    },
   },
   left: {
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
@@ -268,67 +307,95 @@ const styles = {
     padding: "60px 48px",
     display: "flex",
     alignItems: "center",
+    justifyContent: "center",
   },
-  brand: { fontSize: 36, fontWeight: 800, marginBottom: 8 },
-  tagline: { fontSize: 16, marginBottom: 24, color: "#a7f3d0" },
+  brand: {
+    fontSize: 40,
+    fontWeight: 800,
+    marginBottom: 12,
+    lineHeight: 1,
+  },
+  tagline: {
+    fontSize: 18,
+    marginBottom: 32,
+    color: "#a7f3d0",
+    lineHeight: 1.4,
+  },
   features: {
     listStyle: "none",
     padding: 0,
-    marginBottom: 24,
-    lineHeight: 1.6,
+    margin: "0 0 32px 0",
+    lineHeight: 1.8,
   },
-  trust: { fontSize: 12, color: "#99f6e4" },
+  trust: {
+    fontSize: 14,
+    color: "#99f6e4",
+    lineHeight: 1.4,
+  },
 
   right: {
     background: "#ffffff",
-    padding: "48px 32px",
+    padding: "60px 48px",
     overflowY: "auto",
+    display: "flex",
+    alignItems: "center",
   },
   formWrapper: {
-    maxWidth: 650,
+    width: "100%",
+    maxWidth: 500,
     margin: "0 auto",
   },
-  header: { marginBottom: 16 },
-  subHeader: { color: "#6b7280", marginTop: 2 },
+  header: {
+    marginBottom: 32,
+    lineHeight: 1.2,
+  },
+  subHeader: {
+    color: "#6b7280",
+    marginTop: 8,
+    fontSize: 14,
+  },
 
   error: {
     background: "#fef2f2",
     color: "#991b1b",
-    padding: 10,
-    borderRadius: 6,
-    marginBottom: 10,
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 20,
   },
 
-  formGrid: { display: "grid", gap: 12 },
+  formGrid: { display: "grid", gap: 24 },
   section: {
-    marginBottom: 12,
-    paddingBottom: 4,
+    marginBottom: 24,
+    paddingBottom: 16,
     borderBottom: "1px solid #e5e7eb",
   },
   sectionTitle: {
     fontWeight: 700,
-    marginBottom: 6,
-    fontSize: 14,
+    marginBottom: 16,
+    fontSize: 16,
     color: "#374151",
   },
-  row: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 },
-  field: { marginBottom: 8 },
+  row: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 16,
+  },
+  field: { marginBottom: 16 },
   label: {
     display: "block",
-    marginBottom: 2,
+    marginBottom: 8,
     fontWeight: 500,
-    fontSize: 13,
+    fontSize: 14,
     color: "#374151",
   },
   input: {
     width: "100%",
     padding: 14,
-    paddingRight: 40,
-    borderRadius: 6,
+    borderRadius: 8,
     border: "1px solid #D1D5DB",
     backgroundColor: "#FFFFFF",
     boxSizing: "border-box",
-    fontSize: 14,
+    fontSize: 16,
     color: "#111827",
     transition: "border-color 0.2s, box-shadow 0.2s",
   },
@@ -339,26 +406,26 @@ const styles = {
     background: "#059669",
     color: "#fff",
     border: "none",
-    borderRadius: 10,
+    borderRadius: 14,
     fontSize: 16,
     fontWeight: 700,
     cursor: "pointer",
-    marginTop: 8,
+    marginTop: 16,
     transition: "background-color 0.2s",
   },
   buttonDisabled: {
     width: "100%",
     padding: 16,
     background: "#a7f3d0",
-    borderRadius: 10,
+    borderRadius: 14,
     border: "none",
-    marginTop: 8,
+    marginTop: 16,
     cursor: "not-allowed",
   },
   login: {
-    marginTop: 8,
+    marginTop: 24,
     textAlign: "center",
-    fontSize: 13,
+    fontSize: 14,
     color: "#6B7280",
   },
 };
