@@ -61,145 +61,137 @@ export default function Register() {
   return (
     <div style={styles.page}>
       {/* LEFT — Fixed Branding Section */}
-      <aside style={styles.sidebar}>
-        <div style={styles.sidebarInner}>
-          <div style={styles.sidebarContent}>
-            <h1 style={styles.brand}>PayFlow</h1>
-            <p style={styles.tagline}>
-              Accept payments securely with SantimPay & Chapa
-            </p>
+      <div style={styles.left}>
+        <div style={styles.leftContent}>
+          <h1 style={styles.brand}>PayFlow</h1>
+          <p style={styles.tagline}>
+            Accept payments securely with SantimPay & Chapa
+          </p>
 
-            <ul style={styles.features}>
-              <li>✓ Built for Ethiopian merchants</li>
-              <li>✓ Secure & compliant onboarding</li>
-              <li>✓ SantimPay enabled instantly</li>
-            </ul>
+          <ul style={styles.features}>
+            <li>✓ Built for Ethiopian merchants</li>
+            <li>✓ Secure & compliant onboarding</li>
+            <li>✓ SantimPay enabled instantly</li>
+          </ul>
 
-            <p style={styles.trust}>
-              You can connect Chapa anytime from your dashboard
-            </p>
-          </div>
+          <p style={styles.trust}>
+            You can connect Chapa anytime from your dashboard
+          </p>
         </div>
-      </aside>
+      </div>
 
       {/* RIGHT — Scrollable Registration Form */}
-      <main style={styles.main}>
-        <div style={styles.panel}>
-          <div style={styles.formWrapper}>
-            <header style={styles.header}>
-              <h2 style={styles.formTitle}>Create your merchant account</h2>
-              <p style={styles.subHeader}>SantimPay is enabled by default</p>
-            </header>
+      <div style={styles.right}>
+        <div style={styles.formWrapper}>
+          <header style={styles.header}>
+            <h2 style={styles.formTitle}>Create your merchant account</h2>
+            <p style={styles.subHeader}>SantimPay is enabled by default</p>
+          </header>
 
-            {error && <div style={styles.error}>{error}</div>}
+          {error && <div style={styles.error}>{error}</div>}
 
-            <form onSubmit={handleRegister} style={styles.formGrid}>
-              <Section title="Personal Information">
-                <Input
-                  label="Full Name"
-                  placeholder="Enter your full name"
-                  value={name}
-                  onChange={setName}
-                />
-                <Input
-                  label="Email"
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={email}
-                  onChange={setEmail}
-                />
-                <Input
-                  label="Password"
-                  type="password"
-                  placeholder="Create a secure password"
-                  value={password}
-                  onChange={setPassword}
-                />
-              </Section>
+          <form onSubmit={handleRegister} style={styles.formGrid}>
+            <Section title="Personal Information">
+              <Input
+                label="Full Name"
+                placeholder="Enter your full name"
+                value={name}
+                onChange={setName}
+              />
+              <Input
+                label="Email"
+                type="email"
+                placeholder="Enter your email address"
+                value={email}
+                onChange={setEmail}
+              />
+              <Input
+                label="Password"
+                type="password"
+                placeholder="Create a secure password"
+                value={password}
+                onChange={setPassword}
+              />
+            </Section>
 
-              <Section title="Merchant Details">
-                <Input
-                  label="Merchant Name"
-                  placeholder="Enter your merchant name"
-                  value={merchantName}
-                  onChange={setMerchantName}
-                />
-              </Section>
+            <Section title="Merchant Details">
+              <Input
+                label="Merchant Name"
+                placeholder="Enter your merchant name"
+                value={merchantName}
+                onChange={setMerchantName}
+              />
+            </Section>
 
-              <Section title="Business Information (Optional)">
+            <Section title="Business Information (Optional)">
+              <Input
+                label="Business Name"
+                placeholder="Legal business name"
+                value={business.businessName}
+                onChange={(v) => setBusiness({ ...business, businessName: v })}
+              />
+              <Input
+                label="Business Type"
+                placeholder="e.g., Retail, Restaurant, Service"
+                value={business.businessType}
+                onChange={(v) => setBusiness({ ...business, businessType: v })}
+              />
+              <div style={styles.row}>
                 <Input
-                  label="Business Name"
-                  placeholder="Legal business name"
-                  value={business.businessName}
+                  label="Business Phone"
+                  placeholder="+251 ..."
+                  value={business.businessPhone}
                   onChange={(v) =>
-                    setBusiness({ ...business, businessName: v })
+                    setBusiness({ ...business, businessPhone: v })
                   }
                 />
                 <Input
-                  label="Business Type"
-                  placeholder="e.g., Retail, Restaurant, Service"
-                  value={business.businessType}
+                  label="Business Email"
+                  placeholder="business@example.com"
+                  value={business.businessEmail}
                   onChange={(v) =>
-                    setBusiness({ ...business, businessType: v })
+                    setBusiness({ ...business, businessEmail: v })
                   }
                 />
-                <div style={styles.row}>
-                  <Input
-                    label="Business Phone"
-                    placeholder="+251 ..."
-                    value={business.businessPhone}
-                    onChange={(v) =>
-                      setBusiness({ ...business, businessPhone: v })
-                    }
-                  />
-                  <Input
-                    label="Business Email"
-                    placeholder="business@example.com"
-                    value={business.businessEmail}
-                    onChange={(v) =>
-                      setBusiness({ ...business, businessEmail: v })
-                    }
-                  />
-                </div>
+              </div>
+              <Input
+                label="Business Address"
+                placeholder="Full business address"
+                value={business.businessAddress}
+                onChange={(v) =>
+                  setBusiness({ ...business, businessAddress: v })
+                }
+              />
+              <div style={styles.row}>
                 <Input
-                  label="Business Address"
-                  placeholder="Full business address"
-                  value={business.businessAddress}
-                  onChange={(v) =>
-                    setBusiness({ ...business, businessAddress: v })
-                  }
+                  label="TIN Number"
+                  placeholder="Tax Identification Number"
+                  value={business.tinNumber}
+                  onChange={(v) => setBusiness({ ...business, tinNumber: v })}
                 />
-                <div style={styles.row}>
-                  <Input
-                    label="TIN Number"
-                    placeholder="Tax Identification Number"
-                    value={business.tinNumber}
-                    onChange={(v) => setBusiness({ ...business, tinNumber: v })}
-                  />
-                  <Input
-                    label="FYDA ID"
-                    placeholder="Enter Your FIN"
-                    value={business.fydaId}
-                    onChange={(v) => setBusiness({ ...business, fydaId: v })}
-                  />
-                </div>
-              </Section>
+                <Input
+                  label="FYDA ID"
+                  placeholder="Enter Your FIN"
+                  value={business.fydaId}
+                  onChange={(v) => setBusiness({ ...business, fydaId: v })}
+                />
+              </div>
+            </Section>
 
-              <button
-                type="submit"
-                disabled={loading}
-                style={loading ? styles.buttonDisabled : styles.button}
-              >
-                {loading ? "Creating Account..." : "Create Account"}
-              </button>
-            </form>
+            <button
+              type="submit"
+              disabled={loading}
+              style={loading ? styles.buttonDisabled : styles.button}
+            >
+              {loading ? "Creating Account..." : "Create Account"}
+            </button>
+          </form>
 
-            <p style={styles.login}>
-              Already have an account? <Link to="/login">Sign in</Link>
-            </p>
-          </div>
+          <p style={styles.login}>
+            Already have an account? <Link to="/login">Sign in</Link>
+          </p>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
@@ -300,36 +292,32 @@ function Input({ label, type = "text", placeholder, value, onChange }) {
   );
 }
 
-/* ---------- Fixed Styles with Proper Centering ---------- */
+/* ---------- SIMPLE FIXED LAYOUT ---------- */
 const styles = {
   page: {
+    display: "flex",
     minHeight: "100vh",
     fontFamily: "'Inter', sans-serif",
     margin: 0,
   },
 
-  sidebar: {
-    position: "fixed",
+  left: {
     width: "45%",
+    background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
+    color: "#ecfdf5",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "fixed",
     top: 0,
     left: 0,
     bottom: 0,
   },
 
-  sidebarInner: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: "100vh",
-    width: "100%",
-    padding: "80px 60px",
-    boxSizing: "border-box",
-  },
-
-  sidebarContent: {
-    width: "100%",
+  leftContent: {
+    padding: "60px",
     maxWidth: "500px",
-    margin: "0 auto",
+    width: "100%",
   },
 
   brand: {
@@ -357,24 +345,20 @@ const styles = {
     lineHeight: 1.5,
   },
 
-  main: {
+  right: {
+    flex: 1,
+    background: "#ffffff",
     marginLeft: "45%",
-    padding: "60px",
+    padding: "80px",
     minHeight: "100vh",
-    overflowY: "auto",
-  },
-
-  panel: {
-    background: "#fff",
-    borderRadius: 16,
-    padding: 50,
-    boxSizing: "border-box",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   formWrapper: {
     width: "100%",
     maxWidth: "500px",
-    margin: "0 auto",
   },
 
   header: {
