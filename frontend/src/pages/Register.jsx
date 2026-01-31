@@ -255,6 +255,8 @@ function Input({ label, placeholder, type = "text", value, onChange }) {
 const styles = {
   page: {
     minHeight: "100vh",
+    paddingLeft: "580px", // 🔥 this replaces marginLeft logic
+    boxSizing: "border-box",
   },
 
   /* LEFT — FIXED BRANDING */
@@ -299,12 +301,10 @@ const styles = {
 
   /* RIGHT — SCROLLABLE FORM */
   right: {
-    marginLeft: "580px", // ✅ SAME AS LEFT WIDTH
-    width: "calc(100% - 580px)",
     minHeight: "100vh",
     background: "#ffffff",
     padding: "40px 24px",
-    overflowY: "auto", // ✅ ONLY FORM SCROLLS
+    overflowY: "auto",
     boxSizing: "border-box",
   },
 
