@@ -219,54 +219,85 @@ function Input({ label, placeholder, type = "text", value, onChange }) {
 /* ---------- CLEAN STYLES ---------- */
 
 const styles = {
+  /* ---------- PAGE ---------- */
   page: {
-    height: "100vh",
+    minHeight: "100vh",
     width: "100%",
     display: "grid",
     gridTemplateColumns: "1fr 1.4fr",
     overflow: "hidden",
   },
 
+  /* ---------- LEFT (FIXED BRAND) ---------- */
   left: {
-    position: "sticky",
-    top: 0,
-    height: "100vh",
-    background: "linear-gradient(135deg,#064e3b,#022c22)",
+    background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
     padding: "80px 64px",
     display: "flex",
     alignItems: "center",
+    position: "sticky",
+    top: 0,
+    height: "100vh",
     boxSizing: "border-box",
   },
 
-  branding: { maxWidth: 420 },
+  branding: {
+    maxWidth: 420,
+  },
 
-  brand: { fontSize: 40, fontWeight: 800, marginBottom: 12 },
-  tagline: { fontSize: 18, marginBottom: 32, color: "#a7f3d0" },
+  brand: {
+    fontSize: 40,
+    fontWeight: 800,
+    marginBottom: 12,
+  },
+
+  tagline: {
+    fontSize: 18,
+    marginBottom: 32,
+    color: "#a7f3d0",
+  },
+
   features: {
     listStyle: "none",
     padding: 0,
     marginBottom: 32,
     lineHeight: 1.8,
   },
-  trust: { fontSize: 14, color: "#99f6e4" },
 
+  trust: {
+    fontSize: 14,
+    color: "#99f6e4",
+  },
+
+  /* ---------- RIGHT (NO EMPTY SPACE) ---------- */
   right: {
-    height: "100vh",
-    overflowY: "auto",
-    background: "#fff",
+    background: "#ffffff",
     padding: "64px",
+    overflowY: "auto",
     boxSizing: "border-box",
   },
 
+  /* ⭐ THIS IS THE FIX */
   formWrapper: {
     width: "100%",
-    maxWidth: 780,
+    maxWidth: "100%", // ❌ no narrow container
   },
 
-  header: { marginBottom: 32 },
-  mainTitle: { fontSize: 28, fontWeight: 700, marginBottom: 8 },
-  subHeader: { color: "#6b7280" },
+  header: {
+    marginBottom: 32,
+  },
+
+  mainTitle: {
+    fontSize: 28,
+    fontWeight: 700,
+    marginBottom: 8,
+    color: "#111827",
+  },
+
+  subHeader: {
+    color: "#6b7280",
+    fontSize: 16,
+  },
 
   error: {
     background: "#fef2f2",
@@ -276,26 +307,46 @@ const styles = {
     marginBottom: 20,
   },
 
-  formGrid: { display: "grid", gap: 24 },
+  formGrid: {
+    display: "grid",
+    gap: 24,
+  },
 
   section: {
+    marginBottom: 24,
     paddingBottom: 16,
     borderBottom: "1px solid #e5e7eb",
   },
 
-  sectionTitle: { fontWeight: 600, marginBottom: 16 },
+  sectionTitle: {
+    fontWeight: 600,
+    marginBottom: 16,
+    fontSize: 16,
+    color: "#111827",
+  },
 
-  row: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 },
+  row: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 16,
+  },
 
-  field: { marginBottom: 16 },
+  field: {
+    marginBottom: 16,
+  },
 
-  label: { marginBottom: 6, display: "block", fontWeight: 500 },
+  label: {
+    display: "block",
+    marginBottom: 6,
+    fontWeight: 500,
+    color: "#374151",
+  },
 
   input: {
     width: "100%",
-    padding: 12,
+    padding: "12px",
     borderRadius: 8,
-    border: "1px solid #d1d5db",
+    border: "1px solid #D1D5DB",
     fontSize: 16,
     boxSizing: "border-box",
   },
@@ -305,18 +356,25 @@ const styles = {
     background: "#059669",
     color: "#fff",
     border: "none",
-    borderRadius: 12,
+    borderRadius: 14,
     fontSize: 16,
     fontWeight: 700,
     cursor: "pointer",
+    marginTop: 8,
   },
 
   buttonDisabled: {
     padding: 16,
     background: "#a7f3d0",
-    borderRadius: 12,
+    borderRadius: 14,
     border: "none",
+    cursor: "not-allowed",
+    marginTop: 8,
   },
 
-  login: { marginTop: 24, textAlign: "center", color: "#6b7280" },
+  login: {
+    marginTop: 24,
+    textAlign: "center",
+    color: "#6B7280",
+  },
 };
