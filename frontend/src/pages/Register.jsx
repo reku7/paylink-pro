@@ -62,7 +62,7 @@ export default function Register() {
     <div style={styles.page}>
       {/* LEFT — Branding */}
       <section style={styles.left}>
-        <div>
+        <div style={styles.branding}>
           <h1 style={styles.brand}>PayFlow</h1>
           <p style={styles.tagline}>
             Accept payments securely with SantimPay & Chapa
@@ -256,11 +256,12 @@ const styles = {
   page: {
     minHeight: "100vh",
     display: "flex",
+    flexDirection: "row",
   },
 
-  /* LEFT — FIXED BRANDING */
+  /* LEFT — FIXED BRANDING ON DESKTOP */
   left: {
-    width: "580px",
+    width: 580,
     flexShrink: 0,
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
@@ -269,55 +270,50 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
   },
-
+  branding: {
+    maxWidth: 400,
+  },
   brand: {
     fontSize: 36,
     fontWeight: 800,
     marginBottom: 8,
   },
-
   tagline: {
     fontSize: 16,
     marginBottom: 24,
     color: "#a7f3d0",
   },
-
   features: {
     listStyle: "none",
     padding: 0,
     marginBottom: 24,
     lineHeight: 1.6,
   },
-
   trust: {
     fontSize: 12,
     color: "#99f6e4",
   },
 
-  /* RIGHT — SCROLLABLE FORM */
+  /* RIGHT — FORM SECTION */
   right: {
     flex: 1,
-    background: "#ffffff",
-    overflowY: "auto",
+    background: "#fff",
     display: "flex",
     justifyContent: "center",
+    overflowY: "auto",
+    padding: 40,
   },
-
   formWrapper: {
     width: "100%",
-    maxWidth: "700px",
-    padding: "40px 24px",
+    maxWidth: 600,
   },
-
   header: {
     marginBottom: 16,
   },
-
   subHeader: {
     color: "#6b7280",
     marginTop: 2,
   },
-
   error: {
     background: "#fef2f2",
     color: "#991b1b",
@@ -325,41 +321,34 @@ const styles = {
     borderRadius: 6,
     marginBottom: 10,
   },
-
   formGrid: {
     display: "grid",
     gap: 12,
   },
-
   section: {
     marginBottom: 12,
     paddingBottom: 4,
     borderBottom: "1px solid #e5e7eb",
   },
-
   sectionTitle: {
     fontWeight: 700,
     marginBottom: 6,
     fontSize: 14,
   },
-
   row: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: 8,
   },
-
   field: {
     marginBottom: 8,
   },
-
   label: {
     display: "block",
     marginBottom: 2,
     fontWeight: 500,
     fontSize: 13,
   },
-
   input: {
     width: "100%",
     padding: 14,
@@ -369,7 +358,6 @@ const styles = {
     boxSizing: "border-box",
     fontSize: 14,
   },
-
   button: {
     width: "100%",
     padding: 16,
@@ -382,7 +370,6 @@ const styles = {
     cursor: "pointer",
     marginTop: 8,
   },
-
   buttonDisabled: {
     width: "100%",
     padding: 16,
@@ -391,10 +378,25 @@ const styles = {
     border: "none",
     marginTop: 8,
   },
-
   login: {
     marginTop: 8,
     textAlign: "center",
     fontSize: 13,
+  },
+
+  /* RESPONSIVE: stack sections vertically on small screens */
+  "@media (max-width: 1024px)": {
+    page: {
+      flexDirection: "column",
+    },
+    left: {
+      width: "100%",
+      padding: 32,
+      justifyContent: "flex-start",
+      minHeight: 200,
+    },
+    right: {
+      padding: 20,
+    },
   },
 };
