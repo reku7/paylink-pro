@@ -254,17 +254,17 @@ function Input({ label, placeholder, type = "text", value, onChange }) {
 /* ---------- Styles ---------- */
 const styles = {
   page: {
-    minHeight: "100vh",
+    height: "100vh",
     display: "flex",
-    flexDirection: "row",
-    margin: 0,
-    padding: 0,
+    overflow: "hidden", // prevents whole page scrolling
   },
 
-  /* LEFT — FIXED BRANDING ON DESKTOP */
+  /* ---------- LEFT (FIXED) ---------- */
   left: {
-    width: 580,
-    flexShrink: 0,
+    flex: "0 0 520px", // fixed width without breaking flex
+    height: "100vh",
+    position: "sticky",
+    top: 0,
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
     padding: "60px 48px",
@@ -272,120 +272,131 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     boxSizing: "border-box",
+    borderRight: "1px solid rgba(255,255,255,0.08)", // subtle fintech touch
   },
+
   branding: {
-    maxWidth: 400,
+    maxWidth: 420,
   },
+
   brand: {
     fontSize: 36,
     fontWeight: 800,
     marginBottom: 8,
     marginTop: 0,
   },
+
   tagline: {
     fontSize: 16,
     marginBottom: 24,
     color: "#a7f3d0",
-    marginTop: 0,
   },
+
   features: {
     listStyle: "none",
     padding: 0,
     marginBottom: 24,
     lineHeight: 1.6,
-    marginTop: 0,
   },
+
   trust: {
     fontSize: 12,
     color: "#99f6e4",
-    marginTop: 0,
-    marginBottom: 0,
   },
 
-  /* RIGHT — FORM SECTION - REMOVED EXTRA SPACES */
+  /* ---------- RIGHT (SCROLLABLE) ---------- */
   right: {
     flex: 1,
+    height: "100vh",
+    overflowY: "auto", // ONLY this scrolls
     background: "#fff",
     display: "flex",
     justifyContent: "center",
     alignItems: "flex-start",
-    overflowY: "auto",
-    padding: "20px 0", // Reduced vertical padding
+    padding: "56px 40px",
     boxSizing: "border-box",
   },
+
+  /* ⭐ Increased width removes empty space */
   formWrapper: {
     width: "100%",
-    maxWidth: 500, // Reduced from 600
-    padding: "0 24px", // Added horizontal padding instead of on right section
-    boxSizing: "border-box",
+    maxWidth: 720, // SWEET SPOT for auth forms
+    margin: "0 auto",
   },
+
   header: {
-    marginBottom: 20,
-    marginTop: 0,
+    marginBottom: 24,
   },
+
   mainTitle: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 700,
-    marginBottom: 4,
-    marginTop: 0,
+    marginBottom: 6,
   },
+
   subHeader: {
     color: "#6b7280",
     fontSize: 14,
-    marginTop: 0,
-    marginBottom: 0,
   },
+
   error: {
     background: "#fef2f2",
     color: "#991b1b",
-    padding: 10,
+    padding: 12,
     borderRadius: 6,
-    marginBottom: 16,
+    marginBottom: 18,
     fontSize: 14,
   },
+
   formGrid: {
     display: "grid",
-    gap: 16,
+    gap: 18,
   },
+
   section: {
-    marginBottom: 16,
-    paddingBottom: 8,
+    marginBottom: 18,
+    paddingBottom: 10,
     borderBottom: "1px solid #e5e7eb",
   },
+
   sectionTitle: {
     fontWeight: 600,
-    marginBottom: 12,
+    marginBottom: 14,
     fontSize: 15,
     color: "#111827",
   },
+
   row: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: 12,
+    gap: 14,
   },
+
   field: {
-    marginBottom: 12,
+    marginBottom: 14,
   },
+
   label: {
     display: "block",
-    marginBottom: 4,
+    marginBottom: 6,
     fontWeight: 500,
     fontSize: 14,
     color: "#374151",
   },
+
   input: {
     width: "100%",
-    padding: 12,
+    padding: 13,
     borderRadius: 6,
     border: "1px solid #d1d5db",
     background: "#ffffff",
     boxSizing: "border-box",
     fontSize: 14,
-    color: "#111827",
   },
+
   button: {
     width: "100%",
-    padding: 14,
+    padding: 15,
     background: "#059669",
     color: "#fff",
     border: "none",
@@ -393,51 +404,25 @@ const styles = {
     fontSize: 16,
     fontWeight: 600,
     cursor: "pointer",
-    marginTop: 8,
-    transition: "background-color 0.2s",
+    marginTop: 10,
   },
+
   buttonDisabled: {
     width: "100%",
-    padding: 14,
+    padding: 15,
     background: "#a7f3d0",
     color: "#047857",
     borderRadius: 8,
     border: "none",
-    marginTop: 8,
+    marginTop: 10,
     fontSize: 16,
     fontWeight: 600,
   },
+
   login: {
-    marginTop: 20,
+    marginTop: 24,
     textAlign: "center",
     fontSize: 14,
     color: "#6b7280",
-  },
-
-  /* RESPONSIVE: stack sections vertically on small screens */
-  "@media (max-width: 1024px)": {
-    page: {
-      flexDirection: "column",
-    },
-    left: {
-      width: "100%",
-      padding: "32px 24px",
-      justifyContent: "flex-start",
-      minHeight: 200,
-    },
-    branding: {
-      maxWidth: "100%",
-    },
-    right: {
-      padding: "20px 0",
-    },
-    formWrapper: {
-      maxWidth: "100%",
-      padding: "0 20px",
-    },
-    row: {
-      gridTemplateColumns: "1fr",
-      gap: 12,
-    },
   },
 };
