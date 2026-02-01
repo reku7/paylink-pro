@@ -1,304 +1,211 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { privateApi as api } from "../api/api";
+import { setAuthToken } from "../utils/auth";
 
-export default function Register() {
+export default function Login() {
   const navigate = useNavigate();
 
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [merchantName, setMerchantName] = useState("");
-
-  const [business, setBusiness] = useState({
-    businessName: "",
-    businessAddress: "",
-    businessPhone: "",
-    businessEmail: "",
-    businessType: "",
-    tinNumber: "",
-    fydaId: "",
-  });
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleRegister = async (e) => {
+  async function handleLogin(e) {
     e.preventDefault();
-
-    if (!name || !email || !password || !merchantName) {
-      return setError("Please fill all required fields");
-    }
+    setLoading(true);
+    setError("");
 
     try {
-      setLoading(true);
-      setError("");
-
-      const payload = {
-        name,
-        email,
-        password,
-        merchantName,
-        preferredGateway: "santimpay",
-      };
-
-      if (Object.values(business).some(Boolean)) {
-        payload.business = business;
-      }
-
-      await api.post("/auth/register", payload);
-      navigate("/login");
+      const res = await api.post("/auth/login", { email, password });
+      setAuthToken(res.data.token);
+      navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.error || "Registration failed");
+      console.error("Login failed:", err);
+      setError(
+        err.response?.data?.message || "Login failed. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <div style={styles.page}>
-      {/* LEFT */}
+      {/* LEFT — BRANDING */}
       <section style={styles.left}>
-        <div style={styles.branding}>
+        <div>
           <h1 style={styles.brand}>PayFlow</h1>
           <p style={styles.tagline}>
-            Accept payments securely with SantimPay & Chapa
+            Accept payments securely with Chapa & SantimPay
           </p>
-
           <ul style={styles.features}>
             <li>✓ Built for Ethiopian merchants</li>
-            <li>✓ Secure & compliant onboarding</li>
-            <li>✓ SantimPay enabled instantly</li>
+            <li>✓ Secure & compliant login</li>
+            <li>✓ Access your dashboard instantly</li>
           </ul>
-
           <p style={styles.trust}>
-            You can connect Chapa anytime from your dashboard
+            Trusted payment infrastructure for modern businesses
           </p>
         </div>
       </section>
 
-      {/* RIGHT */}
+      {/* RIGHT — LOGIN FORM */}
       <section style={styles.right}>
         <div style={styles.formWrapper}>
           <header style={styles.header}>
-            <h2 style={styles.mainTitle}>Create your merchant account</h2>
-            <p style={styles.subHeader}>SantimPay is enabled by default</p>
+            <h2>Merchant Login</h2>
+            <p>Sign in to access your dashboard</p>
           </header>
 
           {error && <div style={styles.error}>{error}</div>}
 
-          <form onSubmit={handleRegister} style={styles.formGrid}>
-            <Section title="Personal Information">
-              <Input
-                label="Full Name"
-                placeholder="Enter full name"
-                value={name}
-                onChange={setName}
-              />
+          <form onSubmit={handleLogin} style={styles.formGrid}>
+            <div>
               <Input
                 label="Email"
                 type="email"
-                placeholder="Enter email"
                 value={email}
                 onChange={setEmail}
               />
               <Input
                 label="Password"
                 type="password"
-                placeholder="Enter password"
                 value={password}
                 onChange={setPassword}
               />
-            </Section>
-
-            <Section title="Merchant Details">
-              <Input
-                label="Merchant Name"
-                placeholder="Business name"
-                value={merchantName}
-                onChange={setMerchantName}
-              />
-            </Section>
-
-            <Section title="Business Information (Optional)">
-              <Input
-                label="Business Name"
-                value={business.businessName}
-                onChange={(v) => setBusiness({ ...business, businessName: v })}
-              />
-
-              <Input
-                label="Business Type"
-                value={business.businessType}
-                onChange={(v) => setBusiness({ ...business, businessType: v })}
-              />
-
-              <div style={styles.row}>
-                <Input
-                  label="Business Phone"
-                  value={business.businessPhone}
-                  onChange={(v) =>
-                    setBusiness({ ...business, businessPhone: v })
-                  }
-                />
-                <Input
-                  label="Business Email"
-                  value={business.businessEmail}
-                  onChange={(v) =>
-                    setBusiness({ ...business, businessEmail: v })
-                  }
-                />
-              </div>
-
-              <Input
-                label="Business Address"
-                value={business.businessAddress}
-                onChange={(v) =>
-                  setBusiness({ ...business, businessAddress: v })
-                }
-              />
-
-              <div style={styles.row}>
-                <Input
-                  label="TIN Number"
-                  value={business.tinNumber}
-                  onChange={(v) => setBusiness({ ...business, tinNumber: v })}
-                />
-                <Input
-                  label="FYDA ID"
-                  value={business.fydaId}
-                  onChange={(v) => setBusiness({ ...business, fydaId: v })}
-                />
-              </div>
-            </Section>
+            </div>
 
             <button
               type="submit"
               disabled={loading}
               style={loading ? styles.buttonDisabled : styles.button}
             >
-              {loading ? "Creating Account..." : "Create Account"}
+              {loading ? "Logging in..." : "Login"}
             </button>
-          </form>
 
-          <p style={styles.login}>
-            Already have an account? <Link to="/login">Sign in</Link>
-          </p>
+            <p style={styles.login}>
+              Don't have an account? <Link to="/register">Sign Up</Link>
+            </p>
+          </form>
         </div>
       </section>
     </div>
   );
 }
 
-/* ---------- Small Components ---------- */
+/* ---------- Reusable Components ---------- */
+function Input({ label, type = "text", value, onChange }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === "password";
+  const inputType = isPassword && showPassword ? "text" : type;
 
-function Section({ title, children }) {
-  return (
-    <div style={styles.section}>
-      <h3 style={styles.sectionTitle}>{title}</h3>
-      {children}
-    </div>
-  );
-}
-
-function Input({ label, placeholder, type = "text", value, onChange }) {
   return (
     <div style={styles.field}>
       <label style={styles.label}>{label}</label>
-      <input
-        type={type}
-        value={value}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        style={styles.input}
-      />
+      <div style={{ position: "relative" }}>
+        <input
+          type={inputType}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          style={{
+            ...styles.input,
+            paddingRight: isPassword ? 40 : 12, // extra space for eye icon
+          }}
+          required
+        />
+        {isPassword && (
+          <span
+            onClick={() => setShowPassword(!showPassword)}
+            style={{
+              position: "absolute",
+              right: 10,
+              top: "50%",
+              transform: "translateY(-50%)",
+              cursor: "pointer",
+              width: 24,
+              height: 24,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {showPassword ? (
+              // Eye icon (visible)
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: 20, height: 20, color: "#555" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
+              </svg>
+            ) : (
+              // Eye-slash icon (hidden)
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                style={{ width: 20, height: 20, color: "#555" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.056 10.056 0 012.018-3.36m3.7-2.7A9.959 9.959 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-1.46 2.73M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 3l18 18"
+                />
+              </svg>
+            )}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
 
-/* ---------- CLEAN STYLES ---------- */
-
+/* ---------- Styles (same as register page) ---------- */
 const styles = {
-  /* ---------- PAGE ---------- */
   page: {
     minHeight: "100vh",
-    width: "100%",
     display: "grid",
     gridTemplateColumns: "1fr 1.4fr",
-    overflow: "hidden",
   },
-
-  /* ---------- LEFT (FIXED BRAND) ---------- */
   left: {
     background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
     color: "#ecfdf5",
     padding: "80px 64px",
     display: "flex",
     alignItems: "center",
-    position: "sticky",
-    top: 0,
-    height: "100vh",
-    boxSizing: "border-box",
   },
-
-  branding: {
-    maxWidth: 420,
-  },
-
-  brand: {
-    fontSize: 40,
-    fontWeight: 800,
-    marginBottom: 12,
-  },
-
-  tagline: {
-    fontSize: 18,
-    marginBottom: 32,
-    color: "#a7f3d0",
-  },
-
+  brand: { fontSize: 40, fontWeight: 800, marginBottom: 12 },
+  tagline: { fontSize: 18, marginBottom: 32, color: "#a7f3d0" },
   features: {
     listStyle: "none",
     padding: 0,
     marginBottom: 32,
-    lineHeight: 1.8,
+    lineHeight: 1.9,
   },
-
-  trust: {
-    fontSize: 14,
-    color: "#99f6e4",
-  },
-
-  /* ---------- RIGHT (NO EMPTY SPACE) ---------- */
-  right: {
-    background: "#ffffff",
-    padding: "64px",
-    overflowY: "auto",
-    boxSizing: "border-box",
-  },
-
-  /* ⭐ THIS IS THE FIX */
-  formWrapper: {
-    width: "100%",
-    maxWidth: "100%", // ❌ no narrow container
-  },
-
-  header: {
-    marginBottom: 32,
-  },
-
-  mainTitle: {
-    fontSize: 28,
-    fontWeight: 700,
-    marginBottom: 8,
-    color: "#111827",
-  },
-
-  subHeader: {
-    color: "#6b7280",
-    fontSize: 16,
-  },
-
+  trust: { fontSize: 14, color: "#99f6e4" },
+  right: { background: "#ffffff", padding: "64px", overflowY: "auto" },
+  formWrapper: { maxWidth: 500, margin: "0 auto" },
+  header: { marginBottom: 32 },
   error: {
     background: "#fef2f2",
     color: "#991b1b",
@@ -306,49 +213,16 @@ const styles = {
     borderRadius: 10,
     marginBottom: 20,
   },
-
-  formGrid: {
-    display: "grid",
-    gap: 24,
-  },
-
-  section: {
-    marginBottom: 24,
-    paddingBottom: 16,
-    borderBottom: "1px solid #e5e7eb",
-  },
-
-  sectionTitle: {
-    fontWeight: 600,
-    marginBottom: 16,
-    fontSize: 16,
-    color: "#111827",
-  },
-
-  row: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 16,
-  },
-
-  field: {
-    marginBottom: 16,
-  },
-
-  label: {
-    display: "block",
-    marginBottom: 6,
-    fontWeight: 500,
-    color: "#374151",
-  },
-
+  formGrid: { display: "grid", gap: 24 },
+  field: { marginBottom: 16 },
+  label: { display: "block", marginBottom: 6, fontWeight: 500 },
   input: {
     width: "100%",
-    padding: "12px",
+    padding: 12,
+    paddingRight: 40, // only if password field
     borderRadius: 8,
-    border: "1px solid #D1D5DB",
-    fontSize: 16,
-    boxSizing: "border-box",
+    border: "1px solid #ccc",
+    boxSizing: "border-box", // ensures padding is inside the width
   },
 
   button: {
@@ -360,21 +234,12 @@ const styles = {
     fontSize: 16,
     fontWeight: 700,
     cursor: "pointer",
-    marginTop: 8,
   },
-
   buttonDisabled: {
     padding: 16,
     background: "#a7f3d0",
     borderRadius: 14,
     border: "none",
-    cursor: "not-allowed",
-    marginTop: 8,
   },
-
-  login: {
-    marginTop: 24,
-    textAlign: "center",
-    color: "#6B7280",
-  },
+  login: { marginTop: 16, textAlign: "center" },
 };

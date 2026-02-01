@@ -5,15 +5,11 @@ import { privateApi as api } from "../api/api";
 export default function Register() {
   const navigate = useNavigate();
 
-  // Personal
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  // Merchant
   const [merchantName, setMerchantName] = useState("");
 
-  // Full business info
   const [business, setBusiness] = useState({
     businessName: "",
     businessAddress: "",
@@ -46,8 +42,9 @@ export default function Register() {
         preferredGateway: "santimpay",
       };
 
-      const hasBusinessInfo = Object.values(business).some(Boolean);
-      if (hasBusinessInfo) payload.business = business;
+      if (Object.values(business).some(Boolean)) {
+        payload.business = business;
+      }
 
       await api.post("/auth/register", payload);
       navigate("/login");
@@ -60,7 +57,7 @@ export default function Register() {
 
   return (
     <div style={styles.page}>
-      {/* LEFT — Branding */}
+      {/* LEFT */}
       <section style={styles.left}>
         <div style={styles.branding}>
           <h1 style={styles.brand}>PayFlow</h1>
@@ -80,7 +77,7 @@ export default function Register() {
         </div>
       </section>
 
-      {/* RIGHT — Registration Form */}
+      {/* RIGHT */}
       <section style={styles.right}>
         <div style={styles.formWrapper}>
           <header style={styles.header}>
@@ -94,23 +91,21 @@ export default function Register() {
             <Section title="Personal Information">
               <Input
                 label="Full Name"
-                placeholder="Enter your full name"
+                placeholder="Enter full name"
                 value={name}
                 onChange={setName}
               />
-
               <Input
                 label="Email"
                 type="email"
-                placeholder="Enter your email address"
+                placeholder="Enter email"
                 value={email}
                 onChange={setEmail}
               />
-
               <Input
                 label="Password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Enter password"
                 value={password}
                 onChange={setPassword}
               />
@@ -119,7 +114,7 @@ export default function Register() {
             <Section title="Merchant Details">
               <Input
                 label="Merchant Name"
-                placeholder="Enter merchant or business name"
+                placeholder="Business name"
                 value={merchantName}
                 onChange={setMerchantName}
               />
@@ -128,14 +123,12 @@ export default function Register() {
             <Section title="Business Information (Optional)">
               <Input
                 label="Business Name"
-                placeholder="Enter registered business name"
                 value={business.businessName}
                 onChange={(v) => setBusiness({ ...business, businessName: v })}
               />
 
               <Input
                 label="Business Type"
-                placeholder="Retail, Service, Digital, etc"
                 value={business.businessType}
                 onChange={(v) => setBusiness({ ...business, businessType: v })}
               />
@@ -143,16 +136,13 @@ export default function Register() {
               <div style={styles.row}>
                 <Input
                   label="Business Phone"
-                  placeholder="+2519XXXXXXXX"
                   value={business.businessPhone}
                   onChange={(v) =>
                     setBusiness({ ...business, businessPhone: v })
                   }
                 />
-
                 <Input
                   label="Business Email"
-                  placeholder="business@email.com"
                   value={business.businessEmail}
                   onChange={(v) =>
                     setBusiness({ ...business, businessEmail: v })
@@ -162,7 +152,6 @@ export default function Register() {
 
               <Input
                 label="Business Address"
-                placeholder="City, Subcity, Street"
                 value={business.businessAddress}
                 onChange={(v) =>
                   setBusiness({ ...business, businessAddress: v })
@@ -172,14 +161,11 @@ export default function Register() {
               <div style={styles.row}>
                 <Input
                   label="TIN Number"
-                  placeholder="Enter TIN number"
                   value={business.tinNumber}
                   onChange={(v) => setBusiness({ ...business, tinNumber: v })}
                 />
-
                 <Input
                   label="FYDA ID"
-                  placeholder="Enter FYDA ID"
                   value={business.fydaId}
                   onChange={(v) => setBusiness({ ...business, fydaId: v })}
                 />
@@ -204,7 +190,8 @@ export default function Register() {
   );
 }
 
-/* ---------- Reusable Components ---------- */
+/* ---------- Small Components ---------- */
+
 function Section({ title, children }) {
   return (
     <div style={styles.section}>
@@ -215,210 +202,121 @@ function Section({ title, children }) {
 }
 
 function Input({ label, placeholder, type = "text", value, onChange }) {
-  const [showPassword, setShowPassword] = useState(false);
-  const isPassword = type === "password";
-  const inputType = isPassword && showPassword ? "text" : type;
-
   return (
     <div style={styles.field}>
       <label style={styles.label}>{label}</label>
-
-      <div style={{ position: "relative" }}>
-        <input
-          type={inputType}
-          value={value}
-          placeholder={placeholder}
-          onChange={(e) => onChange(e.target.value)}
-          style={{ ...styles.input, paddingRight: isPassword ? 40 : 12 }}
-        />
-
-        {isPassword && (
-          <span
-            onClick={() => setShowPassword(!showPassword)}
-            style={{
-              position: "absolute",
-              right: 10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              cursor: "pointer",
-            }}
-          >
-            {showPassword ? "👁" : "👁‍🗨"}
-          </span>
-        )}
-      </div>
+      <input
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        style={styles.input}
+      />
     </div>
   );
 }
 
-/* ---------- Styles ---------- */
+/* ---------- CLEAN STYLES ---------- */
 
 const styles = {
   page: {
     height: "100vh",
     width: "100%",
-    display: "flex",
+    display: "grid",
+    gridTemplateColumns: "1fr 1.4fr",
     overflow: "hidden",
   },
 
-  /* ---------- LEFT (FIXED) ---------- */
   left: {
-    flex: 1,
-    height: "100vh",
     position: "sticky",
     top: 0,
-    background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
+    height: "100vh",
+    background: "linear-gradient(135deg,#064e3b,#022c22)",
     color: "#ecfdf5",
-    padding: "60px 48px",
+    padding: "80px 64px",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
     boxSizing: "border-box",
   },
 
-  branding: {
-    maxWidth: 420,
-  },
+  branding: { maxWidth: 420 },
 
-  brand: {
-    fontSize: 36,
-    fontWeight: 800,
-    marginBottom: 8,
-    marginTop: 0,
-  },
-
-  tagline: {
-    fontSize: 16,
-    marginBottom: 24,
-    color: "#a7f3d0",
-  },
-
+  brand: { fontSize: 40, fontWeight: 800, marginBottom: 12 },
+  tagline: { fontSize: 18, marginBottom: 32, color: "#a7f3d0" },
   features: {
     listStyle: "none",
     padding: 0,
-    marginBottom: 24,
-    lineHeight: 1.6,
+    marginBottom: 32,
+    lineHeight: 1.8,
   },
+  trust: { fontSize: 14, color: "#99f6e4" },
 
-  trust: {
-    fontSize: 12,
-    color: "#99f6e4",
-  },
-
-  /* ---------- RIGHT (SCROLLABLE) ---------- */
   right: {
-    flex: 1.2,
     height: "100vh",
     overflowY: "auto",
     background: "#fff",
-    padding: "56px 64px",
+    padding: "64px",
     boxSizing: "border-box",
   },
 
-  /* ⭐ Increased width removes empty space */
   formWrapper: {
     width: "100%",
-    maxWidth: 820, // ⭐ wide enough to kill empty space
-  },
-  header: {
-    marginBottom: 24,
+    maxWidth: 780,
   },
 
-  mainTitle: {
-    fontSize: 26,
-    fontWeight: 700,
-    marginBottom: 6,
-  },
-
-  subHeader: {
-    color: "#6b7280",
-    fontSize: 14,
-  },
+  header: { marginBottom: 32 },
+  mainTitle: { fontSize: 28, fontWeight: 700, marginBottom: 8 },
+  subHeader: { color: "#6b7280" },
 
   error: {
     background: "#fef2f2",
     color: "#991b1b",
-    padding: 12,
-    borderRadius: 6,
-    marginBottom: 18,
-    fontSize: 14,
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 20,
   },
 
-  formGrid: {
-    display: "grid",
-    gap: 18,
-  },
+  formGrid: { display: "grid", gap: 24 },
 
   section: {
-    marginBottom: 18,
-    paddingBottom: 10,
+    paddingBottom: 16,
     borderBottom: "1px solid #e5e7eb",
   },
 
-  sectionTitle: {
-    fontWeight: 600,
-    marginBottom: 14,
-    fontSize: 15,
-    color: "#111827",
-  },
+  sectionTitle: { fontWeight: 600, marginBottom: 16 },
 
-  row: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 14,
-  },
+  row: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 },
 
-  field: {
-    marginBottom: 14,
-  },
+  field: { marginBottom: 16 },
 
-  label: {
-    display: "block",
-    marginBottom: 6,
-    fontWeight: 500,
-    fontSize: 14,
-    color: "#374151",
-  },
+  label: { marginBottom: 6, display: "block", fontWeight: 500 },
 
   input: {
     width: "100%",
-    padding: 13,
-    borderRadius: 6,
+    padding: 12,
+    borderRadius: 8,
     border: "1px solid #d1d5db",
-    background: "#ffffff",
+    fontSize: 16,
     boxSizing: "border-box",
-    fontSize: 14,
   },
 
   button: {
-    width: "100%",
-    padding: 15,
+    padding: 16,
     background: "#059669",
     color: "#fff",
     border: "none",
-    borderRadius: 8,
+    borderRadius: 12,
     fontSize: 16,
-    fontWeight: 600,
+    fontWeight: 700,
     cursor: "pointer",
-    marginTop: 10,
   },
 
   buttonDisabled: {
-    width: "100%",
-    padding: 15,
+    padding: 16,
     background: "#a7f3d0",
-    color: "#047857",
-    borderRadius: 8,
+    borderRadius: 12,
     border: "none",
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: 600,
   },
 
-  login: {
-    marginTop: 24,
-    textAlign: "center",
-    fontSize: 14,
-    color: "#6b7280",
-  },
+  login: { marginTop: 24, textAlign: "center", color: "#6b7280" },
 };
