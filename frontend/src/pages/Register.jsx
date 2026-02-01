@@ -252,16 +252,18 @@ function Input({ label, placeholder, type = "text", value, onChange }) {
 }
 
 /* ---------- Styles ---------- */
+
 const styles = {
   page: {
     height: "100vh",
+    width: "100%",
     display: "flex",
-    overflow: "hidden", // prevents whole page scrolling
+    overflow: "hidden",
   },
 
   /* ---------- LEFT (FIXED) ---------- */
   left: {
-    flex: "0 0 520px", // fixed width without breaking flex
+    flex: 1,
     height: "100vh",
     position: "sticky",
     top: 0,
@@ -272,7 +274,6 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     boxSizing: "border-box",
-    borderRight: "1px solid rgba(255,255,255,0.08)", // subtle fintech touch
   },
 
   branding: {
@@ -306,24 +307,19 @@ const styles = {
 
   /* ---------- RIGHT (SCROLLABLE) ---------- */
   right: {
-    flex: 1,
+    flex: 1.2,
     height: "100vh",
-    overflowY: "auto", // ONLY this scrolls
+    overflowY: "auto",
     background: "#fff",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "flex-start",
-    padding: "56px 40px",
+    padding: "56px 64px",
     boxSizing: "border-box",
   },
 
   /* ⭐ Increased width removes empty space */
   formWrapper: {
     width: "100%",
-    maxWidth: 720, // SWEET SPOT for auth forms
-    margin: "0 auto",
+    maxWidth: 820, // ⭐ wide enough to kill empty space
   },
-
   header: {
     marginBottom: 24,
   },
