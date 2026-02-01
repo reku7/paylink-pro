@@ -293,7 +293,7 @@ const Textarea = ({ label, value, onChange }) => (
       rows={3}
       style={{
         width: "100%",
-        padding: 12,
+        padding: 11,
         borderRadius: 6,
         border: "1px solid #ddd",
       }}
