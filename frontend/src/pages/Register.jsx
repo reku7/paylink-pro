@@ -84,7 +84,7 @@ export default function Register() {
       <section style={styles.right}>
         <div style={styles.formWrapper}>
           <header style={styles.header}>
-            <h2>Create your merchant account</h2>
+            <h2 style={styles.mainTitle}>Create your merchant account</h2>
             <p style={styles.subHeader}>SantimPay is enabled by default</p>
           </header>
 
@@ -257,6 +257,8 @@ const styles = {
     minHeight: "100vh",
     display: "flex",
     flexDirection: "row",
+    margin: 0,
+    padding: 0,
   },
 
   /* LEFT — FIXED BRANDING ON DESKTOP */
@@ -269,6 +271,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    boxSizing: "border-box",
   },
   branding: {
     maxWidth: 400,
@@ -277,111 +280,138 @@ const styles = {
     fontSize: 36,
     fontWeight: 800,
     marginBottom: 8,
+    marginTop: 0,
   },
   tagline: {
     fontSize: 16,
     marginBottom: 24,
     color: "#a7f3d0",
+    marginTop: 0,
   },
   features: {
     listStyle: "none",
     padding: 0,
     marginBottom: 24,
     lineHeight: 1.6,
+    marginTop: 0,
   },
   trust: {
     fontSize: 12,
     color: "#99f6e4",
+    marginTop: 0,
+    marginBottom: 0,
   },
 
-  /* RIGHT — FORM SECTION */
+  /* RIGHT — FORM SECTION - REMOVED EXTRA SPACES */
   right: {
     flex: 1,
     background: "#fff",
     display: "flex",
     justifyContent: "center",
+    alignItems: "flex-start",
     overflowY: "auto",
-    padding: 40,
+    padding: "20px 0", // Reduced vertical padding
+    boxSizing: "border-box",
   },
   formWrapper: {
     width: "100%",
-    maxWidth: 600,
+    maxWidth: 500, // Reduced from 600
+    padding: "0 24px", // Added horizontal padding instead of on right section
+    boxSizing: "border-box",
   },
   header: {
-    marginBottom: 16,
+    marginBottom: 20,
+    marginTop: 0,
+  },
+  mainTitle: {
+    fontSize: 24,
+    fontWeight: 700,
+    marginBottom: 4,
+    marginTop: 0,
   },
   subHeader: {
     color: "#6b7280",
-    marginTop: 2,
+    fontSize: 14,
+    marginTop: 0,
+    marginBottom: 0,
   },
   error: {
     background: "#fef2f2",
     color: "#991b1b",
     padding: 10,
     borderRadius: 6,
-    marginBottom: 10,
+    marginBottom: 16,
+    fontSize: 14,
   },
   formGrid: {
     display: "grid",
-    gap: 12,
+    gap: 16,
   },
   section: {
-    marginBottom: 12,
-    paddingBottom: 4,
+    marginBottom: 16,
+    paddingBottom: 8,
     borderBottom: "1px solid #e5e7eb",
   },
   sectionTitle: {
-    fontWeight: 700,
-    marginBottom: 6,
-    fontSize: 14,
+    fontWeight: 600,
+    marginBottom: 12,
+    fontSize: 15,
+    color: "#111827",
   },
   row: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: 8,
+    gap: 12,
   },
   field: {
-    marginBottom: 8,
+    marginBottom: 12,
   },
   label: {
     display: "block",
-    marginBottom: 2,
+    marginBottom: 4,
     fontWeight: 500,
-    fontSize: 13,
+    fontSize: 14,
+    color: "#374151",
   },
   input: {
     width: "100%",
-    padding: 14,
+    padding: 12,
     borderRadius: 6,
     border: "1px solid #d1d5db",
     background: "#ffffff",
     boxSizing: "border-box",
     fontSize: 14,
+    color: "#111827",
   },
   button: {
     width: "100%",
-    padding: 16,
+    padding: 14,
     background: "#059669",
     color: "#fff",
     border: "none",
-    borderRadius: 10,
+    borderRadius: 8,
     fontSize: 16,
-    fontWeight: 700,
+    fontWeight: 600,
     cursor: "pointer",
     marginTop: 8,
+    transition: "background-color 0.2s",
   },
   buttonDisabled: {
     width: "100%",
-    padding: 16,
+    padding: 14,
     background: "#a7f3d0",
-    borderRadius: 10,
+    color: "#047857",
+    borderRadius: 8,
     border: "none",
     marginTop: 8,
+    fontSize: 16,
+    fontWeight: 600,
   },
   login: {
-    marginTop: 8,
+    marginTop: 20,
     textAlign: "center",
-    fontSize: 13,
+    fontSize: 14,
+    color: "#6b7280",
   },
 
   /* RESPONSIVE: stack sections vertically on small screens */
@@ -391,12 +421,23 @@ const styles = {
     },
     left: {
       width: "100%",
-      padding: 32,
+      padding: "32px 24px",
       justifyContent: "flex-start",
       minHeight: 200,
     },
+    branding: {
+      maxWidth: "100%",
+    },
     right: {
-      padding: 20,
+      padding: "20px 0",
+    },
+    formWrapper: {
+      maxWidth: "100%",
+      padding: "0 20px",
+    },
+    row: {
+      gridTemplateColumns: "1fr",
+      gap: 12,
     },
   },
 };
