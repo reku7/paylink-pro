@@ -10,17 +10,17 @@ import {
 const router = express.Router();
 
 router.get(
-  "/admin/merchants",
+  "/merchants",
   authMiddleware,
   requireRole([ROLES.ADMIN]),
-  getAllMerchants
+  getAllMerchants,
 );
 
 router.post(
-  "/admin/merchants/:merchantId/chapa-secret",
+  "/merchants/:merchantId/chapa-secret",
   authMiddleware,
   requireRole([ROLES.ADMIN]),
-  setChapaSecret
+  setChapaSecret,
 );
 
 export default router;
