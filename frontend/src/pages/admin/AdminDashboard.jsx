@@ -12,7 +12,7 @@ export default function AdminDashboard() {
     async function fetchMerchants() {
       try {
         const res = await api.get("/admin/merchants");
-        setMerchants(res.data.merchants || []);
+        setMerchants(res.data.data || []);
       } catch (err) {
         console.error(err);
         setError("Failed to load merchants");
