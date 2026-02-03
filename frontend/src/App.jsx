@@ -70,7 +70,7 @@ export default function App() {
       {/* ===== ADMIN ROUTES ===== */}
       <Route element={<AdminRoute />}>
         <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/merchants" element={<Merchants />} />
+        {/* <Route path="/admin/merchants" element={<Merchants />} /> */}
       </Route>
     </Routes>
   );
