@@ -54,8 +54,13 @@ export default function AdminDashboard() {
                 {merchants.map((m) => (
                   <tr key={m._id}>
                     <td>{m.name}</td>
-                    <td>{m.email}</td>
-                    <td>{m.isActive ? "Active" : "Inactive"}</td>
+
+                    {/* Email comes from ownerUserId */}
+                    <td>{m.ownerUserId?.email || "—"}</td>
+
+                    {/* Status comes from `status` field */}
+                    <td>{m.status === "active" ? "Active" : "Inactive"}</td>
+
                     <td>
                       <button
                         style={styles.link}
