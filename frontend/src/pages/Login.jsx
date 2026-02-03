@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { privateApi as api } from "../api/api";
+import { publicApi as api } from "../api/api";
 import { setAuthToken, getUserRole } from "../utils/auth";
 
 export default function Login() {
@@ -79,7 +79,7 @@ export default function Login() {
       <section style={styles.right}>
         <div style={styles.formWrapper}>
           <header style={styles.header}>
-            <h2>Merchant Login</h2>
+            <h2>Login</h2>
             <p>Sign in to access your dashboard</p>
           </header>
 
