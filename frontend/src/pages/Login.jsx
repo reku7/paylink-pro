@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { privateApi as api } from "../api/api";
-import { setAuthToken } from "../utils/auth";
+import { setAuthToken, getUserRole } from "../utils/auth";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -19,7 +19,14 @@ export default function Login() {
     try {
       const res = await api.post("/auth/login", { email, password });
       setAuthToken(res.data.token);
-      navigate("/dashboard");
+
+      const role = getUserRole();
+
+      if (role === "ADMIN") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       console.error("Login failed:", err);
       setError(

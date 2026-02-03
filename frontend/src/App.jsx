@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import AdminRoute from "./components/AdminRoute.jsx"; // Add this import
 
 // Pages
 import Home from "./pages/Home.jsx";
@@ -19,6 +20,10 @@ import PublicCancel from "./pages/PublicCancel.jsx";
 import ConnectChapaPage from "./pages/ConnectChapaPage.jsx";
 import PaymentGatewaysPage from "./pages/PaymentGatewaysPage.jsx";
 import Profile from "./pages/profile/Profile.jsx";
+
+// Admin Pages - Add these imports
+import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
+import Merchants from "./pages/admin/Merchants.jsx";
 
 // CONTEXTS
 import { GatewayProvider } from "./context/GatewayContext.jsx";
@@ -60,6 +65,12 @@ export default function App() {
         <Route path="settings/payments" element={<PaymentGatewaysPage />} />
         <Route path="connect-chapa" element={<ConnectChapaPage />} />
         <Route path="profile" element={<Profile />} />
+      </Route>
+
+      {/* ===== ADMIN ROUTES ===== */}
+      <Route element={<AdminRoute />}>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/merchants" element={<Merchants />} />
       </Route>
     </Routes>
   );
