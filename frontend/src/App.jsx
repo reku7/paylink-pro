@@ -23,7 +23,7 @@ import Profile from "./pages/profile/Profile.jsx";
 
 // Admin Pages - Add these imports
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
-// import Merchants from "./pages/admin/Merchants.jsx";
+import AdminMerchants from "./pages/admin/AdminMerchants.jsx";
 
 // CONTEXTS
 import { GatewayProvider } from "./context/GatewayContext.jsx";
@@ -68,9 +68,10 @@ export default function App() {
       </Route>
 
       {/* ===== ADMIN ROUTES ===== */}
+      {/* ===== ADMIN ROUTES ===== */}
       <Route element={<AdminRoute />}>
         <Route path="/admin" element={<AdminDashboard />} />
-        {/* <Route path="/admin/merchants" element={<Merchants />} /> */}
+        <Route path="/admin/merchants" element={<AdminMerchants />} />
       </Route>
     </Routes>
   );
