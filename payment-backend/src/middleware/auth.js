@@ -29,6 +29,7 @@ export default function authMiddleware(req, res, next) {
       merchantId: payload.merchantId,
       roles: payload.roles || [],
     };
+    console.log("User attached by authMiddleware:", req.user);
 
     next();
   } catch (err) {

@@ -1,29 +1,3 @@
-// import mongoose from "mongoose";
-
-// const transactionSchema = mongoose.Schema(
-//   {
-//     invoiceId: {
-//       type: mongoose.Schema.Types.ObjectId,
-//       ref: "Invoice",
-//       required: true,
-//     },
-//     merchantId: {
-//       type: mongoose.Schema.Types.ObjectId,
-//       ref: "Merchant",
-//       required: true,
-//     },
-//     santimTransactionId: { type: String, unique: true },
-//     amount: { type: Number, required: true },
-//     status: { type: String },
-//     rawData: Object,
-//   },
-//   { timestamps: true }
-// );
-
-// export default mongoose.model("Transaction", transactionSchema);
-
-// src/models/Transaction.js
-
 import mongoose from "mongoose";
 
 const TransactionSchema = new mongoose.Schema(

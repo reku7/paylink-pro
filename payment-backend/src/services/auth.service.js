@@ -25,7 +25,13 @@ export async function comparePassword(password, hash) {
 }
 
 export function signToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, {
+  // Ensure roles are always an array
+  const tokenPayload = {
+    ...payload,
+    roles: Array.isArray(payload.roles) ? payload.roles : [],
+  };
+
+  return jwt.sign(tokenPayload, JWT_SECRET, {
     expiresIn: JWT_EXPIRES,
     algorithm: "HS256",
   });
