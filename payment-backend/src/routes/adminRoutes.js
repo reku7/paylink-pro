@@ -3,7 +3,7 @@ import { ROLES } from "../constants/roles.js";
 import requireRole from "../middleware/roleMiddleware.js";
 import authMiddleware from "../middleware/auth.js";
 import {
-  getSingleMerchan,
+  getSingleMerchant,
   getAllMerchants,
   setChapaSecret,
 } from "../controllers/adminController.js";
