@@ -20,7 +20,25 @@ export default function Login() {
       const res = await api.post("/auth/login", { email, password });
       setAuthToken(res.data.token);
 
+      // DEBUG: Check token directly
+      const token = res.data.token;
+      console.log("Token:", token);
+
+      // Decode manually
+      const parts = token.split(".");
+      if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1]));
+        console.log("Token payload:", payload);
+        console.log("Roles array:", payload.roles);
+        console.log("First role:", payload.roles?.[0]);
+      }
+
       const role = getUserRole();
+      console.log("getUserRole() returns:", role);
+      console.log(
+        "Should redirect to:",
+        role === "ADMIN" ? "/admin" : "/dashboard",
+      );
 
       if (role === "ADMIN") {
         navigate("/admin");
