@@ -20,7 +20,13 @@ export function getUserRole() {
 
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.roles?.[0]; // ADMIN or MERCHANT
+
+    if (payload.roles && Array.isArray(payload.roles)) {
+      // ADD .toUpperCase() HERE
+      return payload.roles[0]?.toUpperCase(); // ← CHANGE THIS LINE
+    }
+
+    return null;
   } catch {
     return null;
   }
