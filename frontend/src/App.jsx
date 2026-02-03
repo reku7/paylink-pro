@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import AdminRoute from "./components/AdminRoute.jsx"; // Add this import
+import AdminRoute from "./routes/AdminRoute.jsx"; // Add this import
 
 // Pages
 import Home from "./pages/Home.jsx";
@@ -23,7 +23,7 @@ import Profile from "./pages/profile/Profile.jsx";
 
 // Admin Pages - Add these imports
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
-import Merchants from "./pages/admin/Merchants.jsx";
+// import Merchants from "./pages/admin/Merchants.jsx";
 
 // CONTEXTS
 import { GatewayProvider } from "./context/GatewayContext.jsx";
