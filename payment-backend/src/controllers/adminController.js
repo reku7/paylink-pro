@@ -19,7 +19,7 @@ export async function setChapaSecret(req, res, next) {
 
     const result = await Merchant.updateOne(
       { _id: merchantId },
-      { $set: { "chapa.secretEncrypted": encrypted } }
+      { $set: { "chapa.secretEncrypted": encrypted } },
     );
 
     if (result.modifiedCount === 0) {
@@ -29,6 +29,26 @@ export async function setChapaSecret(req, res, next) {
     }
 
     res.json({ success: true, message: "Chapa secret updated successfully" });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Get single merchant by ID
+export async function getSingleMerchant(req, res, next) {
+  try {
+    const { merchantId } = req.params;
+
+    const merchant = await Merchant.findById(merchantId).populate(
+      "ownerUserId",
+      "name email roles",
+    ); // include owner info
+
+    if (!merchant) {
+      return res.status(404).json({ message: "Merchant not found" });
+    }
+
+    res.json({ success: true, data: merchant });
   } catch (err) {
     next(err);
   }

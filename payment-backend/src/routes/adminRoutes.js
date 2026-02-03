@@ -3,12 +3,19 @@ import { ROLES } from "../constants/roles.js";
 import requireRole from "../middleware/roleMiddleware.js";
 import authMiddleware from "../middleware/auth.js";
 import {
+  getSingleMerchan,
   getAllMerchants,
   setChapaSecret,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
 
+router.get(
+  "/merchants/:merchantId",
+  authMiddleware,
+  requireRole([ROLES.ADMIN]),
+  getSingleMerchant,
+);
 router.get(
   "/merchants",
   authMiddleware,
