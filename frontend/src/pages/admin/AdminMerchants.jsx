@@ -25,6 +25,7 @@ export default function AdminMerchants() {
       try {
         setLoading(true);
         setError("");
+        // Use the correct endpoint for single merchant
         const res = await api.get(`/admin/merchants/${merchantId}`);
         const merchantData = res.data.data;
         setMerchant(merchantData);
@@ -104,10 +105,8 @@ export default function AdminMerchants() {
     return (
       <div style={styles.errorContainer}>
         <div style={styles.errorHeader}>
-          <button
-            onClick={() => navigate("/admin/dashboard")}
-            style={styles.backButton}
-          >
+          {/* Fixed: Use "/admin" instead of "/admin/dashboard" */}
+          <button onClick={() => navigate("/admin")} style={styles.backButton}>
             ← Back to Dashboard
           </button>
           <h2>Error</h2>
@@ -118,7 +117,7 @@ export default function AdminMerchants() {
             <p style={styles.errorDetail}>Merchant ID: {merchantId}</p>
           )}
           <button
-            onClick={() => navigate("/admin/dashboard")}
+            onClick={() => navigate("/admin")}
             style={styles.primaryButton}
           >
             Go to Dashboard
@@ -133,10 +132,7 @@ export default function AdminMerchants() {
       <div style={styles.notFoundContainer}>
         <h2>Merchant Not Found</h2>
         <p>The merchant with ID "{merchantId}" could not be found.</p>
-        <button
-          onClick={() => navigate("/admin/dashboard")}
-          style={styles.primaryButton}
-        >
+        <button onClick={() => navigate("/admin")} style={styles.primaryButton}>
           Back to Dashboard
         </button>
       </div>
@@ -147,10 +143,8 @@ export default function AdminMerchants() {
     <div style={styles.container}>
       {/* Header */}
       <div style={styles.header}>
-        <button
-          onClick={() => navigate("/admin/dashboard")}
-          style={styles.backButton}
-        >
+        {/* Fixed: Use "/admin" instead of "/admin/dashboard" */}
+        <button onClick={() => navigate("/admin")} style={styles.backButton}>
           ← Back to Dashboard
         </button>
         <h1 style={styles.title}>{merchant.name}</h1>
