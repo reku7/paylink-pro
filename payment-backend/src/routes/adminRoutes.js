@@ -6,6 +6,8 @@ import {
   getSingleMerchant,
   getAllMerchants,
   setChapaSecret,
+  updateMerchantStatus,
+  disconnectChapa,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -28,6 +30,20 @@ router.post(
   authMiddleware,
   requireRole([ROLES.ADMIN]),
   setChapaSecret,
+);
+
+router.patch(
+  "/merchants/:merchantId",
+  authMiddleware,
+  requireRole([ROLES.ADMIN]),
+  updateMerchantStatus,
+);
+
+router.post(
+  "/merchants/:merchantId/disconnect-chapa",
+  authMiddleware,
+  requireRole([ROLES.ADMIN]),
+  disconnectChapa,
 );
 
 export default router;
