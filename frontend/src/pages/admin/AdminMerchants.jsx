@@ -1,13 +1,13 @@
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { privateApi as api } from "../../api/api";
 
 export default function AdminMerchants() {
   const [params] = useSearchParams();
-  const navigate = useNavigate();
   const merchantId = params.get("merchantId");
 
   const [merchant, setMerchant] = useState(null);
+  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updating, setUpdating] = useState(false);
@@ -27,11 +27,18 @@ export default function AdminMerchants() {
     async function fetchMerchant() {
       try {
         setLoading(true);
+        setError("");
         const res = await api.get(`/admin/merchants/${merchantId}`, {
           signal: controller.signal,
         });
         setMerchant(res.data.data);
         setStatus(res.data.data.status);
+
+        // Fetch transactions
+        const txRes = await api.get(
+          `/admin/merchants/${merchantId}/transactions`,
+        );
+        setTransactions(txRes.data.data || []);
       } catch (err) {
         if (err.name !== "AbortError") {
           setError(err.response?.data?.error || "Failed to load merchant");
@@ -51,12 +58,11 @@ export default function AdminMerchants() {
 
     try {
       setUpdating(true);
+      setError("");
       await api.patch(`/admin/merchants/${merchantId}`, { status });
-
       const refreshed = await api.get(`/admin/merchants/${merchantId}`);
       setMerchant(refreshed.data.data);
       setStatus(refreshed.data.data.status);
-      setError("");
     } catch (err) {
       setError(err.response?.data?.error || "Failed to update status");
       setStatus(merchant.status);
@@ -73,14 +79,12 @@ export default function AdminMerchants() {
       )
     )
       return;
-
     try {
       setUpdating(true);
+      setError("");
       await api.post(`/admin/merchants/${merchantId}/disconnect-chapa`);
-
       const refreshed = await api.get(`/admin/merchants/${merchantId}`);
       setMerchant(refreshed.data.data);
-      setError("");
     } catch (err) {
       setError(err.response?.data?.error || "Failed to disconnect Chapa");
     } finally {
@@ -88,37 +92,44 @@ export default function AdminMerchants() {
     }
   };
 
-  /* ================= NAVIGATION ================= */
-  const viewTransactions = () => {
-    navigate(`/admin/transactions?merchantId=${merchantId}`);
+  /* ================= HELPER ================= */
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "active":
+        return "#059669";
+      case "inactive":
+        return "#b45309";
+      case "pending":
+        return "#f59e0b";
+      case "suspended":
+        return "#dc2626";
+      default:
+        return "#6b7280";
+    }
   };
 
-  /* ================= UI STATES ================= */
-  if (loading) {
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleString();
+  };
+
+  /* ================= UI ================= */
+  if (loading)
     return (
       <div style={styles.center}>
-        <div style={styles.spinner} />
         <p>Loading merchant…</p>
       </div>
     );
-  }
-
-  if (!merchant) {
+  if (!merchant)
     return (
       <div style={styles.center}>
         <p>{error || "Merchant not found"}</p>
-        <button onClick={() => navigate("/admin")} style={styles.primaryButton}>
-          Back
-        </button>
       </div>
     );
-  }
 
-  /* ================= MAIN UI ================= */
   return (
     <div style={styles.container}>
       <h1>{merchant.name}</h1>
-
       {error && <div style={styles.error}>{error}</div>}
 
       {/* Tabs */}
@@ -127,20 +138,18 @@ export default function AdminMerchants() {
           <button
             key={t}
             style={activeTab === t ? styles.activeTab : styles.tab}
-            onClick={() =>
-              t === "transactions" ? viewTransactions() : setActiveTab(t)
-            }
+            onClick={() => setActiveTab(t)}
           >
             {t.toUpperCase()}
           </button>
         ))}
       </div>
 
-      {/* ================= OVERVIEW ================= */}
+      {/* ========== OVERVIEW ========== */}
       {activeTab === "overview" && (
         <div style={styles.card}>
           <p>
-            <strong>Owner:</strong> {merchant.ownerUserId?.email}
+            <strong>Owner:</strong> {merchant.ownerUserId?.email || "N/A"}
           </p>
           <p>
             <strong>Status:</strong> {merchant.status}
@@ -167,32 +176,27 @@ export default function AdminMerchants() {
         </div>
       )}
 
-      {/* ================= GATEWAYS ================= */}
+      {/* ========== GATEWAYS ========== */}
       {activeTab === "gateway" && (
         <div style={styles.card}>
-          {/* SantimPay – DEFAULT */}
           <div style={styles.gatewayRow}>
             <div>
               <strong>SantimPay</strong>
-              <p style={{ color: "green" }}>Connected (Default)</p>
+              <p style={{ color: "#059669" }}>Connected (System Default)</p>
             </div>
           </div>
-
           <hr />
-
-          {/* Chapa – OPTIONAL */}
           <div style={styles.gatewayRow}>
             <div>
               <strong>Chapa</strong>
               <p
                 style={{
-                  color: merchant.chapa?.connected ? "green" : "#b45309",
+                  color: merchant.chapa?.connected ? "#059669" : "#b45309",
                 }}
               >
                 {merchant.chapa?.connected ? "Connected" : "Not Connected"}
               </p>
             </div>
-
             {merchant.chapa?.connected && (
               <button
                 onClick={forceDisconnectChapa}
@@ -203,6 +207,50 @@ export default function AdminMerchants() {
               </button>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ========== TRANSACTIONS ========== */}
+      {activeTab === "transactions" && (
+        <div style={styles.card}>
+          <h3>Transactions</h3>
+          {transactions.length === 0 ? (
+            <p>No transactions available</p>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Reference</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Gateway</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactions.map((tx) => (
+                    <tr key={tx._id || tx.id}>
+                      <td>{tx.internalRef?.slice(0, 15)}...</td>
+                      <td>
+                        {tx.amount?.toLocaleString()} {tx.currency || "ETB"}
+                      </td>
+                      <td
+                        style={{
+                          color: getStatusColor(tx.status),
+                          fontWeight: "500",
+                        }}
+                      >
+                        {tx.status}
+                      </td>
+                      <td>{tx.gateway}</td>
+                      <td>{formatDate(tx.createdAt || tx.paidAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -219,14 +267,6 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     gap: 16,
-  },
-  spinner: {
-    width: 40,
-    height: 40,
-    border: "4px solid #eee",
-    borderTop: "4px solid #059669",
-    borderRadius: "50%",
-    animation: "spin 1s linear infinite",
   },
   error: {
     background: "#fee2e2",
@@ -248,6 +288,7 @@ const styles = {
     padding: 20,
     borderRadius: 8,
     boxShadow: "0 1px 3px rgba(0,0,0,.1)",
+    marginBottom: 20,
   },
   primaryButton: {
     marginTop: 10,
@@ -271,4 +312,5 @@ const styles = {
     alignItems: "center",
     marginBottom: 12,
   },
+  table: { width: "100%", borderCollapse: "collapse" },
 };
