@@ -47,57 +47,45 @@ export default function AdminMerchants() {
         setLoading(true);
         setError("");
 
-        // Fetch merchant
-        const merchantRes = await api.get(`/admin/merchants/${merchantId}`);
-        const fetchedMerchant = merchantRes.data.data;
+        // Fetch merchant with transactions included (as in your original code)
+        const merchantRes = await api.get(
+          `/admin/merchants/${merchantId}?includeTransactions=true`,
+          { signal: controller.signal },
+        );
+
+        const { merchant: fetchedMerchant, transactions: fetchedTx = [] } =
+          merchantRes.data.data;
+
         setMerchant(fetchedMerchant);
-        setStatus(fetchedMerchant.status);
-
-        // Fetch transactions with pagination and filtering
-        const txRes = await api.get(`/admin/transactions`, {
-          params: {
-            merchantId,
-            page: transactionsPage,
-            limit: transactionsPerPage,
-            sort: "-createdAt",
-            status: transactionFilter.status || undefined,
-            gateway: transactionFilter.gateway || undefined,
-            dateFrom: transactionFilter.dateFrom || undefined,
-            dateTo: transactionFilter.dateTo || undefined,
-          },
-          signal: controller.signal,
-        });
-
-        const txData = txRes.data.data;
-        setTransactions(txData.transactions || []);
-        setTransactionsTotal(txData.total || 0);
+        setStatus(fetchedMerchant?.status || "");
+        setTransactions(fetchedTx || []);
 
         // Calculate statistics
-        if (txData.transactions && txData.transactions.length > 0) {
-          const successful = txData.transactions.filter(
-            (tx) => tx.status === "success",
-          );
-          const totalVolume = txData.transactions.reduce(
+        if (fetchedTx && fetchedTx.length > 0) {
+          const successful = fetchedTx.filter((tx) => tx.status === "success");
+          const totalVolume = fetchedTx.reduce(
             (sum, tx) => sum + (tx.amount || 0),
             0,
           );
 
           setStats({
-            totalTransactions: txData.total || 0,
+            totalTransactions: fetchedTx.length,
             totalVolume,
             successRate:
-              txData.transactions.length > 0
-                ? (successful.length / txData.transactions.length) * 100
+              fetchedTx.length > 0
+                ? (successful.length / fetchedTx.length) * 100
                 : 0,
             avgTransaction:
-              txData.transactions.length > 0
-                ? totalVolume / txData.transactions.length
-                : 0,
+              fetchedTx.length > 0 ? totalVolume / fetchedTx.length : 0,
           });
+          setTransactionsTotal(fetchedTx.length);
         }
       } catch (err) {
         if (err.name !== "AbortError") {
-          setError(err.response?.data?.error || "Failed to load merchant data");
+          const errorMsg =
+            err.response?.data?.error || "Failed to load merchant data";
+          setError(errorMsg);
+          console.error("Fetch error:", err);
         }
       } finally {
         setLoading(false);
@@ -106,7 +94,7 @@ export default function AdminMerchants() {
 
     fetchData();
     return () => controller.abort();
-  }, [merchantId, transactionsPage, transactionFilter]);
+  }, [merchantId]); // Removed transactionsPage and transactionFilter dependencies
 
   /* ================= UPDATE STATUS ================= */
   const updateStatus = async () => {
@@ -167,23 +155,50 @@ export default function AdminMerchants() {
   const exportTransactions = async () => {
     try {
       setUpdating(true);
-      const response = await api.get(`/admin/transactions/export`, {
-        params: {
-          merchantId,
-          status: transactionFilter.status || undefined,
-          gateway: transactionFilter.gateway || undefined,
-          dateFrom: transactionFilter.dateFrom || undefined,
-          dateTo: transactionFilter.dateTo || undefined,
-        },
-        responseType: "blob",
-      });
+      // Use the original endpoint that includes transactions
+      const response = await api.get(
+        `/admin/merchants/${merchantId}?includeTransactions=true`,
+      );
+      const transactions = response.data.data.transactions || [];
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      if (transactions.length === 0) {
+        setError("No transactions to export");
+        return;
+      }
+
+      // Create CSV content
+      const headers = [
+        "Reference",
+        "Amount",
+        "Currency",
+        "Status",
+        "Gateway",
+        "Date",
+        "Customer",
+      ];
+      const csvRows = [
+        headers.join(","),
+        ...transactions.map((tx) =>
+          [
+            `"${tx.internalRef || ""}"`,
+            tx.amount || 0,
+            `"${tx.currency || "ETB"}"`,
+            `"${tx.status || ""}"`,
+            `"${tx.gateway || ""}"`,
+            `"${formatDate(tx.createdAt || tx.paidAt)}"`,
+            `"${tx.customerEmail || tx.customerPhone || ""}"`,
+          ].join(","),
+        ),
+      ];
+
+      const csvContent = csvRows.join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute(
         "download",
-        `transactions-${merchant?.name?.replace(/\s+/g, "-")}-${Date.now()}.csv`,
+        `transactions-${merchant?.name?.replace(/\s+/g, "-") || merchantId}-${Date.now()}.csv`,
       );
       document.body.appendChild(link);
       link.click();
@@ -200,7 +215,8 @@ export default function AdminMerchants() {
 
   /* ================= HELPERS ================= */
   const getStatusColor = useCallback((status) => {
-    switch (status) {
+    if (!status) return "#6b7280";
+    switch (status.toLowerCase()) {
       case "active":
       case "success":
         return "#059669";
@@ -221,10 +237,41 @@ export default function AdminMerchants() {
   }, []);
 
   const formatCurrency = useCallback((amount, currency = "ETB") => {
-    return `${amount?.toLocaleString()} ${currency}`;
+    return `${amount?.toLocaleString() || 0} ${currency}`;
   }, []);
 
-  const totalPages = Math.ceil(transactionsTotal / transactionsPerPage);
+  // Filter transactions based on filter criteria (client-side)
+  const filteredTransactions = useCallback(() => {
+    return transactions.filter((tx) => {
+      if (transactionFilter.status && tx.status !== transactionFilter.status)
+        return false;
+      if (transactionFilter.gateway && tx.gateway !== transactionFilter.gateway)
+        return false;
+      if (transactionFilter.dateFrom || transactionFilter.dateTo) {
+        const txDate = new Date(tx.createdAt || tx.paidAt);
+        if (transactionFilter.dateFrom) {
+          const fromDate = new Date(transactionFilter.dateFrom);
+          if (txDate < fromDate) return false;
+        }
+        if (transactionFilter.dateTo) {
+          const toDate = new Date(transactionFilter.dateTo);
+          toDate.setHours(23, 59, 59, 999); // End of day
+          if (txDate > toDate) return false;
+        }
+      }
+      return true;
+    });
+  }, [transactions, transactionFilter]);
+
+  // Calculate pagination for filtered transactions
+  const displayedTransactions = filteredTransactions();
+  const totalPages = Math.ceil(
+    displayedTransactions.length / transactionsPerPage,
+  );
+  const paginatedTransactions = displayedTransactions.slice(
+    (transactionsPage - 1) * transactionsPerPage,
+    transactionsPage * transactionsPerPage,
+  );
 
   /* ================= UI ================= */
   if (loading)
@@ -248,9 +295,11 @@ export default function AdminMerchants() {
       </div>
     );
 
+  if (!merchant) return null;
+
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>{merchant?.name}</h1>
+      <h1 style={styles.title}>{merchant.name}</h1>
 
       {error && <div style={styles.error}>{error}</div>}
       {success && <div style={styles.success}>{success}</div>}
@@ -261,7 +310,10 @@ export default function AdminMerchants() {
           <button
             key={tab}
             style={activeTab === tab ? styles.activeTab : styles.tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => {
+              setActiveTab(tab);
+              setTransactionsPage(1); // Reset to first page when switching tabs
+            }}
             disabled={updating}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -270,7 +322,7 @@ export default function AdminMerchants() {
       </div>
 
       {/* ========== OVERVIEW ========== */}
-      {activeTab === "overview" && merchant && (
+      {activeTab === "overview" && (
         <div>
           {/* Statistics Cards */}
           <div style={styles.statsGrid}>
@@ -327,7 +379,7 @@ export default function AdminMerchants() {
                     marginLeft: 8,
                   }}
                 >
-                  {merchant.status.toUpperCase()}
+                  {(merchant.status || "").toUpperCase()}
                 </span>
               </div>
 
@@ -361,7 +413,7 @@ export default function AdminMerchants() {
       )}
 
       {/* ========== GATEWAYS ========== */}
-      {activeTab === "gateway" && merchant && (
+      {activeTab === "gateway" && (
         <div style={styles.card}>
           <h3 style={styles.sectionTitle}>Payment Gateways</h3>
 
@@ -425,7 +477,10 @@ export default function AdminMerchants() {
             <button
               onClick={exportTransactions}
               disabled={updating || transactions.length === 0}
-              style={styles.exportButton}
+              style={{
+                ...styles.exportButton,
+                opacity: updating || transactions.length === 0 ? 0.6 : 1,
+              }}
             >
               {updating ? "Exporting..." : "Export CSV"}
             </button>
@@ -435,9 +490,10 @@ export default function AdminMerchants() {
           <div style={styles.filterContainer}>
             <select
               value={transactionFilter.status}
-              onChange={(e) =>
-                setTransactionFilter((f) => ({ ...f, status: e.target.value }))
-              }
+              onChange={(e) => {
+                setTransactionFilter((f) => ({ ...f, status: e.target.value }));
+                setTransactionsPage(1);
+              }}
               style={styles.filterSelect}
               disabled={updating}
             >
@@ -449,9 +505,13 @@ export default function AdminMerchants() {
 
             <select
               value={transactionFilter.gateway}
-              onChange={(e) =>
-                setTransactionFilter((f) => ({ ...f, gateway: e.target.value }))
-              }
+              onChange={(e) => {
+                setTransactionFilter((f) => ({
+                  ...f,
+                  gateway: e.target.value,
+                }));
+                setTransactionsPage(1);
+              }}
               style={styles.filterSelect}
               disabled={updating}
             >
@@ -463,12 +523,13 @@ export default function AdminMerchants() {
             <input
               type="date"
               value={transactionFilter.dateFrom}
-              onChange={(e) =>
+              onChange={(e) => {
                 setTransactionFilter((f) => ({
                   ...f,
                   dateFrom: e.target.value,
-                }))
-              }
+                }));
+                setTransactionsPage(1);
+              }}
               style={styles.filterDate}
               disabled={updating}
             />
@@ -476,23 +537,13 @@ export default function AdminMerchants() {
             <input
               type="date"
               value={transactionFilter.dateTo}
-              onChange={(e) =>
-                setTransactionFilter((f) => ({ ...f, dateTo: e.target.value }))
-              }
+              onChange={(e) => {
+                setTransactionFilter((f) => ({ ...f, dateTo: e.target.value }));
+                setTransactionsPage(1);
+              }}
               style={styles.filterDate}
               disabled={updating}
             />
-
-            <button
-              onClick={() => {
-                setTransactionsPage(1);
-                // Filter will be applied via useEffect dependency
-              }}
-              style={styles.filterButton}
-              disabled={updating}
-            >
-              Apply Filters
-            </button>
 
             <button
               onClick={() => {
@@ -511,10 +562,10 @@ export default function AdminMerchants() {
             </button>
           </div>
 
-          {transactions.length === 0 ? (
+          {displayedTransactions.length === 0 ? (
             <div style={styles.emptyState}>
               <p>No transactions found</p>
-              {transactionsTotal > 0 && (
+              {transactions.length > 0 && (
                 <p style={styles.emptyHint}>Try adjusting your filters</p>
               )}
             </div>
@@ -533,7 +584,7 @@ export default function AdminMerchants() {
                     </tr>
                   </thead>
                   <tbody>
-                    {transactions.map((tx) => (
+                    {paginatedTransactions.map((tx) => (
                       <tr key={tx._id || tx.id} style={styles.tableRow}>
                         <td style={styles.tableCell}>
                           <span style={styles.refCode}>
@@ -575,18 +626,25 @@ export default function AdminMerchants() {
                   <button
                     disabled={transactionsPage === 1 || updating}
                     onClick={() => setTransactionsPage((p) => p - 1)}
-                    style={styles.pageButton}
+                    style={{
+                      ...styles.pageButton,
+                      opacity: transactionsPage === 1 || updating ? 0.6 : 1,
+                    }}
                   >
                     Previous
                   </button>
                   <span style={styles.pageInfo}>
-                    Page {transactionsPage} of {totalPages} ({transactionsTotal}{" "}
-                    total)
+                    Page {transactionsPage} of {totalPages} (
+                    {displayedTransactions.length} transactions)
                   </span>
                   <button
                     disabled={transactionsPage >= totalPages || updating}
                     onClick={() => setTransactionsPage((p) => p + 1)}
-                    style={styles.pageButton}
+                    style={{
+                      ...styles.pageButton,
+                      opacity:
+                        transactionsPage >= totalPages || updating ? 0.6 : 1,
+                    }}
                   >
                     Next
                   </button>
@@ -717,10 +775,6 @@ const styles = {
     border: "1px solid #e2e8f0",
     transition: "transform 0.2s",
     cursor: "default",
-  },
-  statCardHover: {
-    transform: "translateY(-2px)",
-    boxShadow: "0 4px 12px rgba(0,0,0,.1)",
   },
   statNumber: {
     fontSize: "28px",
@@ -878,9 +932,6 @@ const styles = {
     borderBottom: "1px solid #f3f4f6",
     transition: "background 0.2s",
   },
-  tableRowHover: {
-    background: "#f9fafb",
-  },
   tableCell: {
     padding: "16px",
     verticalAlign: "middle",
@@ -913,14 +964,6 @@ const styles = {
     fontWeight: 500,
     transition: "all 0.2s",
   },
-  pageButtonDisabled: {
-    opacity: 0.5,
-    cursor: "not-allowed",
-  },
-  pageButtonHover: {
-    background: "#f9fafb",
-    borderColor: "#9ca3af",
-  },
   pageInfo: {
     color: "#6b7280",
     fontSize: "14px",
@@ -939,9 +982,6 @@ const styles = {
     fontWeight: 600,
     transition: "background 0.2s",
   },
-  primaryButtonHover: {
-    background: "#047857",
-  },
   secondaryButton: {
     padding: "8px 20px",
     background: "white",
@@ -952,10 +992,6 @@ const styles = {
     fontSize: "14px",
     fontWeight: 500,
     transition: "all 0.2s",
-  },
-  secondaryButtonHover: {
-    background: "#f9fafb",
-    borderColor: "#9ca3af",
   },
   dangerButton: {
     padding: "8px 20px",
@@ -969,10 +1005,6 @@ const styles = {
     marginLeft: 12,
     transition: "all 0.2s",
   },
-  dangerButtonHover: {
-    background: "#fef2f2",
-    borderColor: "#b91c1c",
-  },
   exportButton: {
     padding: "10px 24px",
     background: "#10b981",
@@ -984,27 +1016,32 @@ const styles = {
     fontWeight: 600,
     transition: "background 0.2s",
   },
-  exportButtonHover: {
-    background: "#059669",
-  },
-  exportButtonDisabled: {
-    opacity: 0.5,
-    cursor: "not-allowed",
-  },
 };
 
 // Add CSS animation for spinner
 if (typeof document !== "undefined") {
   const styleSheet = document.styleSheets[0];
   if (styleSheet) {
-    styleSheet.insertRule(
-      `
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `,
-      styleSheet.cssRules.length,
-    );
+    try {
+      styleSheet.insertRule(
+        `
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `,
+        styleSheet.cssRules.length,
+      );
+    } catch (e) {
+      // Fallback if stylesheet is read-only
+      const style = document.createElement("style");
+      style.textContent = `
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
   }
 }
