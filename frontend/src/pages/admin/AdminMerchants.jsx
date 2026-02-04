@@ -24,29 +24,22 @@ export default function AdminMerchants() {
 
     const controller = new AbortController();
 
-    const fetchMerchant = async () => {
+    async function fetchMerchant() {
       try {
         setLoading(true);
-        setError("");
-
         const res = await api.get(`/admin/merchants/${merchantId}`, {
           signal: controller.signal,
         });
-
         setMerchant(res.data.data);
         setStatus(res.data.data.status);
       } catch (err) {
-        if (!controller.signal.aborted) {
-          setError(
-            err.response?.data?.error || "Failed to load merchant details",
-          );
+        if (err.name !== "AbortError") {
+          setError(err.response?.data?.error || "Failed to load merchant");
         }
       } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
-    };
+    }
 
     fetchMerchant();
     return () => controller.abort();
@@ -60,9 +53,9 @@ export default function AdminMerchants() {
       setUpdating(true);
       await api.patch(`/admin/merchants/${merchantId}`, { status });
 
-      const res = await api.get(`/admin/merchants/${merchantId}`);
-      setMerchant(res.data.data);
-      setStatus(res.data.data.status);
+      const refreshed = await api.get(`/admin/merchants/${merchantId}`);
+      setMerchant(refreshed.data.data);
+      setStatus(refreshed.data.data.status);
       setError("");
     } catch (err) {
       setError(err.response?.data?.error || "Failed to update status");
@@ -72,11 +65,11 @@ export default function AdminMerchants() {
     }
   };
 
-  /* ================= DISCONNECT CHAPA ================= */
+  /* ================= FORCE DISCONNECT CHAPA ================= */
   const forceDisconnectChapa = async () => {
     if (
       !window.confirm(
-        "Are you sure you want to disconnect Chapa? The merchant will no longer process payments.",
+        "Force disconnect Chapa? Merchant will not process Chapa payments.",
       )
     )
       return;
@@ -85,8 +78,8 @@ export default function AdminMerchants() {
       setUpdating(true);
       await api.post(`/admin/merchants/${merchantId}/disconnect-chapa`);
 
-      const res = await api.get(`/admin/merchants/${merchantId}`);
-      setMerchant(res.data.data);
+      const refreshed = await api.get(`/admin/merchants/${merchantId}`);
+      setMerchant(refreshed.data.data);
       setError("");
     } catch (err) {
       setError(err.response?.data?.error || "Failed to disconnect Chapa");
@@ -100,82 +93,57 @@ export default function AdminMerchants() {
     navigate(`/admin/transactions?merchantId=${merchantId}`);
   };
 
-  /* ================= LOADING ================= */
+  /* ================= UI STATES ================= */
   if (loading) {
     return (
       <div style={styles.center}>
         <div style={styles.spinner} />
-        <p>Loading merchant details...</p>
+        <p>Loading merchant…</p>
       </div>
     );
   }
 
-  /* ================= NOT FOUND ================= */
-  if (!merchant && !error) {
+  if (!merchant) {
     return (
       <div style={styles.center}>
-        <p>Merchant not found</p>
+        <p>{error || "Merchant not found"}</p>
         <button onClick={() => navigate("/admin")} style={styles.primaryButton}>
-          Back to Dashboard
+          Back
         </button>
       </div>
     );
   }
 
-  const statusBadge = {
-    active: { background: "#dcfce7", color: "#166534" },
-    inactive: { background: "#e5e7eb", color: "#374151" },
-    pending: { background: "#fef3c7", color: "#92400e" },
-    suspended: { background: "#fee2e2", color: "#991b1b" },
-  };
-
+  /* ================= MAIN UI ================= */
   return (
     <div style={styles.container}>
-      {/* HEADER */}
-      <div style={styles.header}>
-        <button onClick={() => navigate("/admin")} style={styles.backButton}>
-          ← Back
-        </button>
-        <h1>{merchant?.name}</h1>
-        <span style={{ ...styles.badge, ...statusBadge[merchant.status] }}>
-          {merchant.status}
-        </span>
-      </div>
+      <h1>{merchant.name}</h1>
 
-      {/* ERROR */}
-      {error && (
-        <div style={styles.error}>
-          {error}
-          <button onClick={() => setError("")} style={styles.closeError}>
-            ×
-          </button>
-        </div>
-      )}
+      {error && <div style={styles.error}>{error}</div>}
 
-      {/* TABS */}
+      {/* Tabs */}
       <div style={styles.tabs}>
-        {["overview", "gateway", "security"].map((tab) => (
+        {["overview", "gateway", "transactions"].map((t) => (
           <button
-            key={tab}
-            style={tab === activeTab ? styles.activeTab : styles.tab}
-            onClick={() => setActiveTab(tab)}
+            key={t}
+            style={activeTab === t ? styles.activeTab : styles.tab}
+            onClick={() =>
+              t === "transactions" ? viewTransactions() : setActiveTab(t)
+            }
           >
-            {tab.toUpperCase()}
+            {t.toUpperCase()}
           </button>
         ))}
-        <button style={styles.tab} onClick={viewTransactions}>
-          TRANSACTIONS
-        </button>
       </div>
 
-      {/* OVERVIEW */}
+      {/* ================= OVERVIEW ================= */}
       {activeTab === "overview" && (
         <div style={styles.card}>
           <p>
-            <strong>Email:</strong> {merchant.ownerUserId?.email || "—"}
+            <strong>Owner:</strong> {merchant.ownerUserId?.email}
           </p>
           <p>
-            <strong>Currency:</strong> {merchant.currency || "ETB"}
+            <strong>Status:</strong> {merchant.status}
           </p>
 
           <select
@@ -183,61 +151,58 @@ export default function AdminMerchants() {
             disabled={updating}
             onChange={(e) => setStatus(e.target.value)}
           >
-            {["active", "inactive", "pending", "suspended"].map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+            <option value="suspended">Suspended</option>
           </select>
 
           <button
-            disabled={updating || status === merchant.status}
             onClick={updateStatus}
+            disabled={updating || status === merchant.status}
             style={styles.primaryButton}
           >
-            {updating ? "Updating..." : "Update Status"}
+            {updating ? "Updating…" : "Update Status"}
           </button>
         </div>
       )}
 
-      {/* GATEWAY */}
+      {/* ================= GATEWAYS ================= */}
       {activeTab === "gateway" && (
         <div style={styles.card}>
-          {merchant.chapa?.connected ? (
-            <>
-              <p style={{ color: "green" }}>Chapa Connected</p>
-              <p>
-                <strong>Mode:</strong>{" "}
-                {merchant.chapa?.testMode ? "Test" : "Live"}
+          {/* SantimPay – DEFAULT */}
+          <div style={styles.gatewayRow}>
+            <div>
+              <strong>SantimPay</strong>
+              <p style={{ color: "green" }}>Connected (Default)</p>
+            </div>
+          </div>
+
+          <hr />
+
+          {/* Chapa – OPTIONAL */}
+          <div style={styles.gatewayRow}>
+            <div>
+              <strong>Chapa</strong>
+              <p
+                style={{
+                  color: merchant.chapa?.connected ? "green" : "#b45309",
+                }}
+              >
+                {merchant.chapa?.connected ? "Connected" : "Not Connected"}
               </p>
+            </div>
+
+            {merchant.chapa?.connected && (
               <button
                 onClick={forceDisconnectChapa}
                 disabled={updating}
                 style={styles.dangerButton}
               >
-                {updating ? "Disconnecting..." : "Disconnect Chapa"}
+                Disconnect
               </button>
-            </>
-          ) : (
-            <p style={{ color: "#b45309" }}>Chapa Not Connected</p>
-          )}
-        </div>
-      )}
-
-      {/* SECURITY */}
-      {activeTab === "security" && (
-        <div style={styles.card}>
-          <p>
-            <strong>Webhook URL:</strong> {merchant.webhookUrl || "Not set"}
-          </p>
-          <p>
-            <strong>Webhook Secret:</strong>{" "}
-            {merchant.webhookSecret ? "••••••••" : "Not set"}
-          </p>
-          <p>
-            <strong>Allowed IPs:</strong>{" "}
-            {merchant.allowedIPs?.join(", ") || "All allowed"}
-          </p>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -246,66 +211,64 @@ export default function AdminMerchants() {
 
 /* ================= STYLES ================= */
 const styles = {
-  container: { padding: 24, background: "#f9fafb", minHeight: "100vh" },
+  container: { padding: 24 },
   center: {
+    minHeight: "60vh",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    justifyContent: "center",
     gap: 16,
   },
   spinner: {
-    width: 36,
-    height: 36,
-    border: "4px solid #e5e7eb",
+    width: 40,
+    height: 40,
+    border: "4px solid #eee",
     borderTop: "4px solid #059669",
     borderRadius: "50%",
     animation: "spin 1s linear infinite",
   },
-  header: { marginBottom: 16 },
-  backButton: { background: "none", border: "none", cursor: "pointer" },
-  badge: { padding: "4px 12px", borderRadius: 12, fontWeight: 500 },
   error: {
     background: "#fee2e2",
     padding: 12,
     borderRadius: 6,
-    position: "relative",
+    marginBottom: 16,
+    color: "#991b1b",
   },
-  closeError: {
-    position: "absolute",
-    right: 8,
-    top: 4,
-    background: "none",
-    border: "none",
+  tabs: { display: "flex", gap: 8, marginBottom: 20 },
+  tab: { padding: 10, cursor: "pointer" },
+  activeTab: {
+    padding: 10,
+    background: "#059669",
+    color: "white",
     cursor: "pointer",
   },
-  tabs: { display: "flex", gap: 8, marginBottom: 16 },
-  tab: { padding: 8, background: "#e5e7eb", border: "none", cursor: "pointer" },
-  activeTab: {
-    padding: 8,
-    background: "#059669",
-    color: "#fff",
-    border: "none",
+  card: {
+    background: "white",
+    padding: 20,
+    borderRadius: 8,
+    boxShadow: "0 1px 3px rgba(0,0,0,.1)",
   },
-  card: { background: "#fff", padding: 16, borderRadius: 8 },
   primaryButton: {
-    background: "#059669",
-    color: "#fff",
+    marginTop: 10,
     padding: "8px 16px",
+    background: "#059669",
+    color: "white",
     border: "none",
+    borderRadius: 6,
     cursor: "pointer",
   },
   dangerButton: {
-    background: "#dc2626",
-    color: "#fff",
-    padding: "8px 16px",
-    border: "none",
+    padding: "6px 12px",
+    border: "1px solid #dc2626",
+    background: "white",
+    color: "#dc2626",
     cursor: "pointer",
   },
+  gatewayRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
 };
-
-/* Add spinner animation globally */
-const styleSheet = document.styleSheets[0];
-styleSheet.insertRule(
-  `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`,
-  styleSheet.cssRules.length,
-);
