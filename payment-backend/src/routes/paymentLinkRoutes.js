@@ -7,31 +7,33 @@ import {
   getAllLinksController,
   getLinkDetailsController,
 } from "../controllers/paymentLinkController.js";
+import { checkMerchantActive } from "../middleware/checkMerchantActive.js";
 
 const router = express.Router();
 // routes/paymentLinkRoutes.js
-
-router.get("/public/:linkId", getLinkDetailsController);
 
 router.post(
   "/",
   authMiddleware,
   requireRole([ROLES.MERCHANT_OWNER]),
-  createLinkController
+  checkMerchantActive,
+  createLinkController,
 );
 
 router.get(
   "/",
   authMiddleware,
   requireRole([ROLES.MERCHANT_OWNER]),
-  getAllLinksController
+  checkMerchantActive,
+  getAllLinksController,
 );
 
 router.get(
   "/:linkId",
   authMiddleware,
   requireRole([ROLES.MERCHANT_OWNER]),
-  getLinkDetailsController
+  checkMerchantActive,
+  getLinkDetailsController,
 );
 
 export default router;

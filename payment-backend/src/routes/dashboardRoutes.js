@@ -10,47 +10,50 @@ import {
   linkPerformance,
   gatewayStatus,
 } from "../controllers/dashboardController.js";
+import { checkMerchantActive } from "../middleware/checkMerchantActive.js";
 
 const router = express.Router();
 
 // ✅ These routes should be prefixed with /dashboard
 // So: GET /api/dashboard/summary
+
 router.get(
   "/summary",
   authMiddleware,
   requireRole([ROLES.MERCHANT_OWNER]),
+  checkMerchantActive,
   dashboardSummary,
 );
 
-// GET /api/dashboard/revenue
 router.get(
   "/revenue",
   authMiddleware,
   requireRole([ROLES.MERCHANT_OWNER]),
+  checkMerchantActive,
   revenueStats,
 );
 
-// GET /api/dashboard/transactions
 router.get(
   "/transactions",
   authMiddleware,
   requireRole([ROLES.MERCHANT_OWNER]),
+  checkMerchantActive,
   merchantTransactions,
 );
 
-// GET /api/dashboard/links/performance
 router.get(
   "/links/performance",
   authMiddleware,
   requireRole([ROLES.MERCHANT_OWNER]),
+  checkMerchantActive,
   linkPerformance,
 );
 
-// GET /api/dashboard/gateway-status
 router.get(
   "/gateway-status",
   authMiddleware,
   requireRole([ROLES.MERCHANT_OWNER]),
+  checkMerchantActive,
   gatewayStatus,
 );
 

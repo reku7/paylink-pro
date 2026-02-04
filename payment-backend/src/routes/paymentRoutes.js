@@ -3,18 +3,16 @@ import authMiddleware from "../middleware/auth.js";
 import requireRole from "../middleware/roleMiddleware.js";
 import { ROLES } from "../constants/roles.js";
 import { startPaymentController } from "../controllers/paymentController.js";
+import { checkMerchantActive } from "../middleware/checkMerchantActive.js";
 
 const router = express.Router();
 
-/**
- * Start payment for a payment link
- * POST /api/payments/:linkId/start
- */
 router.post(
   "/:linkId/start",
   authMiddleware,
   requireRole([ROLES.MERCHANT_OWNER]),
-  startPaymentController
+  checkMerchantActive,
+  startPaymentController,
 );
 
 export default router;

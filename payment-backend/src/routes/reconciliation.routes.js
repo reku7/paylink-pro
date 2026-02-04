@@ -8,6 +8,7 @@ import {
   forceSync,
   runReconciliationJob,
 } from "../controllers/reconciliation.controller.js";
+import { checkMerchantActive } from "../middleware/checkMerchantActive.js";
 
 const router = express.Router();
 
@@ -15,21 +16,24 @@ router.post(
   "/reconcile/:transactionRef",
   authMiddleware,
   requireRole([ROLES.ADMIN, ROLES.MERCHANT_OWNER]),
-  manualReconcile
+  checkMerchantActive,
+  manualReconcile,
 );
 
 router.post(
   "/sync/:transactionRef",
   authMiddleware,
   requireRole([ROLES.ADMIN, ROLES.MERCHANT_OWNER]),
-  forceSync
+  checkMerchantActive,
+  forceSync,
 );
 
+// Admin-only → no merchant check needed
 router.post(
   "/reconcile-all",
   authMiddleware,
   requireRole([ROLES.ADMIN]),
-  runReconciliationJob
+  runReconciliationJob,
 );
 
 export default router;
