@@ -133,3 +133,22 @@ export async function disconnectChapa(req, res, next) {
     next(err);
   }
 }
+
+/* ================= GET TRANSACTIONS FOR A MERCHANT ================= */
+export async function getMerchantTransactions(req, res, next) {
+  try {
+    const { merchantId } = req.params;
+
+    const transactions = await Transaction.find({ merchantId }).sort({
+      createdAt: -1,
+    });
+
+    res.json({
+      success: true,
+      count: transactions.length,
+      data: transactions,
+    });
+  } catch (err) {
+    next(err);
+  }
+}

@@ -1,5 +1,5 @@
 import { useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { privateApi as api } from "../../api/api";
 
 export default function AdminMerchants() {
@@ -7,14 +7,14 @@ export default function AdminMerchants() {
   const merchantId = params.get("merchantId");
 
   const [merchant, setMerchant] = useState(null);
-  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updating, setUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [status, setStatus] = useState("");
+  const [transactions, setTransactions] = useState([]);
 
-  /* ================= FETCH MERCHANT ================= */
+  /* ================= FETCH MERCHANT + TRANSACTIONS ================= */
   useEffect(() => {
     if (!merchantId) {
       setError("No merchant ID provided");
@@ -24,31 +24,32 @@ export default function AdminMerchants() {
 
     const controller = new AbortController();
 
-    async function fetchMerchant() {
+    async function fetchData() {
       try {
         setLoading(true);
         setError("");
-        const res = await api.get(`/admin/merchants/${merchantId}`, {
-          signal: controller.signal,
-        });
-        setMerchant(res.data.data);
-        setStatus(res.data.data.status);
 
-        // Fetch transactions
-        const txRes = await api.get(
-          `/admin/merchants/${merchantId}/transactions`,
+        const res = await api.get(
+          `/admin/merchants/${merchantId}?includeTransactions=true`,
+          { signal: controller.signal },
         );
-        setTransactions(txRes.data.data || []);
+
+        const { merchant: fetchedMerchant, transactions: fetchedTx } =
+          res.data.data;
+
+        setMerchant(fetchedMerchant);
+        setStatus(fetchedMerchant.status);
+        setTransactions(fetchedTx || []);
       } catch (err) {
         if (err.name !== "AbortError") {
-          setError(err.response?.data?.error || "Failed to load merchant");
+          setError(err.response?.data?.error || "Failed to load merchant data");
         }
       } finally {
         setLoading(false);
       }
     }
 
-    fetchMerchant();
+    fetchData();
     return () => controller.abort();
   }, [merchantId]);
 
@@ -60,6 +61,7 @@ export default function AdminMerchants() {
       setUpdating(true);
       setError("");
       await api.patch(`/admin/merchants/${merchantId}`, { status });
+
       const refreshed = await api.get(`/admin/merchants/${merchantId}`);
       setMerchant(refreshed.data.data);
       setStatus(refreshed.data.data.status);
@@ -79,10 +81,12 @@ export default function AdminMerchants() {
       )
     )
       return;
+
     try {
       setUpdating(true);
       setError("");
       await api.post(`/admin/merchants/${merchantId}/disconnect-chapa`);
+
       const refreshed = await api.get(`/admin/merchants/${merchantId}`);
       setMerchant(refreshed.data.data);
     } catch (err) {
@@ -92,8 +96,8 @@ export default function AdminMerchants() {
     }
   };
 
-  /* ================= HELPER ================= */
-  const getStatusColor = (status) => {
+  /* ================= HELPERS ================= */
+  const getStatusColor = useCallback((status) => {
     switch (status) {
       case "active":
         return "#059669";
@@ -106,12 +110,11 @@ export default function AdminMerchants() {
       default:
         return "#6b7280";
     }
-  };
+  }, []);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString();
-  };
+  const formatDate = useCallback((dateString) => {
+    return dateString ? new Date(dateString).toLocaleString() : "N/A";
+  }, []);
 
   /* ================= UI ================= */
   if (loading)
@@ -134,13 +137,14 @@ export default function AdminMerchants() {
 
       {/* Tabs */}
       <div style={styles.tabs}>
-        {["overview", "gateway", "transactions"].map((t) => (
+        {["overview", "gateway", "transactions"].map((tab) => (
           <button
-            key={t}
-            style={activeTab === t ? styles.activeTab : styles.tab}
-            onClick={() => setActiveTab(t)}
+            key={tab}
+            style={activeTab === tab ? styles.activeTab : styles.tab}
+            onClick={() => setActiveTab(tab)}
+            disabled={updating}
           >
-            {t.toUpperCase()}
+            {tab.toUpperCase()}
           </button>
         ))}
       </div>
@@ -238,7 +242,7 @@ export default function AdminMerchants() {
                       <td
                         style={{
                           color: getStatusColor(tx.status),
-                          fontWeight: "500",
+                          fontWeight: 500,
                         }}
                       >
                         {tx.status}
