@@ -1,9 +1,10 @@
 // controllers/adminController.js
+import mongoose from "mongoose";
 import Merchant from "../models/Merchant.js";
-import Transaction from "../models/Transaction.js"; // assuming you have a Transaction model
+import Transaction from "../models/Transaction.js";
 import { encryptSecret } from "../utils/crypto.js";
 
-/* ================= SET/UPDATE CHAPA SECRET ================= */
+/* ================= SET / UPDATE CHAPA SECRET ================= */
 export async function setChapaSecret(req, res, next) {
   try {
     const { merchantId } = req.params;
@@ -15,6 +16,12 @@ export async function setChapaSecret(req, res, next) {
         .json({ success: false, error: "Chapa secret is required" });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(merchantId)) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid merchant ID" });
+    }
+
     const encrypted = encryptSecret(chapaSecret);
 
     const result = await Merchant.updateOne(
@@ -22,11 +29,10 @@ export async function setChapaSecret(req, res, next) {
       { $set: { "chapa.secretEncrypted": encrypted } },
     );
 
-    if (result.modifiedCount === 0) {
-      return res.status(404).json({
-        success: false,
-        error: "Merchant not found or secret not changed",
-      });
+    if (result.matchedCount === 0) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Merchant not found" });
     }
 
     res.json({ success: true, message: "Chapa secret updated successfully" });
@@ -35,15 +41,21 @@ export async function setChapaSecret(req, res, next) {
   }
 }
 
-/* ================= GET SINGLE MERCHANT (OPTIONAL: INCLUDE TRANSACTIONS) ================= */
+/* ================= GET SINGLE MERCHANT ================= */
 export async function getSingleMerchant(req, res, next) {
   try {
     const { merchantId } = req.params;
 
+    if (!mongoose.Types.ObjectId.isValid(merchantId)) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid merchant ID" });
+    }
+
     const merchant = await Merchant.findById(merchantId).populate(
       "ownerUserId",
       "name email roles",
-    ); // Include owner info
+    );
 
     if (!merchant) {
       return res
@@ -53,12 +65,18 @@ export async function getSingleMerchant(req, res, next) {
 
     let transactions = [];
     if (req.query.includeTransactions === "true") {
-      transactions = await Transaction.find({ merchantId }).sort({
-        createdAt: -1,
-      });
+      transactions = await Transaction.find({
+        merchantId: new mongoose.Types.ObjectId(merchantId),
+      }).sort({ createdAt: -1 });
     }
 
-    res.json({ success: true, data: { merchant, transactions } });
+    res.json({
+      success: true,
+      data: {
+        merchant,
+        transactions,
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -93,6 +111,12 @@ export async function updateMerchantStatus(req, res, next) {
         .json({ success: false, error: "Status is required" });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(merchantId)) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid merchant ID" });
+    }
+
     const merchant = await Merchant.findByIdAndUpdate(
       merchantId,
       { status },
@@ -116,6 +140,12 @@ export async function disconnectChapa(req, res, next) {
   try {
     const { merchantId } = req.params;
 
+    if (!mongoose.Types.ObjectId.isValid(merchantId)) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid merchant ID" });
+    }
+
     const merchant = await Merchant.findByIdAndUpdate(
       merchantId,
       { "chapa.connected": false },
@@ -134,14 +164,20 @@ export async function disconnectChapa(req, res, next) {
   }
 }
 
-/* ================= GET TRANSACTIONS FOR A MERCHANT ================= */
+/* ================= GET MERCHANT TRANSACTIONS ================= */
 export async function getMerchantTransactions(req, res, next) {
   try {
     const { merchantId } = req.params;
 
-    const transactions = await Transaction.find({ merchantId }).sort({
-      createdAt: -1,
-    });
+    if (!mongoose.Types.ObjectId.isValid(merchantId)) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid merchant ID" });
+    }
+
+    const transactions = await Transaction.find({
+      merchantId: new mongoose.Types.ObjectId(merchantId),
+    }).sort({ createdAt: -1 });
 
     res.json({
       success: true,
