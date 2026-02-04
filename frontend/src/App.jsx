@@ -24,7 +24,6 @@ import Profile from "./pages/profile/Profile.jsx";
 // Admin Pages - Add these imports
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminMerchants from "./pages/admin/AdminMerchants.jsx";
-import AdminTransactions from "./pages/admin/AdminTransactions.jsx";
 
 // CONTEXTS
 import { GatewayProvider } from "./context/GatewayContext.jsx";
