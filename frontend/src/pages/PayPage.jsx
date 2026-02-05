@@ -173,9 +173,6 @@ export default function PayPage() {
             <div style={styles.paymentCard}>
               {/* Merchant Info */}
               <div style={styles.merchantInfo}>
-                <div style={styles.merchantLogo}>
-                  <span style={styles.merchantLogoText}>M</span>
-                </div>
                 <div>
                   <h2 style={styles.merchantTitle}>
                     {link.title || "Payment Request"}
@@ -463,26 +460,6 @@ export default function PayPage() {
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer style={styles.footer}>
-        <div style={styles.footerContent}>
-          <div style={styles.footerLeft}>
-            <div style={styles.footerLogoContainer}>
-              <div style={styles.footerLogo}>
-                <span style={styles.footerLogoText}>P</span>
-              </div>
-              <span style={styles.footerLogoName}>PayFlow</span>
-            </div>
-            <p style={styles.footerTagline}>
-              Secure payments for Ethiopian merchants
-            </p>
-          </div>
-          <div style={styles.footerRight}>
-            © {new Date().getFullYear()} PayFlow. All rights reserved.
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
@@ -953,54 +930,54 @@ const styles = {
   },
 
   // Footer
-  footer: {
-    padding: "32px 64px",
-    borderTop: "1px solid #e5e7eb",
-    background: "white",
-  },
-  footerContent: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    maxWidth: "1200px",
-    margin: "0 auto",
-  },
-  footerLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: "16px",
-  },
-  footerLogoContainer: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-  },
-  footerLogo: {
-    width: "24px",
-    height: "24px",
-    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-    borderRadius: "6px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  footerLogoText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: "12px",
-  },
-  footerLogoName: {
-    fontWeight: "bold",
-    color: "#1f2937",
-  },
-  footerTagline: {
-    fontSize: "14px",
-    color: "#6b7280",
-  },
-  footerRight: {
-    fontSize: "14px",
-    color: "#6b7280",
-  },
+  // footer: {
+  //   padding: "32px 64px",
+  //   borderTop: "1px solid #e5e7eb",
+  //   background: "white",
+  // },
+  // footerContent: {
+  //   display: "flex",
+  //   justifyContent: "space-between",
+  //   alignItems: "center",
+  //   maxWidth: "1200px",
+  //   margin: "0 auto",
+  // },
+  // footerLeft: {
+  //   display: "flex",
+  //   alignItems: "center",
+  //   gap: "16px",
+  // },
+  // footerLogoContainer: {
+  //   display: "flex",
+  //   alignItems: "center",
+  //   gap: "8px",
+  // },
+  // footerLogo: {
+  //   width: "24px",
+  //   height: "24px",
+  //   background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+  //   borderRadius: "6px",
+  //   display: "flex",
+  //   alignItems: "center",
+  //   justifyContent: "center",
+  // },
+  // footerLogoText: {
+  //   color: "white",
+  //   fontWeight: "bold",
+  //   fontSize: "12px",
+  // },
+  // footerLogoName: {
+  //   fontWeight: "bold",
+  //   color: "#1f2937",
+  // },
+  // footerTagline: {
+  //   fontSize: "14px",
+  //   color: "#6b7280",
+  // },
+  // footerRight: {
+  //   fontSize: "14px",
+  //   color: "#6b7280",
+  // },
 };
 
 /* ---------- CSS Animations ---------- */
