@@ -449,8 +449,11 @@ export default function PayPage() {
                 payment
               </p>
               <div style={styles.supportOptions}>
+                {/* Web-friendly email link */}
                 <a
-                  href="mailto:rekiklegese@gmail.com"
+                  href="https://mail.google.com/mail/?view=cm&fs=1&to=rekiklegese@gmail.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   style={styles.supportOption}
                 >
                   <div style={styles.supportIconContainer}>
@@ -459,10 +462,11 @@ export default function PayPage() {
                   <div>
                     <div style={styles.supportOptionTitle}>Email Support</div>
                     <div style={styles.supportOptionSubtitle}>
-                      support@payflow.com
+                      rekiklegese@gmail.com
                     </div>
                   </div>
                 </a>
+
                 <div style={styles.supportOption}>
                   <div style={styles.supportIconContainer}>
                     <span style={styles.supportIcon}>🕒</span>
