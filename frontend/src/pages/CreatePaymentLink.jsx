@@ -1,4 +1,4 @@
-//src\pages\CreatePaymentLink.jsx
+// src\pages\CreatePaymentLink.jsx
 import { useState, useEffect, useCallback } from "react";
 import { privateApi as api } from "../api/api";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -170,66 +170,61 @@ export default function CreatePaymentLink() {
       style={{
         minHeight: "100vh",
         width: "100%",
-        padding: "40px 20px",
+        padding: "40px",
+        backgroundColor: "#f9fafb",
       }}
     >
-      <div
-        style={{
-          background: "white",
-          borderRadius: "10px",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-          padding: "30px",
-          width: "100%",
-          maxWidth: "100%",
-        }}
-      >
-        <h2
-          style={{ marginBottom: "10px", textAlign: "center", color: "#333" }}
-        >
+      {/* Header Section */}
+      <div style={{ marginBottom: "30px" }}>
+        <h2 style={{ marginBottom: "10px", color: "#333", fontSize: "28px" }}>
           Create Payment Link
         </h2>
-        <p style={{ textAlign: "center", color: "#666", marginBottom: "30px" }}>
+        <p style={{ color: "#666", fontSize: "16px" }}>
           Create payment links with SantimPay (Type A) or Chapa (Type B Lite)
         </p>
+      </div>
 
-        {error && (
-          <div
-            style={{
-              background: "#ffebee",
-              color: "#c62828",
-              padding: "12px",
-              borderRadius: "6px",
-              marginBottom: "20px",
-              borderLeft: "4px solid #c62828",
-            }}
-          >
-            {error}
-          </div>
-        )}
+      {error && (
+        <div
+          style={{
+            background: "#ffebee",
+            color: "#c62828",
+            padding: "12px",
+            borderRadius: "6px",
+            marginBottom: "20px",
+            borderLeft: "4px solid #c62828",
+          }}
+        >
+          {error}
+        </div>
+      )}
 
-        {success && (
-          <div
-            style={{
-              background: "#e8f5e9",
-              color: "#2e7d32",
-              padding: "12px",
-              borderRadius: "6px",
-              marginBottom: "20px",
-              borderLeft: "4px solid #4caf50",
-            }}
-          >
-            {success}
-          </div>
-        )}
+      {success && (
+        <div
+          style={{
+            background: "#e8f5e9",
+            color: "#2e7d32",
+            padding: "12px",
+            borderRadius: "6px",
+            marginBottom: "20px",
+            borderLeft: "4px solid #4caf50",
+          }}
+        >
+          {success}
+        </div>
+      )}
 
+      {/* Form Content - Transparent/Full Width */}
+      <div style={{ maxWidth: "800px", width: "100%" }}>
         {/* Title */}
-        <div style={{ marginBottom: "20px" }}>
+        <div style={{ marginBottom: "24px" }}>
           <label
             style={{
               display: "block",
               marginBottom: "8px",
               fontWeight: 500,
               color: "#444",
+              fontSize: "14px",
             }}
           >
             Title
@@ -241,22 +236,25 @@ export default function CreatePaymentLink() {
             onChange={(e) => setTitle(e.target.value)}
             style={{
               width: "100%",
-              padding: "12px",
-              borderRadius: "6px",
+              padding: "14px",
+              borderRadius: "8px",
               border: "1px solid #ddd",
               fontSize: "16px",
+              backgroundColor: "#fff",
+              boxSizing: "border-box",
             }}
           />
         </div>
 
         {/* Description */}
-        <div style={{ marginBottom: "20px" }}>
+        <div style={{ marginBottom: "24px" }}>
           <label
             style={{
               display: "block",
               marginBottom: "8px",
               fontWeight: 500,
               color: "#444",
+              fontSize: "14px",
             }}
           >
             Description (Optional)
@@ -268,23 +266,27 @@ export default function CreatePaymentLink() {
             rows="3"
             style={{
               width: "100%",
-              padding: "12px",
-              borderRadius: "6px",
+              padding: "14px",
+              borderRadius: "8px",
               border: "1px solid #ddd",
               fontSize: "16px",
+              backgroundColor: "#fff",
               resize: "vertical",
+              boxSizing: "border-box",
+              fontFamily: "inherit",
             }}
           />
         </div>
 
         {/* Amount */}
-        <div style={{ marginBottom: "20px" }}>
+        <div style={{ marginBottom: "24px" }}>
           <label
             style={{
               display: "block",
               marginBottom: "8px",
               fontWeight: 500,
               color: "#444",
+              fontSize: "14px",
             }}
           >
             Amount (ETB)
@@ -298,42 +300,52 @@ export default function CreatePaymentLink() {
             step="0.01"
             style={{
               width: "100%",
-              padding: "12px",
-              borderRadius: "6px",
+              padding: "14px",
+              borderRadius: "8px",
               border: "1px solid #ddd",
               fontSize: "16px",
+              backgroundColor: "#fff",
+              boxSizing: "border-box",
             }}
           />
         </div>
 
         {/* Gateway Selection */}
-        <div style={{ marginBottom: "30px" }}>
+        <div style={{ marginBottom: "32px" }}>
           <label
             style={{
               display: "block",
               marginBottom: "12px",
               fontWeight: 500,
               color: "#444",
+              fontSize: "14px",
             }}
           >
             Select Payment Gateway
           </label>
-          <div style={{ display: "flex", gap: "15px" }}>
+          <div style={{ display: "flex", gap: "20px" }}>
             {/* SantimPay */}
             <div
               onClick={() => setGateway("santimpay")}
               style={{
                 flex: 1,
-                padding: "20px",
-                borderRadius: "8px",
-                border: `2px solid ${gateway === "santimpay" ? "#4caf50" : "#ddd"}`,
-                background: gateway === "santimpay" ? "#e8f5e9" : "#f9f9f9",
+                padding: "24px",
+                borderRadius: "10px",
+                border: `2px solid ${gateway === "santimpay" ? "#4caf50" : "#e0e0e0"}`,
+                background: gateway === "santimpay" ? "#f1f8e9" : "#fff",
                 cursor: "pointer",
                 textAlign: "center",
+                transition: "all 0.2s ease",
               }}
             >
-              <div style={{ fontSize: "24px", marginBottom: "10px" }}>🟢</div>
-              <div style={{ fontWeight: 600, marginBottom: "5px" }}>
+              <div style={{ fontSize: "32px", marginBottom: "12px" }}>🟢</div>
+              <div
+                style={{
+                  fontWeight: 600,
+                  marginBottom: "6px",
+                  fontSize: "16px",
+                }}
+              >
                 SantimPay
               </div>
               <div style={{ fontSize: "14px", color: "#666" }}>Type A</div>
@@ -344,30 +356,40 @@ export default function CreatePaymentLink() {
               onClick={() => connectedGateways.chapa && setGateway("chapa")}
               style={{
                 flex: 1,
-                padding: "20px",
-                borderRadius: "8px",
-                border: `2px solid ${gateway === "chapa" ? "#2196f3" : "#ddd"}`,
-                background: gateway === "chapa" ? "#e3f2fd" : "#f9f9f9",
+                padding: "24px",
+                borderRadius: "10px",
+                border: `2px solid ${gateway === "chapa" ? "#2196f3" : "#e0e0e0"}`,
+                background: gateway === "chapa" ? "#e3f2fd" : "#fff",
                 cursor: connectedGateways.chapa ? "pointer" : "not-allowed",
                 textAlign: "center",
-                position: "relative",
+                transition: "all 0.2s ease",
+                opacity: connectedGateways.chapa ? 1 : 0.7,
               }}
             >
-              <div style={{ fontSize: "24px", marginBottom: "10px" }}>🔵</div>
-              <div style={{ fontWeight: 600, marginBottom: "5px" }}>Chapa</div>
+              <div style={{ fontSize: "32px", marginBottom: "12px" }}>🔵</div>
+              <div
+                style={{
+                  fontWeight: 600,
+                  marginBottom: "6px",
+                  fontSize: "16px",
+                }}
+              >
+                Chapa
+              </div>
               <div style={{ fontSize: "14px", color: "#666" }}>Type B Lite</div>
               {!connectedGateways.chapa && (
                 <button
                   onClick={handleConnectChapa}
                   style={{
-                    marginTop: "10px",
-                    padding: "8px",
-                    fontSize: "12px",
+                    marginTop: "12px",
+                    padding: "8px 16px",
+                    fontSize: "13px",
                     borderRadius: "6px",
                     border: "none",
                     backgroundColor: "#2196f3",
                     color: "white",
                     cursor: "pointer",
+                    fontWeight: 500,
                   }}
                 >
                   Connect Chapa First
@@ -383,15 +405,16 @@ export default function CreatePaymentLink() {
           disabled={loading || !amount || !title}
           style={{
             width: "100%",
-            padding: "15px",
+            padding: "16px",
             backgroundColor: loading ? "#6c757d" : "#007bff",
             color: "#fff",
             border: "none",
-            borderRadius: "6px",
+            borderRadius: "8px",
             cursor: loading || !amount || !title ? "not-allowed" : "pointer",
             fontSize: "16px",
             fontWeight: 600,
             opacity: loading || !amount || !title ? 0.7 : 1,
+            transition: "background-color 0.2s ease",
           }}
         >
           {loading
@@ -403,45 +426,55 @@ export default function CreatePaymentLink() {
         {link && (
           <div
             style={{
-              marginTop: "30px",
-              padding: "20px",
-              background: "#f8f9fa",
-              borderRadius: "8px",
-              border: "1px solid #dee2e6",
+              marginTop: "40px",
+              padding: "24px",
+              background: "#fff",
+              borderRadius: "10px",
+              border: "1px solid #e0e0e0",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
             }}
           >
-            <h3 style={{ marginBottom: "15px", color: "#28a745" }}>
+            <h3
+              style={{
+                marginBottom: "16px",
+                color: "#28a745",
+                fontSize: "20px",
+              }}
+            >
               Payment Link Created!
             </h3>
             <div
               style={{
-                background: "white",
-                padding: "15px",
-                borderRadius: "6px",
-                border: "1px solid #ced4da",
-                marginBottom: "15px",
+                background: "#f8f9fa",
+                padding: "16px",
+                borderRadius: "8px",
+                border: "1px solid #dee2e6",
+                marginBottom: "20px",
                 wordBreak: "break-all",
               }}
             >
-              <strong>Your payment link:</strong>
+              <strong style={{ display: "block", marginBottom: "8px" }}>
+                Your payment link:
+              </strong>
               <div
                 style={{
-                  marginTop: "8px",
-                  padding: "10px",
-                  background: "#f8f9fa",
-                  borderRadius: "4px",
+                  padding: "12px",
+                  background: "#fff",
+                  borderRadius: "6px",
                   fontFamily: "monospace",
                   fontSize: "14px",
+                  color: "#333",
+                  border: "1px solid #ddd",
                 }}
               >
                 {link}
               </div>
             </div>
-            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
               <button
                 onClick={copyLink}
                 style={{
-                  padding: "10px 20px",
+                  padding: "12px 24px",
                   backgroundColor: "#28a745",
                   color: "#fff",
                   border: "none",
@@ -450,6 +483,7 @@ export default function CreatePaymentLink() {
                   fontWeight: 500,
                   flex: 1,
                   minWidth: "120px",
+                  fontSize: "14px",
                 }}
               >
                 Copy Link
@@ -457,7 +491,7 @@ export default function CreatePaymentLink() {
               <button
                 onClick={previewLink}
                 style={{
-                  padding: "10px 20px",
+                  padding: "12px 24px",
                   backgroundColor: "#17a2b8",
                   color: "#fff",
                   border: "none",
@@ -466,6 +500,7 @@ export default function CreatePaymentLink() {
                   fontWeight: 500,
                   flex: 1,
                   minWidth: "120px",
+                  fontSize: "14px",
                 }}
               >
                 Open Link
@@ -473,7 +508,7 @@ export default function CreatePaymentLink() {
               <button
                 onClick={shareLink}
                 style={{
-                  padding: "10px 20px",
+                  padding: "12px 24px",
                   backgroundColor: "#007bff",
                   color: "#fff",
                   border: "none",
@@ -482,6 +517,7 @@ export default function CreatePaymentLink() {
                   fontWeight: 500,
                   flex: 1,
                   minWidth: "120px",
+                  fontSize: "14px",
                 }}
               >
                 Share Link
@@ -489,7 +525,7 @@ export default function CreatePaymentLink() {
               <button
                 onClick={() => setLink("")}
                 style={{
-                  padding: "10px 20px",
+                  padding: "12px 24px",
                   backgroundColor: "#6c757d",
                   color: "#fff",
                   border: "none",
@@ -498,6 +534,7 @@ export default function CreatePaymentLink() {
                   fontWeight: 500,
                   flex: 1,
                   minWidth: "120px",
+                  fontSize: "14px",
                 }}
               >
                 Create Another Link
