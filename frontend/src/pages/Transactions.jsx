@@ -1,4 +1,3 @@
-/src\pages\Transactions.jsx
 import { useEffect, useState } from "react";
 import { privateApi as api } from "../api/api";
 
@@ -30,7 +29,7 @@ export default function Transactions() {
         console.error("Failed to fetch transactions:", err);
         setError(
           err.response?.data?.message ||
-            "Failed to load transactions. Please try again."
+            "Failed to load transactions. Please try again.",
         );
       } finally {
         setLoading(false);
