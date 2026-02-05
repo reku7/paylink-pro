@@ -25,7 +25,8 @@ export async function getDashboardSummary(merchantId, { start, end } = {}) {
     ...(start && end ? { createdAt: { $gte: start, $lte: end } } : {}),
   };
 
-  const [txStats, linkStats] = await Promise.all([
+  const [txStats, linkStats, paidLinkAgg] = await Promise.all([
+    // ✅ Transactions stats (KEEP)
     Transaction.aggregate([
       { $match: match },
       {
@@ -37,6 +38,7 @@ export async function getDashboardSummary(merchantId, { start, end } = {}) {
       },
     ]),
 
+    // ✅ Link stats (KEEP)
     PaymentLink.aggregate([
       { $match: { merchantId: merchantObjectId } },
       {
@@ -45,6 +47,12 @@ export async function getDashboardSummary(merchantId, { start, end } = {}) {
           count: { $sum: 1 },
         },
       },
+    ]),
+
+    // 🆕 FIX: paid links based on SUCCESSFUL TRANSACTIONS
+    Transaction.aggregate([
+      { $match: { merchantId: merchantObjectId, status: "success" } },
+      { $group: { _id: "$linkId" } },
     ]),
   ]);
 
@@ -60,9 +68,17 @@ export async function getDashboardSummary(merchantId, { start, end } = {}) {
     paidLinks: 0,
     expiredLinks: 0,
     failedLinks: 0,
+
+    // 🆕 conversion (backend truth)
+    conversionRate: 0,
   };
 
+  /* ---------------- Transactions ---------------- */
+  let totalTx = 0;
+
   for (const row of txStats) {
+    totalTx += row.count;
+
     switch (row._id) {
       case "success":
         summary.successfulCount = row.count;
@@ -80,13 +96,11 @@ export async function getDashboardSummary(merchantId, { start, end } = {}) {
     }
   }
 
+  /* ---------------- Links ---------------- */
   for (const row of linkStats) {
     summary.totalLinks += row.count;
 
     switch (row._id) {
-      case "paid":
-        summary.paidLinks = row.count;
-        break;
       case "pending":
         summary.activeLinks = row.count;
         break;
@@ -98,6 +112,15 @@ export async function getDashboardSummary(merchantId, { start, end } = {}) {
         break;
     }
   }
+
+  /* ---------------- FIXES ---------------- */
+
+  // ✅ Paid Links = links with ≥ 1 successful transaction
+  summary.paidLinks = paidLinkAgg.length;
+
+  // ✅ Conversion = successful tx / total tx
+  summary.conversionRate =
+    totalTx > 0 ? Math.round((summary.successfulCount / totalTx) * 100) : 0;
 
   return summary;
 }
