@@ -9,8 +9,6 @@ export default function PayPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
-  const [countdown, setCountdown] = useState(10);
-  const [paymentMethod, setPaymentMethod] = useState("gateway");
 
   // Determine if user is logged in
   const userIsLoggedIn = !!getAuthToken();
@@ -38,14 +36,6 @@ export default function PayPage() {
     fetchLink();
   }, [linkId]);
 
-  // Auto-redirect countdown
-  useEffect(() => {
-    if (countdown > 0 && !loading && link) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [countdown, loading, link]);
-
   // Handle payment click
   const handlePay = async () => {
     if (!link) return;
@@ -59,12 +49,9 @@ export default function PayPage() {
         res = await privateApi.post(`/payments/${linkId}/start`, {
           amount: link.amount,
           currency: link.currency,
-          paymentMethod,
         });
       } else {
-        res = await publicApi.post(`/payments/public/start/${linkId}`, {
-          paymentMethod,
-        });
+        res = await publicApi.post(`/payments/public/start/${linkId}`, {});
       }
 
       const checkoutUrl =
@@ -274,13 +261,6 @@ export default function PayPage() {
                     </svg>
                     <p style={styles.errorAlertText}>{error}</p>
                   </div>
-                )}
-
-                {/* Auto-redirect notice */}
-                {countdown > 0 && (
-                  <p style={styles.countdownText}>
-                    Redirecting to secure payment in {countdown} seconds...
-                  </p>
                 )}
               </div>
             </div>
@@ -587,49 +567,6 @@ const styles = {
     fontWeight: 600,
     color: "#1f2937",
     marginBottom: "16px",
-  },
-  paymentMethodGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "12px",
-  },
-  paymentMethodButton: {
-    padding: "16px",
-    borderRadius: "12px",
-    border: "2px solid #e5e7eb",
-    backgroundColor: "white",
-    cursor: "pointer",
-    transition: "all 0.2s",
-  },
-  paymentMethodActive: {
-    borderColor: "#3b82f6",
-    backgroundColor: "#eff6ff",
-  },
-  paymentMethodActiveMobile: {
-    borderColor: "#10b981",
-    backgroundColor: "#f0fdf4",
-  },
-  paymentMethodActiveBank: {
-    borderColor: "#8b5cf6",
-    backgroundColor: "#faf5ff",
-  },
-  paymentMethodContent: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-  },
-  paymentMethodIcon: {
-    fontSize: "24px",
-    marginBottom: "8px",
-  },
-  paymentMethodName: {
-    fontWeight: 500,
-    fontSize: "14px",
-    marginBottom: "4px",
-  },
-  paymentMethodHint: {
-    fontSize: "12px",
-    color: "#6b7280",
   },
   paymentButtonSection: {
     marginBottom: "32px",
