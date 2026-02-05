@@ -450,7 +450,7 @@ export default function PayPage() {
               </p>
               <div style={styles.supportOptions}>
                 <a
-                  href="mailto:support@payflow.com"
+                  href="mailto:rekiklegese@gmail.com"
                   style={styles.supportOption}
                 >
                   <div style={styles.supportIconContainer}>
