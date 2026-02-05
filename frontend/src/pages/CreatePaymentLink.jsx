@@ -166,51 +166,26 @@ export default function CreatePaymentLink() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        width: "100%",
-        padding: "40px",
-        backgroundColor: "#f9fafb",
-      }}
-    >
-      {/* Header Section */}
+    <div style={{ padding: "20px" }}>
+      {/* Header Section - Match DashboardHome style */}
       <div style={{ marginBottom: "30px" }}>
-        <h2 style={{ marginBottom: "10px", color: "#333", fontSize: "28px" }}>
-          Create Payment Link
-        </h2>
-        <p style={{ color: "#666", fontSize: "16px" }}>
+        <h1 style={{ marginBottom: "5px" }}>Create Payment Link</h1>
+        <p style={{ color: "#666" }}>
           Create payment links with SantimPay (Type A) or Chapa (Type B Lite)
         </p>
       </div>
 
       {error && (
-        <div
-          style={{
-            background: "#ffebee",
-            color: "#c62828",
-            padding: "12px",
-            borderRadius: "6px",
-            marginBottom: "20px",
-            borderLeft: "4px solid #c62828",
-          }}
-        >
-          {error}
+        <div style={styles.errorBox}>
+          <h3>Error Creating Link</h3>
+          <p>{error}</p>
         </div>
       )}
 
       {success && (
-        <div
-          style={{
-            background: "#e8f5e9",
-            color: "#2e7d32",
-            padding: "12px",
-            borderRadius: "6px",
-            marginBottom: "20px",
-            borderLeft: "4px solid #4caf50",
-          }}
-        >
-          {success}
+        <div style={styles.successBox}>
+          <h3>Success!</h3>
+          <p>{success}</p>
         </div>
       )}
 
@@ -218,79 +193,31 @@ export default function CreatePaymentLink() {
       <div style={{ maxWidth: "800px", width: "100%" }}>
         {/* Title */}
         <div style={{ marginBottom: "24px" }}>
-          <label
-            style={{
-              display: "block",
-              marginBottom: "8px",
-              fontWeight: 500,
-              color: "#444",
-              fontSize: "14px",
-            }}
-          >
-            Title
-          </label>
+          <label style={styles.label}>Title</label>
           <input
             type="text"
             placeholder="Enter Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "14px",
-              borderRadius: "8px",
-              border: "1px solid #ddd",
-              fontSize: "16px",
-              backgroundColor: "#fff",
-              boxSizing: "border-box",
-            }}
+            style={styles.input}
           />
         </div>
 
         {/* Description */}
         <div style={{ marginBottom: "24px" }}>
-          <label
-            style={{
-              display: "block",
-              marginBottom: "8px",
-              fontWeight: 500,
-              color: "#444",
-              fontSize: "14px",
-            }}
-          >
-            Description (Optional)
-          </label>
+          <label style={styles.label}>Description (Optional)</label>
           <textarea
             placeholder="Describe what this payment is for"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows="3"
-            style={{
-              width: "100%",
-              padding: "14px",
-              borderRadius: "8px",
-              border: "1px solid #ddd",
-              fontSize: "16px",
-              backgroundColor: "#fff",
-              resize: "vertical",
-              boxSizing: "border-box",
-              fontFamily: "inherit",
-            }}
+            style={styles.textarea}
           />
         </div>
 
         {/* Amount */}
         <div style={{ marginBottom: "24px" }}>
-          <label
-            style={{
-              display: "block",
-              marginBottom: "8px",
-              fontWeight: 500,
-              color: "#444",
-              fontSize: "14px",
-            }}
-          >
-            Amount (ETB)
-          </label>
+          <label style={styles.label}>Amount (ETB)</label>
           <input
             type="number"
             placeholder="Enter Amount"
@@ -298,99 +225,46 @@ export default function CreatePaymentLink() {
             onChange={(e) => setAmount(e.target.value)}
             min="1"
             step="0.01"
-            style={{
-              width: "100%",
-              padding: "14px",
-              borderRadius: "8px",
-              border: "1px solid #ddd",
-              fontSize: "16px",
-              backgroundColor: "#fff",
-              boxSizing: "border-box",
-            }}
+            style={styles.input}
           />
         </div>
 
         {/* Gateway Selection */}
         <div style={{ marginBottom: "32px" }}>
-          <label
-            style={{
-              display: "block",
-              marginBottom: "12px",
-              fontWeight: 500,
-              color: "#444",
-              fontSize: "14px",
-            }}
-          >
-            Select Payment Gateway
-          </label>
-          <div style={{ display: "flex", gap: "20px" }}>
+          <label style={styles.label}>Select Payment Gateway</label>
+          <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
             {/* SantimPay */}
             <div
               onClick={() => setGateway("santimpay")}
               style={{
-                flex: 1,
-                padding: "24px",
-                borderRadius: "10px",
-                border: `2px solid ${gateway === "santimpay" ? "#4caf50" : "#e0e0e0"}`,
-                background: gateway === "santimpay" ? "#f1f8e9" : "#fff",
-                cursor: "pointer",
-                textAlign: "center",
-                transition: "all 0.2s ease",
+                ...styles.gatewayCard,
+                borderColor: gateway === "santimpay" ? "#4caf50" : "#e0e0e0",
+                background: gateway === "santimpay" ? "#f1f8e9" : "#ffffff",
               }}
             >
               <div style={{ fontSize: "32px", marginBottom: "12px" }}>🟢</div>
-              <div
-                style={{
-                  fontWeight: 600,
-                  marginBottom: "6px",
-                  fontSize: "16px",
-                }}
-              >
-                SantimPay
-              </div>
-              <div style={{ fontSize: "14px", color: "#666" }}>Type A</div>
+              <div style={styles.gatewayName}>SantimPay</div>
+              <div style={styles.gatewayType}>Type A</div>
             </div>
 
             {/* Chapa */}
             <div
               onClick={() => connectedGateways.chapa && setGateway("chapa")}
               style={{
-                flex: 1,
-                padding: "24px",
-                borderRadius: "10px",
-                border: `2px solid ${gateway === "chapa" ? "#2196f3" : "#e0e0e0"}`,
-                background: gateway === "chapa" ? "#e3f2fd" : "#fff",
+                ...styles.gatewayCard,
+                borderColor: gateway === "chapa" ? "#2196f3" : "#e0e0e0",
+                background: gateway === "chapa" ? "#e3f2fd" : "#ffffff",
                 cursor: connectedGateways.chapa ? "pointer" : "not-allowed",
-                textAlign: "center",
-                transition: "all 0.2s ease",
                 opacity: connectedGateways.chapa ? 1 : 0.7,
               }}
             >
               <div style={{ fontSize: "32px", marginBottom: "12px" }}>🔵</div>
-              <div
-                style={{
-                  fontWeight: 600,
-                  marginBottom: "6px",
-                  fontSize: "16px",
-                }}
-              >
-                Chapa
-              </div>
-              <div style={{ fontSize: "14px", color: "#666" }}>Type B Lite</div>
+              <div style={styles.gatewayName}>Chapa</div>
+              <div style={styles.gatewayType}>Type B Lite</div>
               {!connectedGateways.chapa && (
                 <button
                   onClick={handleConnectChapa}
-                  style={{
-                    marginTop: "12px",
-                    padding: "8px 16px",
-                    fontSize: "13px",
-                    borderRadius: "6px",
-                    border: "none",
-                    backgroundColor: "#2196f3",
-                    color: "white",
-                    cursor: "pointer",
-                    fontWeight: 500,
-                  }}
+                  style={styles.connectButton}
                 >
                   Connect Chapa First
                 </button>
@@ -403,19 +277,7 @@ export default function CreatePaymentLink() {
         <button
           onClick={handleCreate}
           disabled={loading || !amount || !title}
-          style={{
-            width: "100%",
-            padding: "16px",
-            backgroundColor: loading ? "#6c757d" : "#007bff",
-            color: "#fff",
-            border: "none",
-            borderRadius: "8px",
-            cursor: loading || !amount || !title ? "not-allowed" : "pointer",
-            fontSize: "16px",
-            fontWeight: 600,
-            opacity: loading || !amount || !title ? 0.7 : 1,
-            transition: "background-color 0.2s ease",
-          }}
+          style={styles.createButton(loading, !amount || !title)}
         >
           {loading
             ? "Creating Payment Link..."
@@ -424,118 +286,33 @@ export default function CreatePaymentLink() {
 
         {/* Created Link */}
         {link && (
-          <div
-            style={{
-              marginTop: "40px",
-              padding: "24px",
-              background: "#fff",
-              borderRadius: "10px",
-              border: "1px solid #e0e0e0",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-            }}
-          >
-            <h3
-              style={{
-                marginBottom: "16px",
-                color: "#28a745",
-                fontSize: "20px",
-              }}
-            >
-              Payment Link Created!
-            </h3>
-            <div
-              style={{
-                background: "#f8f9fa",
-                padding: "16px",
-                borderRadius: "8px",
-                border: "1px solid #dee2e6",
-                marginBottom: "20px",
-                wordBreak: "break-all",
-              }}
-            >
+          <div style={styles.linkContainer}>
+            <h3 style={styles.linkHeader}>Payment Link Created!</h3>
+            <div style={styles.linkBox}>
               <strong style={{ display: "block", marginBottom: "8px" }}>
                 Your payment link:
               </strong>
-              <div
-                style={{
-                  padding: "12px",
-                  background: "#fff",
-                  borderRadius: "6px",
-                  fontFamily: "monospace",
-                  fontSize: "14px",
-                  color: "#333",
-                  border: "1px solid #ddd",
-                }}
-              >
-                {link}
-              </div>
+              <div style={styles.linkText}>{link}</div>
             </div>
-            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-              <button
-                onClick={copyLink}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: "#28a745",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontWeight: 500,
-                  flex: 1,
-                  minWidth: "120px",
-                  fontSize: "14px",
-                }}
-              >
+            <div style={styles.buttonGroup}>
+              <button onClick={copyLink} style={styles.actionButton("#28a745")}>
                 Copy Link
               </button>
               <button
                 onClick={previewLink}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: "#17a2b8",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontWeight: 500,
-                  flex: 1,
-                  minWidth: "120px",
-                  fontSize: "14px",
-                }}
+                style={styles.actionButton("#17a2b8")}
               >
                 Open Link
               </button>
               <button
                 onClick={shareLink}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: "#007bff",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontWeight: 500,
-                  flex: 1,
-                  minWidth: "120px",
-                  fontSize: "14px",
-                }}
+                style={styles.actionButton("#007bff")}
               >
                 Share Link
               </button>
               <button
                 onClick={() => setLink("")}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: "#6c757d",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  fontWeight: 500,
-                  flex: 1,
-                  minWidth: "120px",
-                  fontSize: "14px",
-                }}
+                style={styles.actionButton("#6c757d")}
               >
                 Create Another Link
               </button>
@@ -546,3 +323,145 @@ export default function CreatePaymentLink() {
     </div>
   );
 }
+
+/* ---------- Styles ---------- */
+const styles = {
+  errorBox: {
+    padding: "20px",
+    background: "#fee2e2",
+    borderRadius: "8px",
+    color: "#c62828",
+    marginBottom: "20px",
+    borderLeft: "4px solid #c62828",
+  },
+  successBox: {
+    padding: "20px",
+    background: "#e8f5e9",
+    borderRadius: "8px",
+    color: "#2e7d32",
+    marginBottom: "20px",
+    borderLeft: "4px solid #4caf50",
+  },
+  label: {
+    display: "block",
+    marginBottom: "8px",
+    fontWeight: 500,
+    color: "#444",
+    fontSize: "14px",
+  },
+  input: {
+    width: "100%",
+    padding: "14px",
+    borderRadius: "8px",
+    border: "1px solid #ddd",
+    fontSize: "16px",
+    backgroundColor: "#fff",
+    boxSizing: "border-box",
+  },
+  textarea: {
+    width: "100%",
+    padding: "14px",
+    borderRadius: "8px",
+    border: "1px solid #ddd",
+    fontSize: "16px",
+    backgroundColor: "#fff",
+    resize: "vertical",
+    boxSizing: "border-box",
+    fontFamily: "inherit",
+  },
+  gatewayCard: {
+    flex: 1,
+    minWidth: "250px",
+    padding: "24px",
+    borderRadius: "12px",
+    border: "2px solid #e0e0e0",
+    cursor: "pointer",
+    textAlign: "center",
+    transition: "all 0.2s ease",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+  },
+  gatewayName: {
+    fontWeight: 600,
+    marginBottom: "6px",
+    fontSize: "16px",
+  },
+  gatewayType: {
+    fontSize: "14px",
+    color: "#666",
+  },
+  connectButton: {
+    marginTop: "12px",
+    padding: "8px 16px",
+    fontSize: "13px",
+    borderRadius: "6px",
+    border: "none",
+    backgroundColor: "#2196f3",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: 500,
+  },
+  createButton: (loading, disabled) => ({
+    width: "100%",
+    padding: "16px",
+    backgroundColor: loading ? "#6c757d" : "#0d6efd",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    cursor: disabled ? "not-allowed" : "pointer",
+    fontSize: "16px",
+    fontWeight: 600,
+    opacity: disabled ? 0.7 : 1,
+    transition: "background-color 0.2s ease",
+  }),
+  linkContainer: {
+    marginTop: "40px",
+    padding: "24px",
+    background: "#fff",
+    borderRadius: "12px",
+    border: "1px solid #e0e0e0",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+  },
+  linkHeader: {
+    marginBottom: "16px",
+    color: "#28a745",
+    fontSize: "20px",
+  },
+  linkBox: {
+    background: "#f8f9fa",
+    padding: "16px",
+    borderRadius: "8px",
+    border: "1px solid #dee2e6",
+    marginBottom: "20px",
+  },
+  linkText: {
+    padding: "12px",
+    background: "#fff",
+    borderRadius: "6px",
+    fontFamily: "monospace",
+    fontSize: "14px",
+    color: "#333",
+    border: "1px solid #ddd",
+    wordBreak: "break-all",
+  },
+  buttonGroup: {
+    display: "flex",
+    gap: "12px",
+    flexWrap: "wrap",
+  },
+  actionButton: (color) => ({
+    padding: "12px 24px",
+    backgroundColor: color,
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: 500,
+    flex: 1,
+    minWidth: "120px",
+    fontSize: "14px",
+    transition: "opacity 0.2s ease",
+    "&:hover": {
+      opacity: 0.9,
+    },
+  }),
+};
