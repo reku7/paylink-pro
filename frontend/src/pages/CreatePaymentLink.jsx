@@ -166,7 +166,7 @@ export default function CreatePaymentLink() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="mobile-padding" style={{ padding: "20px" }}>
       {/* Header Section - Match DashboardHome style */}
       <div style={{ marginBottom: "30px" }}>
         <h1 style={{ marginBottom: "5px" }}>Create Payment Link</h1>
@@ -232,7 +232,10 @@ export default function CreatePaymentLink() {
         {/* Gateway Selection */}
         <div style={{ marginBottom: "32px" }}>
           <label style={styles.label}>Select Payment Gateway</label>
-          <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+          <div
+            className="mobile-stack"
+            style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}
+          >
             {/* SantimPay */}
             <div
               onClick={() => setGateway("santimpay")}
@@ -294,25 +297,35 @@ export default function CreatePaymentLink() {
               </strong>
               <div style={styles.linkText}>{link}</div>
             </div>
-            <div style={styles.buttonGroup}>
-              <button onClick={copyLink} style={styles.actionButton("#28a745")}>
+            <div
+              className="mobile-stack"
+              style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}
+            >
+              <button
+                className="action-button"
+                style={{ backgroundColor: "#28a745" }}
+                onClick={copyLink}
+              >
                 Copy Link
               </button>
               <button
+                className="action-button"
+                style={{ backgroundColor: "#17a2b8" }}
                 onClick={previewLink}
-                style={styles.actionButton("#17a2b8")}
               >
                 Open Link
               </button>
               <button
+                className="action-button"
+                style={{ backgroundColor: "#007bff" }}
                 onClick={shareLink}
-                style={styles.actionButton("#007bff")}
               >
                 Share Link
               </button>
               <button
+                className="action-button"
+                style={{ backgroundColor: "#6c757d" }}
                 onClick={() => setLink("")}
-                style={styles.actionButton("#6c757d")}
               >
                 Create Another Link
               </button>

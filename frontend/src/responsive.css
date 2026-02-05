@@ -12,3 +12,19 @@
     overflow-x: auto;
   }
 }
+
+.action-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  flex: 1;
+  min-width: 120px;
+  font-size: 14px;
+  transition: opacity 0.2s ease;
+}
+
+.action-button:hover {
+  opacity: 0.9;
+}

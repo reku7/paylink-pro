@@ -107,7 +107,7 @@ export default function AdminDashboard() {
   const totalPages = Math.ceil(filteredMerchants.length / itemsPerPage);
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="mobile-padding">
       <header style={styles.header}>
         <div style={styles.headerContent}>
           <div>
@@ -129,7 +129,7 @@ export default function AdminDashboard() {
 
       {!loading && !error && (
         <section style={styles.card}>
-          <div style={styles.controls}>
+          <div style={styles.controls} className="mobile-stack">
             <input
               type="text"
               placeholder="Search by name or email..."
@@ -170,7 +170,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div style={styles.summary}>
+          <div style={styles.summary} className="mobile-stack">
             <div style={styles.summaryItem}>
               <span>Total Merchants:</span>
               <strong>{merchants.length}</strong>
@@ -206,48 +206,50 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <>
-              <table style={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentMerchants.map((m) => (
-                    <tr key={m._id} style={styles.tableRow}>
-                      <td style={styles.tableCell}>{m.name}</td>
-                      <td style={styles.tableCell}>
-                        {m.ownerUserId?.email || "—"}
-                      </td>
-                      <td style={styles.tableCell}>
-                        <span
-                          style={{
-                            ...styles.statusBadge,
-                            ...(m.status === "active"
-                              ? styles.activeBadge
-                              : styles.inactiveBadge),
-                          }}
-                        >
-                          {m.status === "active" ? "Active" : "Inactive"}
-                        </span>
-                      </td>
-                      <td style={styles.tableCell}>
-                        <button
-                          style={styles.manageButton}
-                          onClick={() =>
-                            navigate(`/admin/merchants?merchantId=${m._id}`)
-                          }
-                        >
-                          Manage
-                        </button>
-                      </td>
+              <div className="table-scroll">
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Status</th>
+                      <th>Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {currentMerchants.map((m) => (
+                      <tr key={m._id} style={styles.tableRow}>
+                        <td style={styles.tableCell}>{m.name}</td>
+                        <td style={styles.tableCell}>
+                          {m.ownerUserId?.email || "—"}
+                        </td>
+                        <td style={styles.tableCell}>
+                          <span
+                            style={{
+                              ...styles.statusBadge,
+                              ...(m.status === "active"
+                                ? styles.activeBadge
+                                : styles.inactiveBadge),
+                            }}
+                          >
+                            {m.status === "active" ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                        <td style={styles.tableCell}>
+                          <button
+                            style={styles.manageButton}
+                            onClick={() =>
+                              navigate(`/admin/merchants?merchantId=${m._id}`)
+                            }
+                          >
+                            Manage
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
               {totalPages > 1 && (
                 <div style={styles.pagination}>

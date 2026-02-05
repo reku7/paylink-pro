@@ -298,7 +298,7 @@ export default function AdminMerchants() {
   if (!merchant) return null;
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} className="mobile-padding">
       <h1 style={styles.title}>{merchant.name}</h1>
 
       {error && <div style={styles.error}>{error}</div>}
@@ -485,7 +485,8 @@ export default function AdminMerchants() {
           </div>
 
           {/* Filters */}
-          <div style={styles.filterContainer}>
+          <div style={styles.filterContainer} className="mobile-stack">
+            s{" "}
             <select
               value={transactionFilter.status}
               onChange={(e) => {
@@ -500,7 +501,6 @@ export default function AdminMerchants() {
               <option value="pending">Pending</option>
               <option value="failed">Failed</option>
             </select>
-
             <select
               value={transactionFilter.gateway}
               onChange={(e) => {
@@ -517,7 +517,6 @@ export default function AdminMerchants() {
               <option value="santimpay">SantimPay</option>
               <option value="chapa">Chapa</option>
             </select>
-
             <input
               type="date"
               value={transactionFilter.dateFrom}
@@ -531,7 +530,6 @@ export default function AdminMerchants() {
               style={styles.filterDate}
               disabled={updating}
             />
-
             <input
               type="date"
               value={transactionFilter.dateTo}
@@ -542,7 +540,6 @@ export default function AdminMerchants() {
               style={styles.filterDate}
               disabled={updating}
             />
-
             <button
               onClick={() => {
                 setTransactionFilter({
@@ -569,7 +566,7 @@ export default function AdminMerchants() {
             </div>
           ) : (
             <>
-              <div style={{ overflowX: "auto" }}>
+              <div className="table-scroll">
                 <table style={styles.table}>
                   <thead>
                     <tr>

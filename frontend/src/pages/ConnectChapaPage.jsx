@@ -44,7 +44,10 @@ export default function ConnectChapaPage() {
   };
 
   return (
-    <div style={{ padding: 20, maxWidth: 500, margin: "0 auto" }}>
+    <div
+      className="mobile-padding"
+      style={{ padding: 20, maxWidth: 500, margin: "0 auto" }}
+    >
       <div
         style={{
           background: "white",
