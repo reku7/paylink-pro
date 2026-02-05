@@ -165,52 +165,27 @@ export default function PayPage() {
 
   return (
     <div style={styles.container}>
-      {/* Header */}
-      <header style={styles.header}>
-        <div style={styles.headerContent}>
-          <div style={styles.logoContainer}>
-            <div style={styles.logo}>
-              <span style={styles.logoText}>P</span>
-            </div>
-            <span style={styles.logoName}>PayFlow</span>
-          </div>
-          <div style={styles.headerFeatures}>
-            <div style={styles.featureItem}>
-              <svg
-                style={styles.featureIcon}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                />
-              </svg>
-              <span>Secure Payment</span>
-            </div>
-            <div style={styles.featureItem}>
-              <svg
-                style={styles.featureIcon}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span>Instant Processing</span>
-            </div>
+      {/* Brand Section - Same as Login Page */}
+      <div style={styles.brandSection}>
+        <div style={styles.brandContainer}>
+          <div>
+            <h1 style={styles.brand}>PayFlow</h1>
+            <p style={styles.tagline}>
+              Accept payments securely with Chapa & SantimPay
+            </p>
+            <ul style={styles.features}>
+              <li>✓ Built for Ethiopian merchants</li>
+              <li>✓ Secure & compliant payments</li>
+              <li>✓ Instant payment processing</li>
+            </ul>
+            <p style={styles.trust}>
+              Trusted payment infrastructure for modern businesses
+            </p>
           </div>
         </div>
-      </header>
+      </div>
 
+      {/* Main Content */}
       <div style={styles.mainContent}>
         <div style={styles.grid}>
           {/* Left Column - Payment Details */}
@@ -615,75 +590,68 @@ const styles = {
     transition: "background-color 0.2s",
   },
 
-  // Main container
+  // Container
   container: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%)",
+    display: "flex",
+    flexDirection: "column",
   },
 
-  // Header
-  header: {
-    padding: "24px 16px",
-  },
-  headerContent: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  logoContainer: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-  },
-  logo: {
-    width: "32px",
-    height: "32px",
-    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-    borderRadius: "8px",
+  // Brand Section (Same as Login page)
+  brandSection: {
+    background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
+    color: "#ecfdf5",
+    padding: "60px 64px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
   },
-  logoText: {
-    color: "white",
-    fontWeight: "bold",
+  brandContainer: {
+    maxWidth: "800px",
+    width: "100%",
+    textAlign: "center",
   },
-  logoName: {
-    fontSize: "20px",
-    fontWeight: "bold",
-    color: "#1f2937",
+  brand: {
+    fontSize: "40px",
+    fontWeight: 800,
+    marginBottom: "12px",
+    color: "#ffffff",
   },
-  headerFeatures: {
-    display: "flex",
-    alignItems: "center",
-    gap: "16px",
+  tagline: {
+    fontSize: "18px",
+    marginBottom: "32px",
+    color: "#a7f3d0",
+  },
+  features: {
+    listStyle: "none",
+    padding: 0,
+    marginBottom: "32px",
+    lineHeight: 1.9,
+    fontSize: "16px",
+    color: "#d1fae5",
+  },
+  trust: {
     fontSize: "14px",
-    color: "#6b7280",
-  },
-  featureItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: "4px",
-  },
-  featureIcon: {
-    width: "16px",
-    height: "16px",
+    color: "#99f6e4",
+    fontStyle: "italic",
   },
 
   // Main content
   mainContent: {
-    padding: "0 16px 32px",
+    flex: 1,
+    padding: "40px 64px",
+    background: "linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%)",
   },
   grid: {
     display: "grid",
-    gridTemplateColumns: "1fr",
-    gap: "32px",
+    gridTemplateColumns: "2fr 1fr",
+    gap: "40px",
+    maxWidth: "1200px",
+    margin: "0 auto",
   },
 
   // Left column
-  leftColumn: {
-    gridColumn: "span 2",
-  },
+  leftColumn: {},
   paymentCard: {
     backgroundColor: "white",
     borderRadius: "16px",
@@ -1041,24 +1009,26 @@ const styles = {
 
   // Footer
   footer: {
-    padding: "32px 16px",
+    padding: "32px 64px",
     borderTop: "1px solid #e5e7eb",
+    background: "white",
   },
   footerContent: {
     display: "flex",
-    flexDirection: "column",
+    justifyContent: "space-between",
     alignItems: "center",
-    textAlign: "center",
+    maxWidth: "1200px",
+    margin: "0 auto",
   },
   footerLeft: {
-    marginBottom: "16px",
+    display: "flex",
+    alignItems: "center",
+    gap: "16px",
   },
   footerLogoContainer: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
     gap: "8px",
-    marginBottom: "8px",
   },
   footerLogo: {
     width: "24px",
@@ -1116,30 +1086,29 @@ const styleTag = `
     .grid {
       grid-template-columns: 2fr 1fr;
     }
-    .footer-content {
-      flex-direction: row;
-      justify-content: space-between;
-      text-align: left;
-    }
-    .footer-left {
-      margin-bottom: 0;
-    }
   }
   
   @media (max-width: 768px) {
     .payment-method-grid {
       grid-template-columns: 1fr;
     }
-    .header-content {
-      flex-direction: column;
-      gap: 16px;
-    }
-    .header-features {
-      flex-direction: column;
-      gap: 8px;
-    }
     .amount {
       font-size: 36px;
+    }
+    .brand-section {
+      padding: 40px 32px;
+    }
+    .main-content {
+      padding: 24px 32px;
+    }
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .footer-content {
+      flex-direction: column;
+      text-align: center;
+      gap: 16px;
     }
   }
 `;
