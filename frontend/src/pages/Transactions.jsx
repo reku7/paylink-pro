@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { privateApi as api } from "../api/api";
+import "./Transactions.css"; // Add this import
 
 export default function Transactions() {
   const [txs, setTxs] = useState([]);
@@ -22,7 +23,7 @@ export default function Transactions() {
         const res = await api.get("/dashboard/transactions", {
           params: {
             page: 1,
-            limit: 100, // Fetch more for client-side filtering
+            limit: 100,
           },
         });
 
@@ -47,7 +48,6 @@ export default function Transactions() {
   const filteredTransactions = useMemo(() => {
     let filtered = [...txs];
 
-    // Search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (tx) =>
@@ -56,17 +56,14 @@ export default function Transactions() {
       );
     }
 
-    // Status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter((tx) => tx.status === statusFilter);
     }
 
-    // Gateway filter
     if (gatewayFilter !== "all") {
       filtered = filtered.filter((tx) => tx.gateway === gatewayFilter);
     }
 
-    // Sorting
     filtered.sort((a, b) => {
       const aDate = new Date(a.createdAt || a.paidAt || 0);
       const bDate = new Date(b.createdAt || b.paidAt || 0);
@@ -169,21 +166,21 @@ export default function Transactions() {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="transactions-container">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+      <div className="transactions-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="transactions-title">Transactions</h1>
+          <p className="transactions-subtitle">
             Monitor and manage your payment transactions
           </p>
         </div>
         <button
           onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          className="refresh-button"
         >
           <svg
-            className="w-4 h-4"
+            className="refresh-icon"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -200,18 +197,16 @@ export default function Transactions() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-card-header">
             <div>
-              <p className="text-sm text-gray-600">Total Volume</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {formatCurrency(stats.totalAmount)}
-              </p>
+              <p className="stat-label">Total Volume</p>
+              <p className="stat-value">{formatCurrency(stats.totalAmount)}</p>
             </div>
-            <div className="p-3 bg-blue-50 rounded-lg">
+            <div className="stat-icon-container">
               <svg
-                className="w-6 h-6 text-blue-600"
+                className="stat-icon"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -225,22 +220,20 @@ export default function Transactions() {
               </svg>
             </div>
           </div>
-          <div className="mt-3 text-sm text-gray-600">
-            {stats.totalCount} transactions
-          </div>
+          <div className="stat-subtext">{stats.totalCount} transactions</div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
+        <div className="stat-card">
+          <div className="stat-card-header">
             <div>
-              <p className="text-sm text-gray-600">Successful</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className="stat-label">Successful</p>
+              <p className="stat-value">
                 {formatCurrency(stats.successAmount)}
               </p>
             </div>
-            <div className="p-3 bg-green-50 rounded-lg">
+            <div className="stat-icon-container">
               <svg
-                className="w-6 h-6 text-green-600"
+                className="success-stat-icon"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -254,124 +247,116 @@ export default function Transactions() {
               </svg>
             </div>
           </div>
-          <div className="mt-3 text-sm text-gray-600">
+          <div className="stat-subtext">
             {stats.successCount} transactions ({stats.successRate}% success
             rate)
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
+        <div className="stat-card">
+          <div className="stat-card-header">
             <div>
-              <p className="text-sm text-gray-600">SantimPay</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {stats.santimpayCount}
-              </p>
+              <p className="stat-label">SantimPay</p>
+              <p className="stat-value">{stats.santimpayCount}</p>
             </div>
-            <div className="p-3 bg-emerald-50 rounded-lg">
+            <div className="stat-icon-container">
               <span className="text-xl">🟢</span>
             </div>
           </div>
-          <div className="mt-3 text-sm text-gray-600">Type A transactions</div>
+          <div className="stat-subtext">Type A transactions</div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
+        <div className="stat-card">
+          <div className="stat-card-header">
             <div>
-              <p className="text-sm text-gray-600">Chapa</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {stats.chapaCount}
-              </p>
+              <p className="stat-label">Chapa</p>
+              <p className="stat-value">{stats.chapaCount}</p>
             </div>
-            <div className="p-3 bg-blue-50 rounded-lg">
+            <div className="stat-icon-container">
               <span className="text-xl">🔵</span>
             </div>
           </div>
-          <div className="mt-3 text-sm text-gray-600">
-            Type B Lite transactions
-          </div>
+          <div className="stat-subtext">Type B Lite transactions</div>
         </div>
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search transactions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      <div className="filters-container">
+        <div className="search-container">
+          <div className="search-input-wrapper">
+            <input
+              type="text"
+              placeholder="Search transactions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+            <svg
+              className="search-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
-              <svg
-                className="absolute left-3 top-2.5 w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </div>
+            </svg>
           </div>
+        </div>
 
-          <div className="flex flex-wrap gap-2">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Status</option>
-              <option value="success">Success</option>
-              <option value="failed">Failed</option>
-              <option value="processing">Processing</option>
-              <option value="initialized">Initialized</option>
-            </select>
+        <div className="filters-row">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">All Status</option>
+            <option value="success">Success</option>
+            <option value="failed">Failed</option>
+            <option value="processing">Processing</option>
+            <option value="initialized">Initialized</option>
+          </select>
 
-            <select
-              value={gatewayFilter}
-              onChange={(e) => setGatewayFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Gateways</option>
-              <option value="santimpay">SantimPay</option>
-              <option value="chapa">Chapa</option>
-            </select>
+          <select
+            value={gatewayFilter}
+            onChange={(e) => setGatewayFilter(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">All Gateways</option>
+            <option value="santimpay">SantimPay</option>
+            <option value="chapa">Chapa</option>
+          </select>
 
-            <button
-              onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("all");
-                setGatewayFilter("all");
-              }}
-              className="px-4 py-2 text-gray-600 hover:text-gray-900"
-            >
-              Clear Filters
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              setSearchTerm("");
+              setStatusFilter("all");
+              setGatewayFilter("all");
+            }}
+            className="clear-filters-button"
+          >
+            Clear Filters
+          </button>
         </div>
       </div>
 
       {/* Loading State */}
       {loading && (
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-          <p className="text-gray-600">Loading transactions...</p>
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p className="loading-text">Loading transactions...</p>
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-          <div className="flex items-center">
+        <div className="error-container">
+          <div className="error-content">
             <svg
-              className="w-5 h-5 text-red-500 mr-2"
+              className="error-icon"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -383,26 +368,26 @@ export default function Transactions() {
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <p className="text-red-700">{error}</p>
+            <p className="error-message">{error}</p>
           </div>
         </div>
       )}
 
       {/* Transactions Table */}
       {!loading && !error && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
+        <div className="table-container">
+          <div className="table-wrapper">
+            <table className="transactions-table">
+              <thead className="table-header">
                 <tr>
                   <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Reference
                   </th>
                   <th
-                    className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    className="sortable-header"
                     onClick={() => handleSort("amount")}
                   >
-                    <div className="flex items-center gap-1">
+                    <div className="sort-header-content">
                       Amount
                       {sortBy === "amount" && (
                         <span>{sortOrder === "asc" ? "↑" : "↓"}</span>
@@ -410,34 +395,28 @@ export default function Transactions() {
                     </div>
                   </th>
                   <th
-                    className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    className="sortable-header"
                     onClick={() => handleSort("date")}
                   >
-                    <div className="flex items-center gap-1">
+                    <div className="sort-header-content">
                       Date & Time
                       {sortBy === "date" && (
                         <span>{sortOrder === "asc" ? "↑" : "↓"}</span>
                       )}
                     </div>
                   </th>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Gateway
-                  </th>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <th>Status</th>
+                  <th>Gateway</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="table-body">
                 {paginatedTransactions.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="py-12 px-6 text-center">
+                    <td colSpan="6" className="empty-state">
                       <div className="flex flex-col items-center">
                         <svg
-                          className="w-16 h-16 text-gray-300 mb-4"
+                          className="empty-icon"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -449,10 +428,8 @@ export default function Transactions() {
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                           />
                         </svg>
-                        <p className="text-gray-500 text-lg mb-2">
-                          No transactions found
-                        </p>
-                        <p className="text-gray-400 mb-4">
+                        <p className="empty-title">No transactions found</p>
+                        <p className="empty-subtitle">
                           {searchTerm ||
                           statusFilter !== "all" ||
                           gatewayFilter !== "all"
@@ -478,60 +455,59 @@ export default function Transactions() {
                     const gatewayConfig = getGatewayConfig(tx.gateway);
 
                     return (
-                      <tr
-                        key={tx._id || tx.internalRef}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="py-4 px-6">
+                      <tr key={tx._id || tx.internalRef}>
+                        <td className="reference-cell">
                           <div className="flex flex-col">
-                            <code className="font-mono text-sm text-gray-900">
-                              {tx.internalRef?.slice(0, 20)}...
-                            </code>
-                            <span className="text-xs text-gray-500 mt-1">
+                            <code>{tx.internalRef?.slice(0, 20)}...</code>
+                            <span className="reference-hint">
                               Click to copy
                             </span>
                           </div>
                         </td>
-                        <td className="py-4 px-6">
-                          <span className="font-semibold text-gray-900">
-                            {formatCurrency(
-                              tx.amount || 0,
-                              tx.currency || "ETB",
-                            )}
-                          </span>
+                        <td className="amount-cell">
+                          {formatCurrency(tx.amount || 0, tx.currency || "ETB")}
                         </td>
-                        <td className="py-4 px-6">
-                          <div className="text-sm text-gray-900">
-                            {formatDate(tx.createdAt || tx.paidAt)}
-                          </div>
+                        <td className="date-cell">
+                          {formatDate(tx.createdAt || tx.paidAt)}
                         </td>
-                        <td className="py-4 px-6">
+                        <td>
                           <div
-                            className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
-                            style={{
-                              backgroundColor: statusConfig.bgColor,
-                              color: statusConfig.color,
-                            }}
+                            className={`status-badge ${
+                              tx.status === "success"
+                                ? "status-success"
+                                : tx.status === "failed"
+                                  ? "status-failed"
+                                  : tx.status === "processing"
+                                    ? "status-processing"
+                                    : tx.status === "initialized"
+                                      ? "status-initialized"
+                                      : "status-default"
+                            }`}
                           >
-                            <span className="mr-1.5">{statusConfig.icon}</span>
+                            <span className="status-icon">
+                              {statusConfig.icon}
+                            </span>
                             {tx.status}
                           </div>
                         </td>
-                        <td className="py-4 px-6">
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">
-                              {gatewayConfig.icon}
-                            </span>
-                            <span
-                              className="font-medium"
-                              style={{ color: gatewayConfig.color }}
-                            >
-                              {gatewayConfig.name}
-                            </span>
-                          </div>
+                        <td className="gateway-cell">
+                          <span className="gateway-icon">
+                            {gatewayConfig.icon}
+                          </span>
+                          <span
+                            className={`gateway-name ${
+                              tx.gateway === "santimpay"
+                                ? "gateway-santimpay"
+                                : tx.gateway === "chapa"
+                                  ? "gateway-chapa"
+                                  : "gateway-default"
+                            }`}
+                          >
+                            {gatewayConfig.name}
+                          </span>
                         </td>
-                        <td className="py-4 px-6">
-                          <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        <td>
+                          <button className="view-details-button">
                             View Details
                           </button>
                         </td>
@@ -545,8 +521,8 @@ export default function Transactions() {
 
           {/* Pagination */}
           {paginatedTransactions.length > 0 && (
-            <div className="px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
-              <div className="text-sm text-gray-700">
+            <div className="pagination-container">
+              <div className="pagination-info">
                 Showing{" "}
                 <span className="font-medium">
                   {(currentPage - 1) * itemsPerPage + 1}
@@ -565,26 +541,24 @@ export default function Transactions() {
                 results
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="pagination-controls">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="pagination-button"
                 >
                   Previous
                 </button>
 
-                <div className="flex items-center gap-1">
+                <div className="page-numbers">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     const pageNum = i + 1;
                     return (
                       <button
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
-                        className={`w-8 h-8 rounded-lg ${
-                          currentPage === pageNum
-                            ? "bg-blue-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                        className={`page-button ${
+                          currentPage === pageNum ? "active" : ""
                         }`}
                       >
                         {pageNum}
@@ -593,13 +567,11 @@ export default function Transactions() {
                   })}
                   {totalPages > 5 && (
                     <>
-                      <span className="px-2">...</span>
+                      <span className="page-ellipsis">...</span>
                       <button
                         onClick={() => setCurrentPage(totalPages)}
-                        className={`w-8 h-8 rounded-lg ${
-                          currentPage === totalPages
-                            ? "bg-blue-600 text-white"
-                            : "text-gray-700 hover:bg-gray-100"
+                        className={`page-button ${
+                          currentPage === totalPages ? "active" : ""
                         }`}
                       >
                         {totalPages}
@@ -613,7 +585,7 @@ export default function Transactions() {
                     setCurrentPage((p) => Math.min(totalPages, p + 1))
                   }
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  className="pagination-button"
                 >
                   Next
                 </button>
