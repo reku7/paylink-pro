@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { privateApi as api } from "../api/api";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useGateways } from "../context/GatewayContext";
+import "./responsive.css";
 
 export default function CreatePaymentLink() {
   const [amount, setAmount] = useState("");
