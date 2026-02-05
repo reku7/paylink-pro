@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import AdminRoute from "./routes/AdminRoute.jsx";
+import AdminRoute from "./routes/AdminRoute.jsx"; // Add this import
 
 // Pages
 import Home from "./pages/Home.jsx";
@@ -20,61 +20,59 @@ import PublicCancel from "./pages/PublicCancel.jsx";
 import ConnectChapaPage from "./pages/ConnectChapaPage.jsx";
 import PaymentGatewaysPage from "./pages/PaymentGatewaysPage.jsx";
 import Profile from "./pages/profile/Profile.jsx";
-import Layout from "./components/Layout.js";
 
-// Admin Pages
+// Admin Pages - Add these imports
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminMerchants from "./pages/admin/AdminMerchants.jsx";
 
-// Contexts
+// CONTEXTS
 import { GatewayProvider } from "./context/GatewayContext.jsx";
 import { UserProvider } from "./context/userContext.jsx";
 
 export default function App() {
   return (
-    <Layout>
-      <Routes>
-        {/* ===== PUBLIC ROUTES ===== */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/pay/:linkId" element={<PayPage />} />
+    <Routes>
+      {/* ===== PUBLIC ROUTES ===== */}
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/pay/:linkId" element={<PayPage />} />
 
-        <Route path="/public-success" element={<PublicSuccess />} />
-        <Route path="/public-failed" element={<PublicFailed />} />
-        <Route path="/public-cancel" element={<PublicCancel />} />
+      <Route path="/public-success" element={<PublicSuccess />} />
+      <Route path="/public-failed" element={<PublicFailed />} />
+      <Route path="/public-cancel" element={<PublicCancel />} />
 
-        <Route path="/success" element={<Success />} />
-        <Route path="/failed" element={<Failed />} />
-        <Route path="/cancel" element={<Cancel />} />
+      <Route path="/success" element={<Success />} />
+      <Route path="/failed" element={<Failed />} />
+      <Route path="/cancel" element={<Cancel />} />
 
-        {/* ===== PROTECTED DASHBOARD ===== */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <UserProvider>
-                <GatewayProvider>
-                  <Dashboard />
-                </GatewayProvider>
-              </UserProvider>
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<DashboardHome />} />
-          <Route path="transactions" element={<TransactionsPage />} />
-          <Route path="create-link" element={<CreateLinkPage />} />
-          <Route path="settings/payments" element={<PaymentGatewaysPage />} />
-          <Route path="connect-chapa" element={<ConnectChapaPage />} />
-          <Route path="profile" element={<Profile />} />
-        </Route>
+      {/* ===== PROTECTED DASHBOARD ===== */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <UserProvider>
+              <GatewayProvider>
+                <Dashboard />
+              </GatewayProvider>
+            </UserProvider>
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<DashboardHome />} />
+        <Route path="transactions" element={<TransactionsPage />} />
+        <Route path="create-link" element={<CreateLinkPage />} />
+        <Route path="settings/payments" element={<PaymentGatewaysPage />} />
+        <Route path="connect-chapa" element={<ConnectChapaPage />} />
+        <Route path="profile" element={<Profile />} />
+      </Route>
 
-        {/* ===== ADMIN ROUTES ===== */}
-        <Route element={<AdminRoute />}>
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/merchants" element={<AdminMerchants />} />
-        </Route>
-      </Routes>
-    </Layout>
+      {/* ===== ADMIN ROUTES ===== */}
+      {/* ===== ADMIN ROUTES ===== */}
+      <Route element={<AdminRoute />}>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/merchants" element={<AdminMerchants />} />
+      </Route>
+    </Routes>
   );
 }

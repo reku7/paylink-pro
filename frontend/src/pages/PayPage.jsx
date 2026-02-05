@@ -341,30 +341,6 @@ export default function PayPage() {
                   </p>
                 )}
               </div>
-
-              {/* Security Badges */}
-              <div style={styles.securitySection}>
-                <div style={styles.securityBadges}>
-                  <div style={styles.securityBadge}>
-                    <div style={styles.securityIconContainer}>
-                      <span style={styles.securityIcon}>🔒</span>
-                    </div>
-                    <span style={styles.securityText}>SSL Secured</span>
-                  </div>
-                  <div style={styles.securityBadge}>
-                    <div style={styles.securityIconContainer}>
-                      <span style={styles.securityIcon}>✓</span>
-                    </div>
-                    <span style={styles.securityText}>PCI Compliant</span>
-                  </div>
-                  <div style={styles.securityBadge}>
-                    <div style={styles.securityIconContainer}>
-                      <span style={styles.securityIcon}>🛡️</span>
-                    </div>
-                    <span style={styles.securityText}>3D Secure</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -397,21 +373,41 @@ export default function PayPage() {
             <div style={styles.detailsCard}>
               <h3 style={styles.detailsTitle}>Payment Details</h3>
               <div style={styles.detailsContent}>
+                {/* Payment ID */}
                 <div>
                   <span style={styles.detailsLabel}>Payment ID</span>
                   <div style={styles.paymentId}>
                     <code>{linkId}</code>
                   </div>
                 </div>
-                <div>
-                  <span style={styles.detailsLabel}>Created</span>
-                  <p style={styles.detailsText}>{formatDate(link.createdAt)}</p>
-                </div>
+
+                {/* Created Date */}
+                {link.createdAt && (
+                  <div>
+                    <span style={styles.detailsLabel}>Created</span>
+                    <p style={styles.detailsText}>
+                      {formatDate(link.createdAt)}
+                    </p>
+                  </div>
+                )}
+
+                {/* Expiration Date */}
                 {link.expiresAt && (
                   <div>
                     <span style={styles.detailsLabel}>Expires</span>
                     <p style={styles.detailsText}>
                       {formatDate(link.expiresAt, true)}
+                    </p>
+                  </div>
+                )}
+
+                {/* Status */}
+                {link.status && (
+                  <div>
+                    <span style={styles.detailsLabel}>Status</span>
+                    <p style={styles.detailsText}>
+                      {link.status.charAt(0).toUpperCase() +
+                        link.status.slice(1)}
                     </p>
                   </div>
                 )}
@@ -460,6 +456,26 @@ export default function PayPage() {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer style={styles.footer}>
+        <div style={styles.footerContent}>
+          <div style={styles.footerLeft}>
+            <div style={styles.footerLogoContainer}>
+              <div style={styles.footerLogo}>
+                <span style={styles.footerLogoText}>P</span>
+              </div>
+              <span style={styles.footerLogoName}>PayLinkPro</span>
+            </div>
+            <p style={styles.footerTagline}>
+              Secure payments for Ethiopian merchants
+            </p>
+          </div>
+          <div style={styles.footerRight}>
+            © {new Date().getFullYear()} PayFlow. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
@@ -709,7 +725,7 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     gap: "12px",
-    background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+    background: "linear-gradient(135deg, #10b981 0%, #339e7a 100%)",
     transition: "all 0.2s",
   },
   payButtonDisabled: {
@@ -755,38 +771,6 @@ const styles = {
     color: "#6b7280",
     fontSize: "14px",
     marginTop: "16px",
-  },
-  securitySection: {
-    marginTop: "32px",
-    paddingTop: "32px",
-    borderTop: "1px solid #e5e7eb",
-  },
-  securityBadges: {
-    display: "flex",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: "24px",
-  },
-  securityBadge: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-  },
-  securityIconContainer: {
-    width: "32px",
-    height: "32px",
-    backgroundColor: "#f3f4f6",
-    borderRadius: "8px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  securityIcon: {
-    fontSize: "16px",
-  },
-  securityText: {
-    fontSize: "14px",
-    color: "#6b7280",
   },
 
   // Right column
@@ -928,56 +912,6 @@ const styles = {
     fontSize: "12px",
     color: "#6b7280",
   },
-
-  // Footer
-  // footer: {
-  //   padding: "32px 64px",
-  //   borderTop: "1px solid #e5e7eb",
-  //   background: "white",
-  // },
-  // footerContent: {
-  //   display: "flex",
-  //   justifyContent: "space-between",
-  //   alignItems: "center",
-  //   maxWidth: "1200px",
-  //   margin: "0 auto",
-  // },
-  // footerLeft: {
-  //   display: "flex",
-  //   alignItems: "center",
-  //   gap: "16px",
-  // },
-  // footerLogoContainer: {
-  //   display: "flex",
-  //   alignItems: "center",
-  //   gap: "8px",
-  // },
-  // footerLogo: {
-  //   width: "24px",
-  //   height: "24px",
-  //   background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-  //   borderRadius: "6px",
-  //   display: "flex",
-  //   alignItems: "center",
-  //   justifyContent: "center",
-  // },
-  // footerLogoText: {
-  //   color: "white",
-  //   fontWeight: "bold",
-  //   fontSize: "12px",
-  // },
-  // footerLogoName: {
-  //   fontWeight: "bold",
-  //   color: "#1f2937",
-  // },
-  // footerTagline: {
-  //   fontSize: "14px",
-  //   color: "#6b7280",
-  // },
-  // footerRight: {
-  //   fontSize: "14px",
-  //   color: "#6b7280",
-  // },
 };
 
 /* ---------- CSS Animations ---------- */

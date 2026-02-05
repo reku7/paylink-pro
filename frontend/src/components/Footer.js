@@ -66,7 +66,7 @@ export default function Footer() {
           </p>
         </div>
         <div style={styles.footerRight}>
-          © {new Date().getFullYear()} PayFlow. All rights reserved.
+          © {new Date().getFullYear()} PayLinkPro. All rights reserved.
         </div>
       </div>
     </footer>
