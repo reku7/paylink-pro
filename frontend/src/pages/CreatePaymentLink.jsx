@@ -168,12 +168,9 @@ export default function CreatePaymentLink() {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight: "100%",
         width: "100%",
-        background: "#f0f2f5",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
+        padding: "40px 20px",
       }}
     >
       <div
@@ -183,7 +180,7 @@ export default function CreatePaymentLink() {
           boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
           padding: "30px",
           width: "100%",
-          maxWidth: "800px",
+          maxWidth: "100%",
         }}
       >
         <h2
