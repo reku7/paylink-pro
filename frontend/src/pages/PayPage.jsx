@@ -165,26 +165,6 @@ export default function PayPage() {
 
   return (
     <div style={styles.container}>
-      {/* Brand Section - Same as Login Page */}
-      <div style={styles.brandSection}>
-        <div style={styles.brandContainer}>
-          <div>
-            <h1 style={styles.brand}>PayFlow</h1>
-            <p style={styles.tagline}>
-              Accept payments securely with Chapa & SantimPay
-            </p>
-            <ul style={styles.features}>
-              <li>✓ Built for Ethiopian merchants</li>
-              <li>✓ Secure & compliant payments</li>
-              <li>✓ Instant payment processing</li>
-            </ul>
-            <p style={styles.trust}>
-              Trusted payment infrastructure for modern businesses
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div style={styles.mainContent}>
         <div style={styles.grid}>
@@ -599,45 +579,6 @@ const styles = {
     minHeight: "100vh",
     display: "flex",
     flexDirection: "column",
-  },
-
-  // Brand Section (Same as Login page)
-  brandSection: {
-    background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
-    color: "#ecfdf5",
-    padding: "60px 64px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  brandContainer: {
-    maxWidth: "800px",
-    width: "100%",
-    textAlign: "center",
-  },
-  brand: {
-    fontSize: "40px",
-    fontWeight: 800,
-    marginBottom: "12px",
-    color: "#ffffff",
-  },
-  tagline: {
-    fontSize: "18px",
-    marginBottom: "32px",
-    color: "#a7f3d0",
-  },
-  features: {
-    listStyle: "none",
-    padding: 0,
-    marginBottom: "32px",
-    lineHeight: 1.9,
-    fontSize: "16px",
-    color: "#d1fae5",
-  },
-  trust: {
-    fontSize: "14px",
-    color: "#99f6e4",
-    fontStyle: "italic",
   },
 
   // Main content
