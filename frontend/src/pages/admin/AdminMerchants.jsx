@@ -421,9 +421,7 @@ export default function AdminMerchants() {
             <div style={styles.gatewayRow}>
               <div>
                 <strong>SantimPay</strong>
-                <p style={{ color: "#059669", marginTop: 4 }}>
-                  Connected (System Default)
-                </p>
+                <p style={{ color: "#059669", marginTop: 4 }}>Connected</p>
               </div>
               <div style={styles.gatewayBadgeConnected}>Always Active</div>
             </div>
