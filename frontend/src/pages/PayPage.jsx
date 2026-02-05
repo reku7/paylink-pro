@@ -623,8 +623,6 @@ const styles = {
 
   // Header
   header: {
-    maxWidth: "1200px",
-    margin: "0 auto",
     padding: "24px 16px",
   },
   headerContent: {
@@ -674,8 +672,6 @@ const styles = {
 
   // Main content
   mainContent: {
-    maxWidth: "1200px",
-    margin: "0 auto",
     padding: "0 16px 32px",
   },
   grid: {
@@ -1045,8 +1041,6 @@ const styles = {
 
   // Footer
   footer: {
-    maxWidth: "1200px",
-    margin: "48px auto 0",
     padding: "32px 16px",
     borderTop: "1px solid #e5e7eb",
   },

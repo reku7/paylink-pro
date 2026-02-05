@@ -228,15 +228,19 @@ const styles = {
   main: {
     flex: 1,
     padding: 40,
-    marginLeft: "240px", // Offset for fixed sidebar
-    minHeight: "100vh", // Ensure main content stretches
+    marginLeft: "240px",
+    minHeight: "100vh",
+    minWidth: 0, // ✅ CRITICAL
+    overflowX: "hidden", // ✅ stops boundary passing
     boxSizing: "border-box",
   },
+
   panel: {
     background: "#fff",
     borderRadius: 16,
     padding: 30,
-    minHeight: "calc(100vh - 80px)",
+    minHeight: "100%", // ✅ fill available height
+    width: "100%", // ✅ prevent shrink bugs
     boxSizing: "border-box",
   },
 };

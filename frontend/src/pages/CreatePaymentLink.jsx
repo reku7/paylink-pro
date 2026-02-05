@@ -168,9 +168,12 @@ export default function CreatePaymentLink() {
   return (
     <div
       style={{
-        minHeight: "100%",
+        minHeight: "100vh",
         width: "100%",
-        padding: "40px 20px",
+        background: "#f0f2f5",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
       }}
     >
       <div
