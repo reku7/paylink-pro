@@ -121,7 +121,7 @@ export default function PayPage() {
       <div style={styles.loadingContainer}>
         <div style={styles.loadingContent}>
           <div style={styles.spinner}></div>
-          <h2 style={styles.loadingTitle}>Loading payment details...</h2>
+          <h2 style={styles.loadingTitle}>Loading payment detail...</h2>
           <p style={styles.loadingSubtitle}>
             Please wait while we fetch your payment information
           </p>
@@ -197,64 +197,6 @@ export default function PayPage() {
                 {link.description && (
                   <p style={styles.description}>{link.description}</p>
                 )}
-              </div>
-
-              {/* Payment Method Selection */}
-              <div style={styles.paymentMethodSection}>
-                <h3 style={styles.sectionTitle}>Select Payment Method</h3>
-                <div style={styles.paymentMethodGrid}>
-                  <button
-                    onClick={() => setPaymentMethod("gateway")}
-                    style={{
-                      ...styles.paymentMethodButton,
-                      ...(paymentMethod === "gateway"
-                        ? styles.paymentMethodActive
-                        : {}),
-                    }}
-                  >
-                    <div style={styles.paymentMethodContent}>
-                      <div style={styles.paymentMethodIcon}>💳</div>
-                      <span style={styles.paymentMethodName}>Card/Bank</span>
-                      <span style={styles.paymentMethodHint}>Recommended</span>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => setPaymentMethod("mobile")}
-                    style={{
-                      ...styles.paymentMethodButton,
-                      ...(paymentMethod === "mobile"
-                        ? styles.paymentMethodActiveMobile
-                        : {}),
-                    }}
-                  >
-                    <div style={styles.paymentMethodContent}>
-                      <div style={styles.paymentMethodIcon}>📱</div>
-                      <span style={styles.paymentMethodName}>Mobile Money</span>
-                      <span style={styles.paymentMethodHint}>
-                        CBE Birr, M-Birr
-                      </span>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => setPaymentMethod("bank")}
-                    style={{
-                      ...styles.paymentMethodButton,
-                      ...(paymentMethod === "bank"
-                        ? styles.paymentMethodActiveBank
-                        : {}),
-                    }}
-                  >
-                    <div style={styles.paymentMethodContent}>
-                      <div style={styles.paymentMethodIcon}>🏦</div>
-                      <span style={styles.paymentMethodName}>
-                        Bank Transfer
-                      </span>
-                      <span style={styles.paymentMethodHint}>
-                        Direct transfer
-                      </span>
-                    </div>
-                  </button>
-                </div>
               </div>
 
               {/* Payment Button */}
@@ -456,26 +398,6 @@ export default function PayPage() {
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer style={styles.footer}>
-        <div style={styles.footerContent}>
-          <div style={styles.footerLeft}>
-            <div style={styles.footerLogoContainer}>
-              <div style={styles.footerLogo}>
-                <span style={styles.footerLogoText}>P</span>
-              </div>
-              <span style={styles.footerLogoName}>PayLinkPro</span>
-            </div>
-            <p style={styles.footerTagline}>
-              Secure payments for Ethiopian merchants
-            </p>
-          </div>
-          <div style={styles.footerRight}>
-            © {new Date().getFullYear()} PayFlow. All rights reserved.
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
@@ -960,11 +882,6 @@ const styleTag = `
     .grid {
       grid-template-columns: 1fr;
       gap: 24px;
-    }
-    .footer-content {
-      flex-direction: column;
-      text-align: center;
-      gap: 16px;
     }
   }
 `;
