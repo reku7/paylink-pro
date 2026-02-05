@@ -9,8 +9,8 @@ export default function PayPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
-  const [countdown, setCountdown] = useState(10); // Auto-redirect countdown
-  const [paymentMethod, setPaymentMethod] = useState("gateway"); // gateway, bank, mobile
+  const [countdown, setCountdown] = useState(10);
+  const [paymentMethod, setPaymentMethod] = useState("gateway");
 
   // Determine if user is logged in
   const userIsLoggedIn = !!getAuthToken();
@@ -104,16 +104,25 @@ export default function PayPage() {
     );
   };
 
+  // Format date
+  const formatDate = (dateString, includeTime = false) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      ...(includeTime && { hour: "2-digit", minute: "2-digit" }),
+    });
+  };
+
   // Loading state
   if (fetching) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-700">
-            Loading payment details...
-          </h2>
-          <p className="text-gray-500 mt-2">
+      <div style={styles.loadingContainer}>
+        <div style={styles.loadingContent}>
+          <div style={styles.spinner}></div>
+          <h2 style={styles.loadingTitle}>Loading payment details...</h2>
+          <p style={styles.loadingSubtitle}>
             Please wait while we fetch your payment information
           </p>
         </div>
@@ -124,11 +133,11 @@ export default function PayPage() {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-red-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div style={styles.errorPage}>
+        <div style={styles.errorCard}>
+          <div style={styles.errorIconContainer}>
             <svg
-              className="w-8 h-8 text-red-600"
+              style={styles.errorIcon}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -141,13 +150,11 @@ export default function PayPage() {
               />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Payment Link Error
-          </h2>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <h2 style={styles.errorTitle}>Payment Link Error</h2>
+          <p style={styles.errorMessageText}>{error}</p>
           <button
             onClick={() => (window.location.href = "/")}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            style={styles.homeButton}
           >
             Return Home
           </button>
@@ -157,20 +164,20 @@ export default function PayPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div style={styles.container}>
       {/* Header */}
-      <header className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">P</span>
+      <header style={styles.header}>
+        <div style={styles.headerContent}>
+          <div style={styles.logoContainer}>
+            <div style={styles.logo}>
+              <span style={styles.logoText}>P</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">PayFlow</span>
+            <span style={styles.logoName}>PayFlow</span>
           </div>
-          <div className="flex items-center space-x-4 text-sm text-gray-600">
-            <div className="flex items-center">
+          <div style={styles.headerFeatures}>
+            <div style={styles.featureItem}>
               <svg
-                className="w-4 h-4 text-green-500 mr-1"
+                style={styles.featureIcon}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -184,9 +191,9 @@ export default function PayPage() {
               </svg>
               <span>Secure Payment</span>
             </div>
-            <div className="flex items-center">
+            <div style={styles.featureItem}>
               <svg
-                className="w-4 h-4 text-blue-500 mr-1"
+                style={styles.featureIcon}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -204,96 +211,93 @@ export default function PayPage() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div style={styles.mainContent}>
+        <div style={styles.grid}>
           {/* Left Column - Payment Details */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div style={styles.leftColumn}>
+            <div style={styles.paymentCard}>
               {/* Merchant Info */}
-              <div className="flex items-center mb-8 pb-8 border-b">
-                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-xl">M</span>
+              <div style={styles.merchantInfo}>
+                <div style={styles.merchantLogo}>
+                  <span style={styles.merchantLogoText}>M</span>
                 </div>
-                <div className="ml-4">
-                  <h2 className="text-lg font-semibold text-gray-900">
+                <div>
+                  <h2 style={styles.merchantTitle}>
                     {link.title || "Payment Request"}
                   </h2>
-                  <p className="text-gray-600">
+                  <p style={styles.merchantSubtitle}>
                     {link.merchantName || "From a trusted merchant"}
                   </p>
                 </div>
               </div>
 
               {/* Amount Section */}
-              <div className="mb-8">
-                <div className="flex items-baseline mb-2">
-                  <span className="text-gray-600 mr-2">Amount to pay</span>
+              <div style={styles.amountSection}>
+                <div style={styles.amountHeader}>
+                  <span style={styles.amountLabel}>Amount to pay</span>
                   {link.status === "paid" && (
-                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                      Paid
-                    </span>
+                    <span style={styles.paidBadge}>Paid</span>
                   )}
                 </div>
-                <div className="text-5xl font-bold text-gray-900 mb-2">
+                <div style={styles.amount}>
                   {formatCurrency(link.amount, link.currency)}
                 </div>
                 {link.description && (
-                  <p className="text-gray-600 text-lg mt-4">
-                    {link.description}
-                  </p>
+                  <p style={styles.description}>{link.description}</p>
                 )}
               </div>
 
               {/* Payment Method Selection */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Select Payment Method
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div style={styles.paymentMethodSection}>
+                <h3 style={styles.sectionTitle}>Select Payment Method</h3>
+                <div style={styles.paymentMethodGrid}>
                   <button
                     onClick={() => setPaymentMethod("gateway")}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      paymentMethod === "gateway"
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-blue-300"
-                    }`}
+                    style={{
+                      ...styles.paymentMethodButton,
+                      ...(paymentMethod === "gateway"
+                        ? styles.paymentMethodActive
+                        : {}),
+                    }}
                   >
-                    <div className="flex flex-col items-center">
-                      <div className="text-2xl mb-2">💳</div>
-                      <span className="font-medium">Card/Bank</span>
-                      <span className="text-xs text-gray-500 mt-1">
-                        Recommended
-                      </span>
+                    <div style={styles.paymentMethodContent}>
+                      <div style={styles.paymentMethodIcon}>💳</div>
+                      <span style={styles.paymentMethodName}>Card/Bank</span>
+                      <span style={styles.paymentMethodHint}>Recommended</span>
                     </div>
                   </button>
                   <button
                     onClick={() => setPaymentMethod("mobile")}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      paymentMethod === "mobile"
-                        ? "border-green-500 bg-green-50"
-                        : "border-gray-200 hover:border-green-300"
-                    }`}
+                    style={{
+                      ...styles.paymentMethodButton,
+                      ...(paymentMethod === "mobile"
+                        ? styles.paymentMethodActiveMobile
+                        : {}),
+                    }}
                   >
-                    <div className="flex flex-col items-center">
-                      <div className="text-2xl mb-2">📱</div>
-                      <span className="font-medium">Mobile Money</span>
-                      <span className="text-xs text-gray-500 mt-1">
+                    <div style={styles.paymentMethodContent}>
+                      <div style={styles.paymentMethodIcon}>📱</div>
+                      <span style={styles.paymentMethodName}>Mobile Money</span>
+                      <span style={styles.paymentMethodHint}>
                         CBE Birr, M-Birr
                       </span>
                     </div>
                   </button>
                   <button
                     onClick={() => setPaymentMethod("bank")}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      paymentMethod === "bank"
-                        ? "border-purple-500 bg-purple-50"
-                        : "border-gray-200 hover:border-purple-300"
-                    }`}
+                    style={{
+                      ...styles.paymentMethodButton,
+                      ...(paymentMethod === "bank"
+                        ? styles.paymentMethodActiveBank
+                        : {}),
+                    }}
                   >
-                    <div className="flex flex-col items-center">
-                      <div className="text-2xl mb-2">🏦</div>
-                      <span className="font-medium">Bank Transfer</span>
-                      <span className="text-xs text-gray-500 mt-1">
+                    <div style={styles.paymentMethodContent}>
+                      <div style={styles.paymentMethodIcon}>🏦</div>
+                      <span style={styles.paymentMethodName}>
+                        Bank Transfer
+                      </span>
+                      <span style={styles.paymentMethodHint}>
                         Direct transfer
                       </span>
                     </div>
@@ -302,26 +306,27 @@ export default function PayPage() {
               </div>
 
               {/* Payment Button */}
-              <div className="space-y-4">
+              <div style={styles.paymentButtonSection}>
                 <button
                   onClick={handlePay}
                   disabled={loading || link.status === "paid"}
-                  className={`w-full py-4 rounded-xl font-bold text-white text-lg transition-all flex items-center justify-center gap-3 ${
-                    loading || link.status === "paid"
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-                  }`}
+                  style={{
+                    ...styles.payButton,
+                    ...(loading || link.status === "paid"
+                      ? styles.payButtonDisabled
+                      : {}),
+                  }}
                 >
                   {loading ? (
                     <>
                       <svg
-                        className="animate-spin h-5 w-5 text-white"
+                        style={styles.spinnerSmall}
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
                       >
                         <circle
-                          className="opacity-25"
+                          style={styles.spinnerCircle}
                           cx="12"
                           cy="12"
                           r="10"
@@ -329,7 +334,7 @@ export default function PayPage() {
                           strokeWidth="4"
                         ></circle>
                         <path
-                          className="opacity-75"
+                          style={styles.spinnerPath}
                           fill="currentColor"
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         ></path>
@@ -342,7 +347,7 @@ export default function PayPage() {
                     <>
                       <span>Pay Now</span>
                       <svg
-                        className="w-5 h-5"
+                        style={styles.arrowIcon}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -359,54 +364,52 @@ export default function PayPage() {
                 </button>
 
                 {error && (
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-                    <div className="flex items-center">
-                      <svg
-                        className="w-5 h-5 text-red-500 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <p className="text-red-700">{error}</p>
-                    </div>
+                  <div style={styles.errorAlert}>
+                    <svg
+                      style={styles.errorAlertIcon}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <p style={styles.errorAlertText}>{error}</p>
                   </div>
                 )}
 
                 {/* Auto-redirect notice */}
                 {countdown > 0 && (
-                  <p className="text-center text-gray-500 text-sm">
+                  <p style={styles.countdownText}>
                     Redirecting to secure payment in {countdown} seconds...
                   </p>
                 )}
               </div>
 
               {/* Security Badges */}
-              <div className="mt-8 pt-8 border-t border-gray-200">
-                <div className="flex flex-wrap justify-center gap-6">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                      <span className="text-green-600">🔒</span>
+              <div style={styles.securitySection}>
+                <div style={styles.securityBadges}>
+                  <div style={styles.securityBadge}>
+                    <div style={styles.securityIconContainer}>
+                      <span style={styles.securityIcon}>🔒</span>
                     </div>
-                    <span className="text-sm text-gray-600">SSL Secured</span>
+                    <span style={styles.securityText}>SSL Secured</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <span className="text-blue-600">✓</span>
+                  <div style={styles.securityBadge}>
+                    <div style={styles.securityIconContainer}>
+                      <span style={styles.securityIcon}>✓</span>
                     </div>
-                    <span className="text-sm text-gray-600">PCI Compliant</span>
+                    <span style={styles.securityText}>PCI Compliant</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <span className="text-purple-600">🛡️</span>
+                  <div style={styles.securityBadge}>
+                    <div style={styles.securityIconContainer}>
+                      <span style={styles.securityIcon}>🛡️</span>
                     </div>
-                    <span className="text-sm text-gray-600">3D Secure</span>
+                    <span style={styles.securityText}>3D Secure</span>
                   </div>
                 </div>
               </div>
@@ -414,26 +417,24 @@ export default function PayPage() {
           </div>
 
           {/* Right Column - Info & Support */}
-          <div className="space-y-6">
+          <div style={styles.rightColumn}>
             {/* Payment Summary */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Payment Summary
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">
+            <div style={styles.summaryCard}>
+              <h3 style={styles.summaryTitle}>Payment Summary</h3>
+              <div style={styles.summaryContent}>
+                <div style={styles.summaryRow}>
+                  <span style={styles.summaryLabel}>Subtotal</span>
+                  <span style={styles.summaryValue}>
                     {formatCurrency(link.amount, link.currency)}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Processing Fee</span>
-                  <span className="font-medium text-green-600">Free</span>
+                <div style={styles.summaryRow}>
+                  <span style={styles.summaryLabel}>Processing Fee</span>
+                  <span style={styles.freeText}>Free</span>
                 </div>
-                <div className="flex justify-between pt-3 border-t">
-                  <span className="font-semibold">Total Amount</span>
-                  <span className="font-bold text-lg">
+                <div style={styles.summaryTotal}>
+                  <span style={styles.totalLabel}>Total Amount</span>
+                  <span style={styles.totalValue}>
                     {formatCurrency(link.amount, link.currency)}
                   </span>
                 </div>
@@ -441,38 +442,24 @@ export default function PayPage() {
             </div>
 
             {/* Payment Details */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Payment Details
-              </h3>
-              <div className="space-y-3">
+            <div style={styles.detailsCard}>
+              <h3 style={styles.detailsTitle}>Payment Details</h3>
+              <div style={styles.detailsContent}>
                 <div>
-                  <span className="text-sm text-gray-500">Payment ID</span>
-                  <p className="font-mono text-sm bg-gray-50 p-2 rounded mt-1">
-                    {linkId}
-                  </p>
+                  <span style={styles.detailsLabel}>Payment ID</span>
+                  <div style={styles.paymentId}>
+                    <code>{linkId}</code>
+                  </div>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-500">Created</span>
-                  <p className="text-gray-700">
-                    {new Date(link.createdAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
+                  <span style={styles.detailsLabel}>Created</span>
+                  <p style={styles.detailsText}>{formatDate(link.createdAt)}</p>
                 </div>
                 {link.expiresAt && (
                   <div>
-                    <span className="text-sm text-gray-500">Expires</span>
-                    <p className="text-gray-700">
-                      {new Date(link.expiresAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                    <span style={styles.detailsLabel}>Expires</span>
+                    <p style={styles.detailsText}>
+                      {formatDate(link.expiresAt, true)}
                     </p>
                   </div>
                 )}
@@ -480,39 +467,35 @@ export default function PayPage() {
             </div>
 
             {/* Support Card */}
-            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl shadow-xl p-6 border border-blue-100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Need Help?
-              </h3>
-              <p className="text-gray-600 mb-4">
+            <div style={styles.supportCard}>
+              <h3 style={styles.supportTitle}>Need Help?</h3>
+              <p style={styles.supportText}>
                 Contact our support team if you encounter any issues during
                 payment
               </p>
-              <div className="space-y-3">
+              <div style={styles.supportOptions}>
                 <a
                   href="mailto:support@payflow.com"
-                  className="flex items-center gap-3 p-3 bg-white rounded-lg hover:bg-blue-50 transition-colors"
+                  style={styles.supportOption}
                 >
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <span className="text-blue-600">📧</span>
+                  <div style={styles.supportIconContainer}>
+                    <span style={styles.supportIcon}>📧</span>
                   </div>
                   <div>
-                    <div className="font-medium">Email Support</div>
-                    <div className="text-sm text-gray-500">
+                    <div style={styles.supportOptionTitle}>Email Support</div>
+                    <div style={styles.supportOptionSubtitle}>
                       support@payflow.com
                     </div>
                   </div>
                 </a>
-                <div className="p-3 bg-white rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <span className="text-green-600">🕒</span>
-                    </div>
-                    <div>
-                      <div className="font-medium">24/7 Support</div>
-                      <div className="text-sm text-gray-500">
-                        Always available
-                      </div>
+                <div style={styles.supportOption}>
+                  <div style={styles.supportIconContainer}>
+                    <span style={styles.supportIcon}>🕒</span>
+                  </div>
+                  <div>
+                    <div style={styles.supportOptionTitle}>24/7 Support</div>
+                    <div style={styles.supportOptionSubtitle}>
+                      Always available
                     </div>
                   </div>
                 </div>
@@ -523,24 +506,653 @@ export default function PayPage() {
       </div>
 
       {/* Footer */}
-      <footer className="container mx-auto px-4 py-8 mt-12 border-t border-gray-200">
-        <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left">
-          <div className="mb-4 md:mb-0">
-            <div className="flex items-center justify-center md:justify-start space-x-2 mb-2">
-              <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-green-600 rounded flex items-center justify-center">
-                <span className="text-white text-xs font-bold">P</span>
+      <footer style={styles.footer}>
+        <div style={styles.footerContent}>
+          <div style={styles.footerLeft}>
+            <div style={styles.footerLogoContainer}>
+              <div style={styles.footerLogo}>
+                <span style={styles.footerLogoText}>P</span>
               </div>
-              <span className="font-bold text-gray-900">PayFlow</span>
+              <span style={styles.footerLogoName}>PayFlow</span>
             </div>
-            <p className="text-sm text-gray-600">
+            <p style={styles.footerTagline}>
               Secure payments for Ethiopian merchants
             </p>
           </div>
-          <div className="text-sm text-gray-500">
+          <div style={styles.footerRight}>
             © {new Date().getFullYear()} PayFlow. All rights reserved.
           </div>
         </div>
       </footer>
     </div>
   );
+}
+
+/* ---------- Styles ---------- */
+const styles = {
+  // Loading state
+  loadingContainer: {
+    minHeight: "100vh",
+    background: "linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "16px",
+  },
+  loadingContent: {
+    textAlign: "center",
+  },
+  spinner: {
+    animation: "spin 1s linear infinite",
+    border: "4px solid rgba(0, 0, 0, 0.1)",
+    borderTop: "4px solid #2563eb",
+    borderRadius: "50%",
+    width: "48px",
+    height: "48px",
+    margin: "0 auto 16px",
+  },
+  loadingTitle: {
+    fontSize: "20px",
+    fontWeight: 600,
+    color: "#374151",
+    marginBottom: "8px",
+  },
+  loadingSubtitle: {
+    color: "#6b7280",
+  },
+
+  // Error state
+  errorPage: {
+    minHeight: "100vh",
+    background: "linear-gradient(135deg, #f8fafc 0%, #fee2e2 100%)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "16px",
+  },
+  errorCard: {
+    maxWidth: "400px",
+    width: "100%",
+    backgroundColor: "white",
+    borderRadius: "16px",
+    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
+    padding: "32px",
+    textAlign: "center",
+  },
+  errorIconContainer: {
+    width: "64px",
+    height: "64px",
+    backgroundColor: "#fee2e2",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0 auto 16px",
+  },
+  errorIcon: {
+    width: "32px",
+    height: "32px",
+    color: "#dc2626",
+  },
+  errorTitle: {
+    fontSize: "24px",
+    fontWeight: "bold",
+    color: "#1f2937",
+    marginBottom: "8px",
+  },
+  errorMessageText: {
+    color: "#6b7280",
+    marginBottom: "24px",
+  },
+  homeButton: {
+    padding: "12px 24px",
+    backgroundColor: "#2563eb",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "16px",
+    cursor: "pointer",
+    transition: "background-color 0.2s",
+  },
+
+  // Main container
+  container: {
+    minHeight: "100vh",
+    background: "linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%)",
+  },
+
+  // Header
+  header: {
+    maxWidth: "1200px",
+    margin: "0 auto",
+    padding: "24px 16px",
+  },
+  headerContent: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  logoContainer: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  },
+  logo: {
+    width: "32px",
+    height: "32px",
+    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+    borderRadius: "8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  logoName: {
+    fontSize: "20px",
+    fontWeight: "bold",
+    color: "#1f2937",
+  },
+  headerFeatures: {
+    display: "flex",
+    alignItems: "center",
+    gap: "16px",
+    fontSize: "14px",
+    color: "#6b7280",
+  },
+  featureItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+  },
+  featureIcon: {
+    width: "16px",
+    height: "16px",
+  },
+
+  // Main content
+  mainContent: {
+    maxWidth: "1200px",
+    margin: "0 auto",
+    padding: "0 16px 32px",
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: "32px",
+  },
+
+  // Left column
+  leftColumn: {
+    gridColumn: "span 2",
+  },
+  paymentCard: {
+    backgroundColor: "white",
+    borderRadius: "16px",
+    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
+    padding: "32px",
+  },
+  merchantInfo: {
+    display: "flex",
+    alignItems: "center",
+    marginBottom: "32px",
+    paddingBottom: "32px",
+    borderBottom: "1px solid #e5e7eb",
+  },
+  merchantLogo: {
+    width: "48px",
+    height: "48px",
+    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+    borderRadius: "12px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: "16px",
+  },
+  merchantLogoText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: "20px",
+  },
+  merchantTitle: {
+    fontSize: "18px",
+    fontWeight: 600,
+    color: "#1f2937",
+    marginBottom: "4px",
+  },
+  merchantSubtitle: {
+    color: "#6b7280",
+  },
+  amountSection: {
+    marginBottom: "32px",
+  },
+  amountHeader: {
+    display: "flex",
+    alignItems: "baseline",
+    marginBottom: "8px",
+  },
+  amountLabel: {
+    color: "#6b7280",
+    marginRight: "8px",
+  },
+  paidBadge: {
+    padding: "4px 8px",
+    backgroundColor: "#d1fae5",
+    color: "#059669",
+    fontSize: "12px",
+    borderRadius: "12px",
+  },
+  amount: {
+    fontSize: "48px",
+    fontWeight: "bold",
+    color: "#1f2937",
+    marginBottom: "16px",
+  },
+  description: {
+    color: "#6b7280",
+    fontSize: "18px",
+    marginTop: "16px",
+  },
+  paymentMethodSection: {
+    marginBottom: "32px",
+  },
+  sectionTitle: {
+    fontSize: "18px",
+    fontWeight: 600,
+    color: "#1f2937",
+    marginBottom: "16px",
+  },
+  paymentMethodGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "12px",
+  },
+  paymentMethodButton: {
+    padding: "16px",
+    borderRadius: "12px",
+    border: "2px solid #e5e7eb",
+    backgroundColor: "white",
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
+  paymentMethodActive: {
+    borderColor: "#3b82f6",
+    backgroundColor: "#eff6ff",
+  },
+  paymentMethodActiveMobile: {
+    borderColor: "#10b981",
+    backgroundColor: "#f0fdf4",
+  },
+  paymentMethodActiveBank: {
+    borderColor: "#8b5cf6",
+    backgroundColor: "#faf5ff",
+  },
+  paymentMethodContent: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  paymentMethodIcon: {
+    fontSize: "24px",
+    marginBottom: "8px",
+  },
+  paymentMethodName: {
+    fontWeight: 500,
+    fontSize: "14px",
+    marginBottom: "4px",
+  },
+  paymentMethodHint: {
+    fontSize: "12px",
+    color: "#6b7280",
+  },
+  paymentButtonSection: {
+    marginBottom: "32px",
+  },
+  payButton: {
+    width: "100%",
+    padding: "16px",
+    borderRadius: "12px",
+    fontWeight: "bold",
+    fontSize: "18px",
+    color: "white",
+    border: "none",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "12px",
+    background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+    transition: "all 0.2s",
+  },
+  payButtonDisabled: {
+    backgroundColor: "#9ca3af",
+    cursor: "not-allowed",
+  },
+  spinnerSmall: {
+    animation: "spin 1s linear infinite",
+    width: "20px",
+    height: "20px",
+  },
+  spinnerCircle: {
+    opacity: 0.25,
+  },
+  spinnerPath: {
+    opacity: 0.75,
+  },
+  arrowIcon: {
+    width: "20px",
+    height: "20px",
+  },
+  errorAlert: {
+    padding: "16px",
+    backgroundColor: "#fef2f2",
+    border: "1px solid #fecaca",
+    borderRadius: "12px",
+    marginTop: "16px",
+    display: "flex",
+    alignItems: "center",
+  },
+  errorAlertIcon: {
+    width: "20px",
+    height: "20px",
+    color: "#dc2626",
+    marginRight: "12px",
+  },
+  errorAlertText: {
+    color: "#b91c1c",
+    margin: 0,
+  },
+  countdownText: {
+    textAlign: "center",
+    color: "#6b7280",
+    fontSize: "14px",
+    marginTop: "16px",
+  },
+  securitySection: {
+    marginTop: "32px",
+    paddingTop: "32px",
+    borderTop: "1px solid #e5e7eb",
+  },
+  securityBadges: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: "24px",
+  },
+  securityBadge: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  },
+  securityIconContainer: {
+    width: "32px",
+    height: "32px",
+    backgroundColor: "#f3f4f6",
+    borderRadius: "8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  securityIcon: {
+    fontSize: "16px",
+  },
+  securityText: {
+    fontSize: "14px",
+    color: "#6b7280",
+  },
+
+  // Right column
+  rightColumn: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "24px",
+  },
+  summaryCard: {
+    backgroundColor: "white",
+    borderRadius: "16px",
+    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
+    padding: "24px",
+  },
+  summaryTitle: {
+    fontSize: "18px",
+    fontWeight: 600,
+    color: "#1f2937",
+    marginBottom: "16px",
+  },
+  summaryContent: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  },
+  summaryRow: {
+    display: "flex",
+    justifyContent: "space-between",
+  },
+  summaryLabel: {
+    color: "#6b7280",
+  },
+  summaryValue: {
+    fontWeight: 500,
+  },
+  freeText: {
+    fontWeight: 500,
+    color: "#10b981",
+  },
+  summaryTotal: {
+    display: "flex",
+    justifyContent: "space-between",
+    paddingTop: "12px",
+    borderTop: "1px solid #e5e7eb",
+    marginTop: "4px",
+  },
+  totalLabel: {
+    fontWeight: 600,
+  },
+  totalValue: {
+    fontWeight: "bold",
+    fontSize: "18px",
+  },
+  detailsCard: {
+    backgroundColor: "white",
+    borderRadius: "16px",
+    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
+    padding: "24px",
+  },
+  detailsTitle: {
+    fontSize: "18px",
+    fontWeight: 600,
+    color: "#1f2937",
+    marginBottom: "16px",
+  },
+  detailsContent: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  },
+  detailsLabel: {
+    fontSize: "14px",
+    color: "#6b7280",
+    display: "block",
+    marginBottom: "4px",
+  },
+  paymentId: {
+    fontFamily: "monospace",
+    fontSize: "14px",
+    backgroundColor: "#f3f4f6",
+    padding: "8px",
+    borderRadius: "8px",
+    marginTop: "4px",
+  },
+  detailsText: {
+    color: "#374151",
+    margin: 0,
+  },
+  supportCard: {
+    background: "linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%)",
+    borderRadius: "16px",
+    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
+    padding: "24px",
+    border: "1px solid #dbeafe",
+  },
+  supportTitle: {
+    fontSize: "18px",
+    fontWeight: 600,
+    color: "#1f2937",
+    marginBottom: "12px",
+  },
+  supportText: {
+    color: "#6b7280",
+    marginBottom: "16px",
+  },
+  supportOptions: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  },
+  supportOption: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    padding: "12px",
+    backgroundColor: "white",
+    borderRadius: "8px",
+    textDecoration: "none",
+    color: "inherit",
+    transition: "background-color 0.2s",
+  },
+  supportIconContainer: {
+    width: "40px",
+    height: "40px",
+    backgroundColor: "#eff6ff",
+    borderRadius: "8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  supportIcon: {
+    fontSize: "20px",
+  },
+  supportOptionTitle: {
+    fontWeight: 500,
+    fontSize: "14px",
+  },
+  supportOptionSubtitle: {
+    fontSize: "12px",
+    color: "#6b7280",
+  },
+
+  // Footer
+  footer: {
+    maxWidth: "1200px",
+    margin: "48px auto 0",
+    padding: "32px 16px",
+    borderTop: "1px solid #e5e7eb",
+  },
+  footerContent: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  footerLeft: {
+    marginBottom: "16px",
+  },
+  footerLogoContainer: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    marginBottom: "8px",
+  },
+  footerLogo: {
+    width: "24px",
+    height: "24px",
+    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+    borderRadius: "6px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  footerLogoText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: "12px",
+  },
+  footerLogoName: {
+    fontWeight: "bold",
+    color: "#1f2937",
+  },
+  footerTagline: {
+    fontSize: "14px",
+    color: "#6b7280",
+  },
+  footerRight: {
+    fontSize: "14px",
+    color: "#6b7280",
+  },
+};
+
+/* ---------- CSS Animations ---------- */
+const styleTag = `
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  .payment-method-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .pay-button:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+  
+  .home-button:hover {
+    background-color: #1d4ed8;
+  }
+  
+  .support-option:hover {
+    background-color: #f3f4f6;
+  }
+  
+  @media (min-width: 1024px) {
+    .grid {
+      grid-template-columns: 2fr 1fr;
+    }
+    .footer-content {
+      flex-direction: row;
+      justify-content: space-between;
+      text-align: left;
+    }
+    .footer-left {
+      margin-bottom: 0;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .payment-method-grid {
+      grid-template-columns: 1fr;
+    }
+    .header-content {
+      flex-direction: column;
+      gap: 16px;
+    }
+    .header-features {
+      flex-direction: column;
+      gap: 8px;
+    }
+    .amount {
+      font-size: 36px;
+    }
+  }
+`;
+
+// Add the CSS to the document
+if (typeof document !== "undefined") {
+  const style = document.createElement("style");
+  style.innerHTML = styleTag;
+  document.head.appendChild(style);
 }

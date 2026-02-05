@@ -154,100 +154,88 @@ export default function CreatePaymentLink() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-8">
-      <div className="max-w-2xl mx-auto">
+    <div style={styles.container}>
+      <div style={styles.wrapper}>
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Create Payment Link
-          </h1>
-          <p className="text-gray-600">
+        <div style={styles.header}>
+          <h1 style={styles.title}>Create Payment Link</h1>
+          <p style={styles.subtitle}>
             Accept payments instantly with SantimPay or Chapa
           </p>
         </div>
 
         {/* Main Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+        <div style={styles.card}>
           {/* Error/Success Alerts */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-              <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 text-red-500 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <p className="text-red-700">{error}</p>
-              </div>
+            <div style={styles.alertError}>
+              <svg
+                style={styles.alertIcon}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p style={styles.errorMessage}>{error}</p>
             </div>
           )}
 
           {success && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
-              <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 text-green-500 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <p className="text-green-700">{success}</p>
-              </div>
+            <div style={styles.alertSuccess}>
+              <svg
+                style={styles.alertIcon}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p style={styles.successMessage}>{success}</p>
             </div>
           )}
 
           {/* Form */}
-          <div className="space-y-6">
+          <div style={styles.form}>
             {/* Title */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Title *
-              </label>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Title *</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., Monthly Subscription"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                style={styles.input}
               />
             </div>
 
             {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description (Optional)
-              </label>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Description (Optional)</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe what this payment is for..."
                 rows={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                style={styles.textarea}
               />
             </div>
 
             {/* Amount */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Amount (ETB) *
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-3 text-gray-500">ETB</span>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Amount (ETB) *</label>
+              <div style={styles.amountWrapper}>
+                <span style={styles.currencyPrefix}>ETB</span>
                 <input
                   type="number"
                   value={amount}
@@ -255,7 +243,7 @@ export default function CreatePaymentLink() {
                   placeholder="0.00"
                   min="0"
                   step="0.01"
-                  className="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  style={styles.amountInput}
                 />
               </div>
             </div>
@@ -264,10 +252,13 @@ export default function CreatePaymentLink() {
             <div>
               <button
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="flex items-center text-blue-600 hover:text-blue-800"
+                style={styles.advancedToggle}
               >
                 <svg
-                  className={`w-4 h-4 mr-2 transition-transform ${showAdvanced ? "rotate-90" : ""}`}
+                  style={{
+                    ...styles.advancedToggleIcon,
+                    transform: showAdvanced ? "rotate(90deg)" : "rotate(0deg)",
+                  }}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -287,16 +278,14 @@ export default function CreatePaymentLink() {
 
             {/* Advanced Options */}
             {showAdvanced && (
-              <div className="bg-gray-50 p-4 rounded-lg space-y-4 animate-fadeIn">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div style={styles.advancedOptions}>
+                <div style={styles.advancedGrid}>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Link Expiry (Hours)
-                    </label>
+                    <label style={styles.label}>Link Expiry (Hours)</label>
                     <select
                       value={expiryHours}
                       onChange={(e) => setExpiryHours(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      style={styles.select}
                     >
                       <option value={1}>1 hour</option>
                       <option value={6}>6 hours</option>
@@ -307,16 +296,14 @@ export default function CreatePaymentLink() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Max Payments
-                    </label>
+                    <label style={styles.label}>Max Payments</label>
                     <input
                       type="number"
                       value={maxPayments}
                       onChange={(e) => setMaxPayments(e.target.value)}
                       min="1"
                       placeholder="1"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      style={styles.input}
                     />
                   </div>
                 </div>
@@ -325,34 +312,36 @@ export default function CreatePaymentLink() {
 
             {/* Gateway Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Select Payment Gateway
-              </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label style={styles.gatewayLabel}>Select Payment Gateway</label>
+              <div style={styles.gatewayGrid}>
                 {/* SantimPay Card */}
                 <div
                   onClick={() => setGateway("santimpay")}
-                  className={`p-5 rounded-xl border-2 cursor-pointer transition-all ${
-                    gateway === "santimpay"
-                      ? "border-green-500 bg-green-50"
-                      : "border-gray-200 hover:border-green-300"
-                  }`}
+                  style={{
+                    ...styles.gatewayCard,
+                    ...(gateway === "santimpay"
+                      ? styles.gatewayCardActive
+                      : styles.gatewayCardInactive),
+                  }}
                 >
-                  <div className="flex items-start justify-between">
+                  <div style={styles.gatewayCardHeader}>
                     <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                        <h3 className="font-semibold text-gray-900">
-                          SantimPay
-                        </h3>
+                      <div style={styles.gatewayCardTitle}>
+                        <div
+                          style={{
+                            ...styles.gatewayIndicator,
+                            ...styles.gatewayIndicatorActive,
+                          }}
+                        ></div>
+                        SantimPay
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">
+                      <p style={styles.gatewaySubtitle}>
                         Type A - Instant Settlement
                       </p>
-                      <ul className="text-xs text-gray-600 space-y-1">
-                        <li className="flex items-center">
+                      <ul style={styles.gatewayFeatures}>
+                        <li style={styles.gatewayFeature}>
                           <svg
-                            className="w-4 h-4 mr-1 text-green-500"
+                            style={{ ...styles.featureIcon, color: "#10b981" }}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -366,9 +355,9 @@ export default function CreatePaymentLink() {
                           </svg>
                           No setup required
                         </li>
-                        <li className="flex items-center">
+                        <li style={styles.gatewayFeature}>
                           <svg
-                            className="w-4 h-4 mr-1 text-green-500"
+                            style={{ ...styles.featureIcon, color: "#10b981" }}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -385,8 +374,21 @@ export default function CreatePaymentLink() {
                       </ul>
                     </div>
                     {gateway === "santimpay" && (
-                      <div className="p-1 bg-green-100 rounded-full">
-                        <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                      <div
+                        style={{
+                          padding: "4px",
+                          backgroundColor: "#d1fae5",
+                          borderRadius: "50%",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "16px",
+                            height: "16px",
+                            backgroundColor: "#10b981",
+                            borderRadius: "50%",
+                          }}
+                        ></div>
                       </div>
                     )}
                   </div>
@@ -395,32 +397,39 @@ export default function CreatePaymentLink() {
                 {/* Chapa Card */}
                 <div
                   onClick={() => connectedGateways.chapa && setGateway("chapa")}
-                  className={`p-5 rounded-xl border-2 transition-all ${
-                    !connectedGateways.chapa
-                      ? "border-gray-200 bg-gray-50 opacity-75 cursor-not-allowed"
+                  style={{
+                    ...styles.gatewayCard,
+                    ...(!connectedGateways.chapa
+                      ? styles.gatewayCardDisabled
                       : gateway === "chapa"
-                        ? "border-blue-500 bg-blue-50 cursor-pointer"
-                        : "border-gray-200 hover:border-blue-300 cursor-pointer"
-                  }`}
+                        ? {
+                            borderColor: "#3b82f6",
+                            backgroundColor: "#eff6ff",
+                          }
+                        : styles.gatewayCardInactive),
+                  }}
                 >
-                  <div className="flex items-start justify-between">
+                  <div style={styles.gatewayCardHeader}>
                     <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <h3 className="font-semibold text-gray-900">Chapa</h3>
+                      <div style={styles.gatewayCardTitle}>
+                        <div
+                          style={{
+                            ...styles.gatewayIndicator,
+                            ...styles.gatewayIndicatorInactive,
+                          }}
+                        ></div>
+                        Chapa
                         {!connectedGateways.chapa && (
-                          <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                            Not Connected
-                          </span>
+                          <span style={styles.gatewayBadge}>Not Connected</span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">
+                      <p style={styles.gatewaySubtitle}>
                         Type B Lite - Card & Bank Payments
                       </p>
-                      <ul className="text-xs text-gray-600 space-y-1">
-                        <li className="flex items-center">
+                      <ul style={styles.gatewayFeatures}>
+                        <li style={styles.gatewayFeature}>
                           <svg
-                            className="w-4 h-4 mr-1 text-blue-500"
+                            style={{ ...styles.featureIcon, color: "#3b82f6" }}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -434,9 +443,9 @@ export default function CreatePaymentLink() {
                           </svg>
                           Accepts credit/debit cards
                         </li>
-                        <li className="flex items-center">
+                        <li style={styles.gatewayFeature}>
                           <svg
-                            className="w-4 h-4 mr-1 text-blue-500"
+                            style={{ ...styles.featureIcon, color: "#3b82f6" }}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -453,8 +462,21 @@ export default function CreatePaymentLink() {
                       </ul>
                     </div>
                     {gateway === "chapa" && (
-                      <div className="p-1 bg-blue-100 rounded-full">
-                        <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                      <div
+                        style={{
+                          padding: "4px",
+                          backgroundColor: "#dbeafe",
+                          borderRadius: "50%",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "16px",
+                            height: "16px",
+                            backgroundColor: "#3b82f6",
+                            borderRadius: "50%",
+                          }}
+                        ></div>
                       </div>
                     )}
                   </div>
@@ -465,10 +487,10 @@ export default function CreatePaymentLink() {
                         e.stopPropagation();
                         handleConnectChapa();
                       }}
-                      className="mt-4 w-full px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                      style={styles.connectButton}
                     >
                       <svg
-                        className="w-4 h-4"
+                        style={{ width: "16px", height: "16px" }}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -491,24 +513,25 @@ export default function CreatePaymentLink() {
             <button
               onClick={handleCreate}
               disabled={loading || !amount || !title}
-              className={`w-full py-4 rounded-xl font-medium text-white transition-all ${
-                loading || !amount || !title
-                  ? "bg-gray-400 cursor-not-allowed"
+              style={{
+                ...styles.createButton,
+                ...(loading || !amount || !title
+                  ? styles.createButtonDisabled
                   : gateway === "santimpay"
-                    ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
-                    : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
-              } flex items-center justify-center gap-2`}
+                    ? styles.createButtonSantimPay
+                    : styles.createButtonChapa),
+              }}
             >
               {loading ? (
                 <>
                   <svg
-                    className="animate-spin h-5 w-5 text-white"
+                    style={styles.spinner}
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
                   >
                     <circle
-                      className="opacity-25"
+                      style={styles.spinnerCircle}
                       cx="12"
                       cy="12"
                       r="10"
@@ -516,7 +539,7 @@ export default function CreatePaymentLink() {
                       strokeWidth="4"
                     ></circle>
                     <path
-                      className="opacity-75"
+                      style={styles.spinnerPath}
                       fill="currentColor"
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
@@ -526,7 +549,7 @@ export default function CreatePaymentLink() {
               ) : (
                 <>
                   <svg
-                    className="w-5 h-5"
+                    style={styles.createIcon}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -546,18 +569,13 @@ export default function CreatePaymentLink() {
 
           {/* Generated Link Section */}
           {link && (
-            <div className="mt-8 pt-8 border-t border-gray-200 animate-fadeIn">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900">
-                  Your Payment Link
-                </h3>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={copyLink}
-                    className="px-4 py-2 text-blue-600 hover:text-blue-800 flex items-center gap-2"
-                  >
+            <div style={styles.linkSection}>
+              <div style={styles.linkHeader}>
+                <h3 style={styles.linkTitle}>Your Payment Link</h3>
+                <div style={styles.linkActions}>
+                  <button onClick={copyLink} style={styles.linkActionButton}>
                     <svg
-                      className="w-4 h-4"
+                      style={styles.linkIcon}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -571,12 +589,9 @@ export default function CreatePaymentLink() {
                     </svg>
                     Copy
                   </button>
-                  <button
-                    onClick={previewLink}
-                    className="px-4 py-2 text-blue-600 hover:text-blue-800 flex items-center gap-2"
-                  >
+                  <button onClick={previewLink} style={styles.linkActionButton}>
                     <svg
-                      className="w-4 h-4"
+                      style={styles.linkIcon}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -592,10 +607,10 @@ export default function CreatePaymentLink() {
                   </button>
                   <button
                     onClick={shareLink}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                    style={styles.linkActionButtonPrimary}
                   >
                     <svg
-                      className="w-4 h-4"
+                      style={styles.linkIcon}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -612,23 +627,23 @@ export default function CreatePaymentLink() {
                 </div>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <code className="text-sm text-gray-800 break-all">{link}</code>
+              <div style={styles.linkBox}>
+                <code style={styles.linkCode}>{link}</code>
               </div>
 
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div style={styles.shareGrid}>
                 <a
                   href={`whatsapp://send?text=${encodeURIComponent(`Payment Link: ${title}\n${link}`)}`}
-                  className="p-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-center flex items-center justify-center gap-2"
+                  style={styles.shareButtonWhatsApp}
                 >
-                  <span className="text-lg">💬</span>
+                  <span style={styles.shareIcon}>💬</span>
                   Share on WhatsApp
                 </a>
                 <a
                   href={`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`Payment Link:\n${link}`)}`}
-                  className="p-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-center flex items-center justify-center gap-2"
+                  style={styles.shareButtonEmail}
                 >
-                  <span className="text-lg">📧</span>
+                  <span style={styles.shareIcon}>📧</span>
                   Send via Email
                 </a>
                 <button
@@ -637,9 +652,9 @@ export default function CreatePaymentLink() {
                       `Payment Link: ${title}\n${link}`,
                     )
                   }
-                  className="p-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors text-center flex items-center justify-center gap-2"
+                  style={styles.shareButtonCopy}
                 >
-                  <span className="text-lg">📋</span>
+                  <span style={styles.shareIcon}>📋</span>
                   Copy with Title
                 </button>
               </div>
@@ -648,12 +663,12 @@ export default function CreatePaymentLink() {
         </div>
 
         {/* Info Section */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-4 rounded-xl shadow-sm">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-green-100 rounded-lg">
+        <div style={styles.infoGrid}>
+          <div style={styles.infoCard}>
+            <div style={styles.infoHeader}>
+              <div style={styles.infoIconGreen}>
                 <svg
-                  className="w-5 h-5 text-green-600"
+                  style={styles.infoIconSvg}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -666,18 +681,18 @@ export default function CreatePaymentLink() {
                   />
                 </svg>
               </div>
-              <h4 className="font-semibold">Secure Payments</h4>
+              <h4 style={styles.infoTitle}>Secure Payments</h4>
             </div>
-            <p className="text-sm text-gray-600">
+            <p style={styles.infoText}>
               All transactions are encrypted and PCI compliant
             </p>
           </div>
 
-          <div className="bg-white p-4 rounded-xl shadow-sm">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-blue-100 rounded-lg">
+          <div style={styles.infoCard}>
+            <div style={styles.infoHeader}>
+              <div style={styles.infoIconBlue}>
                 <svg
-                  className="w-5 h-5 text-blue-600"
+                  style={styles.infoIconSvg}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -690,18 +705,18 @@ export default function CreatePaymentLink() {
                   />
                 </svg>
               </div>
-              <h4 className="font-semibold">Instant Settlement</h4>
+              <h4 style={styles.infoTitle}>Instant Settlement</h4>
             </div>
-            <p className="text-sm text-gray-600">
+            <p style={styles.infoText}>
               Receive funds directly to your account
             </p>
           </div>
 
-          <div className="bg-white p-4 rounded-xl shadow-sm">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-purple-100 rounded-lg">
+          <div style={styles.infoCard}>
+            <div style={styles.infoHeader}>
+              <div style={styles.infoIconPurple}>
                 <svg
-                  className="w-5 h-5 text-purple-600"
+                  style={styles.infoIconSvg}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -714,9 +729,9 @@ export default function CreatePaymentLink() {
                   />
                 </svg>
               </div>
-              <h4 className="font-semibold">No Hidden Fees</h4>
+              <h4 style={styles.infoTitle}>No Hidden Fees</h4>
             </div>
-            <p className="text-sm text-gray-600">
+            <p style={styles.infoText}>
               Transparent pricing with no setup costs
             </p>
           </div>
@@ -724,4 +739,537 @@ export default function CreatePaymentLink() {
       </div>
     </div>
   );
+}
+
+/* ---------- Styles ---------- */
+const styles = {
+  container: {
+    minHeight: "100vh",
+    background: "linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%)",
+    padding: "16px",
+  },
+  wrapper: {
+    maxWidth: "768px",
+    margin: "0 auto",
+  },
+  header: {
+    textAlign: "center",
+    marginBottom: "32px",
+  },
+  title: {
+    fontSize: "30px",
+    fontWeight: "bold",
+    color: "#1f2937",
+    marginBottom: "8px",
+  },
+  subtitle: {
+    color: "#6b7280",
+  },
+  card: {
+    backgroundColor: "white",
+    borderRadius: "16px",
+    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
+    padding: "24px",
+    marginBottom: "24px",
+  },
+  alertError: {
+    marginBottom: "24px",
+    padding: "16px",
+    borderRadius: "12px",
+    display: "flex",
+    alignItems: "center",
+    backgroundColor: "#fef2f2",
+    border: "1px solid #fecaca",
+  },
+  alertSuccess: {
+    marginBottom: "24px",
+    padding: "16px",
+    borderRadius: "12px",
+    display: "flex",
+    alignItems: "center",
+    backgroundColor: "#f0fdf4",
+    border: "1px solid #bbf7d0",
+  },
+  alertIcon: {
+    width: "20px",
+    height: "20px",
+    marginRight: "12px",
+  },
+  errorMessage: {
+    margin: 0,
+    color: "#dc2626",
+  },
+  successMessage: {
+    margin: 0,
+    color: "#16a34a",
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "24px",
+  },
+  formGroup: {
+    marginBottom: "24px",
+  },
+  label: {
+    display: "block",
+    fontSize: "14px",
+    fontWeight: 500,
+    color: "#374151",
+    marginBottom: "8px",
+  },
+  input: {
+    width: "100%",
+    padding: "12px 16px",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    fontSize: "16px",
+    transition: "all 0.2s",
+  },
+  textarea: {
+    width: "100%",
+    padding: "12px 16px",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    fontSize: "16px",
+    minHeight: "100px",
+    resize: "vertical",
+    transition: "all 0.2s",
+  },
+  amountWrapper: {
+    position: "relative",
+  },
+  currencyPrefix: {
+    position: "absolute",
+    left: "12px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    color: "#6b7280",
+  },
+  amountInput: {
+    width: "100%",
+    paddingLeft: "64px",
+    paddingRight: "16px",
+    paddingTop: "12px",
+    paddingBottom: "12px",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    fontSize: "16px",
+    transition: "all 0.2s",
+  },
+  advancedToggle: {
+    display: "flex",
+    alignItems: "center",
+    color: "#2563eb",
+    backgroundColor: "transparent",
+    border: "none",
+    cursor: "pointer",
+    padding: 0,
+    fontSize: "14px",
+    marginBottom: "16px",
+  },
+  advancedToggleIcon: {
+    width: "16px",
+    height: "16px",
+    marginRight: "8px",
+    transition: "transform 0.2s",
+  },
+  advancedOptions: {
+    backgroundColor: "#f9fafb",
+    padding: "16px",
+    borderRadius: "8px",
+  },
+  advancedGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: "16px",
+  },
+  select: {
+    width: "100%",
+    padding: "12px 16px",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    fontSize: "16px",
+    backgroundColor: "white",
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
+  gatewayLabel: {
+    display: "block",
+    fontSize: "14px",
+    fontWeight: 500,
+    color: "#374151",
+    marginBottom: "12px",
+  },
+  gatewayGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: "16px",
+  },
+  gatewayCard: {
+    padding: "20px",
+    borderRadius: "12px",
+    border: "2px solid #e5e7eb",
+    backgroundColor: "#f9fafb",
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
+  gatewayCardActive: {
+    borderColor: "#10b981",
+    backgroundColor: "#f0fdf4",
+  },
+  gatewayCardInactive: {
+    borderColor: "#e5e7eb",
+    backgroundColor: "#f9fafb",
+  },
+  gatewayCardDisabled: {
+    borderColor: "#e5e7eb",
+    backgroundColor: "#f3f4f6",
+    opacity: 0.75,
+    cursor: "not-allowed",
+  },
+  gatewayCardHeader: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    marginBottom: "12px",
+  },
+  gatewayCardTitle: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    fontSize: "16px",
+    fontWeight: 600,
+    color: "#1f2937",
+  },
+  gatewayIndicator: {
+    width: "12px",
+    height: "12px",
+    borderRadius: "50%",
+  },
+  gatewayIndicatorActive: {
+    backgroundColor: "#10b981",
+  },
+  gatewayIndicatorInactive: {
+    backgroundColor: "#3b82f6",
+  },
+  gatewayBadge: {
+    padding: "4px 8px",
+    backgroundColor: "#fef3c7",
+    color: "#92400e",
+    fontSize: "12px",
+    borderRadius: "12px",
+    marginLeft: "8px",
+  },
+  gatewaySubtitle: {
+    fontSize: "14px",
+    color: "#6b7280",
+    marginBottom: "12px",
+  },
+  gatewayFeatures: {
+    fontSize: "12px",
+    color: "#6b7280",
+    padding: 0,
+    margin: 0,
+    listStyle: "none",
+  },
+  gatewayFeature: {
+    display: "flex",
+    alignItems: "center",
+    marginBottom: "4px",
+  },
+  featureIcon: {
+    width: "16px",
+    height: "16px",
+    marginRight: "8px",
+  },
+  connectButton: {
+    width: "100%",
+    padding: "8px 16px",
+    backgroundColor: "#2563eb",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "14px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    marginTop: "16px",
+    transition: "background-color 0.2s",
+  },
+  createButton: {
+    width: "100%",
+    padding: "16px",
+    borderRadius: "12px",
+    fontWeight: 500,
+    fontSize: "16px",
+    color: "white",
+    border: "none",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "12px",
+    transition: "all 0.2s",
+  },
+  createButtonDisabled: {
+    backgroundColor: "#9ca3af",
+    cursor: "not-allowed",
+  },
+  createButtonSantimPay: {
+    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+  },
+  createButtonChapa: {
+    background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+  },
+  spinner: {
+    animation: "spin 1s linear infinite",
+    width: "20px",
+    height: "20px",
+  },
+  spinnerCircle: {
+    opacity: 0.25,
+  },
+  spinnerPath: {
+    opacity: 0.75,
+  },
+  createIcon: {
+    width: "20px",
+    height: "20px",
+  },
+  linkSection: {
+    marginTop: "32px",
+    paddingTop: "32px",
+    borderTop: "1px solid #e5e7eb",
+  },
+  linkHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: "16px",
+  },
+  linkTitle: {
+    fontSize: "18px",
+    fontWeight: 600,
+    color: "#1f2937",
+  },
+  linkActions: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  },
+  linkActionButton: {
+    padding: "8px 16px",
+    color: "#2563eb",
+    backgroundColor: "transparent",
+    border: "none",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    fontSize: "14px",
+    transition: "color 0.2s",
+  },
+  linkActionButtonPrimary: {
+    backgroundColor: "#2563eb",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    fontSize: "14px",
+    padding: "8px 16px",
+    transition: "background-color 0.2s",
+  },
+  linkIcon: {
+    width: "16px",
+    height: "16px",
+  },
+  linkBox: {
+    backgroundColor: "#f9fafb",
+    padding: "16px",
+    borderRadius: "8px",
+    marginBottom: "16px",
+  },
+  linkCode: {
+    fontSize: "14px",
+    color: "#374151",
+    wordBreak: "break-all",
+    fontFamily: "monospace",
+  },
+  shareGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: "12px",
+  },
+  shareButtonWhatsApp: {
+    padding: "12px",
+    borderRadius: "8px",
+    border: "none",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    fontSize: "14px",
+    backgroundColor: "#f0fdf4",
+    color: "#047857",
+    textDecoration: "none",
+    transition: "background-color 0.2s",
+  },
+  shareButtonEmail: {
+    padding: "12px",
+    borderRadius: "8px",
+    border: "none",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    fontSize: "14px",
+    backgroundColor: "#eff6ff",
+    color: "#1d4ed8",
+    textDecoration: "none",
+    transition: "background-color 0.2s",
+  },
+  shareButtonCopy: {
+    padding: "12px",
+    borderRadius: "8px",
+    border: "none",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    fontSize: "14px",
+    backgroundColor: "#faf5ff",
+    color: "#7c3aed",
+    transition: "background-color 0.2s",
+  },
+  shareIcon: {
+    fontSize: "20px",
+  },
+  infoGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: "16px",
+  },
+  infoCard: {
+    backgroundColor: "white",
+    padding: "16px",
+    borderRadius: "12px",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.05)",
+  },
+  infoHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    marginBottom: "12px",
+  },
+  infoIconGreen: {
+    padding: "8px",
+    borderRadius: "8px",
+    width: "40px",
+    height: "40px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f0fdf4",
+  },
+  infoIconBlue: {
+    padding: "8px",
+    borderRadius: "8px",
+    width: "40px",
+    height: "40px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#eff6ff",
+  },
+  infoIconPurple: {
+    padding: "8px",
+    borderRadius: "8px",
+    width: "40px",
+    height: "40px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#faf5ff",
+  },
+  infoIconSvg: {
+    width: "20px",
+    height: "20px",
+  },
+  infoTitle: {
+    fontSize: "16px",
+    fontWeight: 600,
+    color: "#1f2937",
+  },
+  infoText: {
+    fontSize: "14px",
+    color: "#6b7280",
+    margin: 0,
+  },
+};
+
+/* ---------- CSS Animations ---------- */
+const styleTag = `
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  .input:focus, .textarea:focus, .select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  .advanced-toggle:hover {
+    color: #1d4ed8;
+  }
+  
+  .gateway-card:hover:not(.gateway-card-disabled) {
+    transform: translateY(-2px);
+  }
+  
+  .link-action-button:hover {
+    color: #1d4ed8;
+  }
+  
+  .link-action-button-primary:hover {
+    background-color: #1d4ed8;
+  }
+  
+  .connect-button:hover {
+    background-color: #1d4ed8;
+  }
+  
+  .create-button:hover:not(.create-button-disabled) {
+    opacity: 0.9;
+  }
+  
+  .share-button:hover {
+    filter: brightness(0.95);
+  }
+  
+  @media (min-width: 768px) {
+    .container { padding: 32px; }
+    .card { padding: 32px; }
+    .advanced-grid { grid-template-columns: 1fr 1fr; }
+    .gateway-grid { grid-template-columns: 1fr 1fr; }
+    .share-grid { grid-template-columns: 1fr 1fr 1fr; }
+    .info-grid { grid-template-columns: 1fr 1fr 1fr; }
+  }
+`;
+
+// Add the CSS to the document
+if (typeof document !== "undefined") {
+  const style = document.createElement("style");
+  style.innerHTML = styleTag;
+  document.head.appendChild(style);
 }
