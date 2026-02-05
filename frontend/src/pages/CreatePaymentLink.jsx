@@ -169,8 +169,7 @@ export default function CreatePaymentLink() {
     <div
       style={{
         minHeight: "100%",
-        width: "100%",
-        padding: "40px 20px",
+        boxSizing: "border-box",
       }}
     >
       <div
