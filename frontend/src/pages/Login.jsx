@@ -56,11 +56,11 @@ export default function Login() {
   }
 
   return (
-    <div style={styles.page}>
+    <div className="login-page" style={styles.page}>
       {/* LEFT — BRANDING */}
-      <section style={styles.left}>
+      <section className="login-left" style={styles.left}>
         <div>
-          <h1 style={styles.brand}>PayFlow</h1>
+          <h1 style={styles.brand}>PayLinkPro</h1>
           <p style={styles.tagline}>
             Accept payments securely with Chapa & SantimPay
           </p>
@@ -76,15 +76,14 @@ export default function Login() {
       </section>
 
       {/* RIGHT — LOGIN FORM */}
-      <section style={styles.right}>
-        <div style={styles.formWrapper}>
+      <section className="login-right" style={styles.right}>
+        <div className="login-form-wrapper" style={styles.formWrapper}>
+          {" "}
           <header style={styles.header}>
             <h2>Login</h2>
             <p>Sign in to access your dashboard</p>
           </header>
-
           {error && <div style={styles.error}>{error}</div>}
-
           <form onSubmit={handleLogin} style={styles.formGrid}>
             <div>
               <Input
@@ -268,3 +267,29 @@ const styles = {
   },
   login: { marginTop: 16, textAlign: "center" },
 };
+
+const responsiveStyles = `
+@media (max-width: 768px) {
+  .login-page {
+    grid-template-columns: 1fr !important;
+  }
+
+  .login-left {
+    display: none;
+  }
+
+  .login-right {
+    padding: 24px !important;
+  }
+
+  .login-form-wrapper {
+    max-width: 100% !important;
+  }
+}
+`;
+
+if (typeof document !== "undefined") {
+  const style = document.createElement("style");
+  style.innerHTML = responsiveStyles;
+  document.head.appendChild(style);
+}

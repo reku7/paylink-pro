@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AdminRoute from "./routes/AdminRoute.jsx"; // Add this import
+import "./responsive.css";
 
 // Pages
 import Home from "./pages/Home.jsx";
