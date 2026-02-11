@@ -1,117 +1,124 @@
-//payment-backend\src\services\dashboard.service.js
+// services/dashboard.service.js
+
 import mongoose from "mongoose";
 import Transaction from "../models/Transaction.js";
 import PaymentLink from "../models/PaymentLink.js";
+import Merchant from "../models/Merchant.js";
 
 /* -------------------------------------------------------------------------- */
 /* Helpers                                                                     */
 /* -------------------------------------------------------------------------- */
+
 function toObjectId(id) {
   return typeof id === "string" ? new mongoose.Types.ObjectId(id) : id;
 }
 
 /* -------------------------------------------------------------------------- */
-/* Dashboard Summary - Fixed Professional Version                              */
+/* Dashboard Summary                                                           */
 /* -------------------------------------------------------------------------- */
+
 export async function getDashboardSummary(merchantId, { start, end } = {}) {
   const merchantObjectId = toObjectId(merchantId);
-  const now = new Date();
 
-  // ---------------- TRANSACTIONS ----------------
-  const txMatch = {
+  const match = {
     merchantId: merchantObjectId,
     ...(start && end ? { createdAt: { $gte: start, $lte: end } } : {}),
   };
 
-  const transactionsResult = await Transaction.aggregate([
-    { $match: txMatch },
-    {
-      $group: {
-        _id: "$status",
-        count: { $sum: 1 },
-        totalAmount: { $sum: "$amount" },
+  const [txStats, linkStats, paidLinkAgg] = await Promise.all([
+    // ✅ Transactions stats (KEEP)
+    Transaction.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+          amount: { $sum: "$amount" },
+        },
       },
-    },
-  ]);
+    ]),
 
-  const txSummary = {
-    successfulCount:
-      transactionsResult.find((t) => t._id === "success")?.count || 0,
-    totalRevenue:
-      transactionsResult.find((t) => t._id === "success")?.totalAmount || 0,
-    failedCount: transactionsResult.find((t) => t._id === "failed")?.count || 0,
-    processingCount:
-      transactionsResult.find((t) => t._id === "processing")?.count || 0,
-    pendingCount:
-      transactionsResult.find((t) => t._id === "initialized")?.count || 0,
-  };
-
-  // ---------------- LINKS ----------------
-  const linkStats = await PaymentLink.aggregate([
-    { $match: { merchantId: merchantObjectId } },
-
-    {
-      $facet: {
-        totalLinks: [{ $count: "count" }],
-
-        activeLinks: [
-          {
-            $match: {
-              status: "active",
-              $or: [
-                { type: "reusable" },
-                {
-                  type: "one_time",
-                  isPaid: false,
-                  expiresAt: { $gt: now },
-                },
-              ],
-            },
-          },
-          { $count: "count" },
-        ],
-
-        expiredLinks: [
-          {
-            $match: {
-              $or: [
-                { status: "expired" },
-                { type: "one_time", expiresAt: { $lte: now } },
-              ],
-            },
-          },
-          { $count: "count" },
-        ],
-
-        disabledLinks: [
-          { $match: { status: "disabled" } },
-          { $count: "count" },
-        ],
-
-        paidLinks: [{ $match: { isPaid: true } }, { $count: "count" }],
+    // ✅ Link stats (KEEP)
+    PaymentLink.aggregate([
+      { $match: { merchantId: merchantObjectId } },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
       },
-    },
-  ]);
+    ]),
 
-  const linkSummary = linkStats?.[0] || {};
+    // 🆕 FIX: paid links based on SUCCESSFUL TRANSACTIONS
+    Transaction.aggregate([
+      { $match: { merchantId: merchantObjectId, status: "success" } },
+      { $group: { _id: "$linkId" } },
+    ]),
+  ]);
 
   const summary = {
-    ...txSummary,
-    totalLinks: linkSummary.totalLinks?.[0]?.count || 0,
-    activeLinks: linkSummary.activeLinks?.[0]?.count || 0,
-    expiredLinks: linkSummary.expiredLinks?.[0]?.count || 0,
-    disabledLinks: linkSummary.disabledLinks?.[0]?.count || 0,
-    paidLinks: linkSummary.paidLinks?.[0]?.count || 0,
-    processingLinks: linkSummary.processingLinks?.[0]?.count || 0,
-    failedLinks: linkSummary.failedLinks?.[0]?.count || 0,
+    totalRevenue: 0,
+    successfulCount: 0,
+    failedCount: 0,
+    processingCount: 0,
+    pendingCount: 0,
+
+    totalLinks: 0,
+    activeLinks: 0,
+    paidLinks: 0,
+    expiredLinks: 0,
+    failedLinks: 0,
+
+    // 🆕 conversion (backend truth)
+    conversionRate: 0,
   };
 
-  const totalTx =
-    summary.successfulCount +
-    summary.failedCount +
-    summary.processingCount +
-    summary.pendingCount;
+  /* ---------------- Transactions ---------------- */
+  let totalTx = 0;
 
+  for (const row of txStats) {
+    totalTx += row.count;
+
+    switch (row._id) {
+      case "success":
+        summary.successfulCount = row.count;
+        summary.totalRevenue += row.amount || 0;
+        break;
+      case "failed":
+        summary.failedCount = row.count;
+        break;
+      case "processing":
+        summary.processingCount = row.count;
+        break;
+      case "initialized":
+        summary.pendingCount = row.count;
+        break;
+    }
+  }
+
+  /* ---------------- Links ---------------- */
+  for (const row of linkStats) {
+    summary.totalLinks += row.count;
+
+    switch (row._id) {
+      case "active":
+        summary.activeLinks = row.count;
+        break;
+      case "expired":
+        summary.expiredLinks = row.count;
+        break;
+      case "disabled":
+        summary.failedLinks = row.count; // or rename to disabledLinks
+        break;
+    }
+  }
+
+  /* ---------------- FIXES ---------------- */
+
+  // ✅ Paid Links = links with ≥ 1 successful transaction
+  summary.paidLinks = paidLinkAgg.length;
+
+  // ✅ Conversion = successful tx / total tx
   summary.conversionRate =
     totalTx > 0 ? Math.round((summary.successfulCount / totalTx) * 100) : 0;
 
