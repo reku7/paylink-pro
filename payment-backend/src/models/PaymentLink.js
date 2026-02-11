@@ -1,1 +1,105 @@
-import mongoose from "mongoose"; const PaymentLinkSchema = new mongoose.Schema( { merchantId: { type: mongoose.Schema.Types.ObjectId, ref: "Merchant", required: true, index: true, }, linkId: { type: String, required: true, unique: true, index: true, }, slug: { type: String, trim: true, lowercase: true, sparse: true, }, title: { type: String, default: "" }, description: { type: String, default: "" }, amount: { type: Number, required: true, min: 1, }, currency: { type: String, default: "ETB" }, type: { type: String, enum: ["one_time", "reusable"], default: "one_time", index: true, }, status: { type: String, enum: ["active", "disabled", "expired"], default: "active", index: true, }, expiresAt: { type: Date, default: function () { return this.type === "one_time" ? new Date(Date.now() + 24 * 60 * 60 * 1000) : null; }, }, // Track if a one-time link has been paid isPaid: { type: Boolean, default: false }, paidAt: { type: Date, default: null }, // For reusable links totalCollected: { type: Number, default: 0 }, totalPayments: { type: Number, default: 0 }, customerName: { type: String, default: "" }, customerEmail: { type: String, default: "" }, customerPhone: { type: String, default: "" }, successUrl: { type: String, default: "" }, cancelUrl: { type: String, default: "" }, failureUrl: { type: String, default: "" }, gateway: { type: String, required: true, enum: ["santimpay", "chapa"], index: true, }, transactions: [ { type: mongoose.Schema.Types.ObjectId, ref: "Transaction", }, ], metadata: { type: Object, default: {} }, }, { timestamps: true }, ); // ✅ Compound index to ensure slug is unique per merchant PaymentLinkSchema.index({ merchantId: 1, slug: 1 }, { unique: true, sparse: true }); // ✅ Performance index PaymentLinkSchema.index({ merchantId: 1, type: 1, status: 1 }); export default mongoose.models.PaymentLink || mongoose.model("PaymentLink", PaymentLinkSchema);
+import mongoose from "mongoose";
+
+const PaymentLinkSchema = new mongoose.Schema(
+  {
+    merchantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Merchant",
+      required: true,
+      index: true,
+    },
+
+    linkId: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
+
+    slug: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      sparse: true,
+    },
+
+    title: { type: String, default: "" },
+    description: { type: String, default: "" },
+
+    amount: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
+    currency: { type: String, default: "ETB" },
+
+    type: {
+      type: String,
+      enum: ["one_time", "reusable"],
+      default: "one_time",
+      index: true,
+    },
+
+    status: {
+      type: String,
+      enum: ["active", "disabled", "expired"],
+      default: "active",
+      index: true,
+    },
+
+    expiresAt: {
+      type: Date,
+      default: function () {
+        return this.type === "one_time"
+          ? new Date(Date.now() + 24 * 60 * 60 * 1000)
+          : null;
+      },
+    },
+
+    // Track if a one-time link has been paid
+    isPaid: { type: Boolean, default: false },
+    paidAt: { type: Date, default: null },
+
+    // For reusable links
+    totalCollected: { type: Number, default: 0 },
+    totalPayments: { type: Number, default: 0 },
+
+    customerName: { type: String, default: "" },
+    customerEmail: { type: String, default: "" },
+    customerPhone: { type: String, default: "" },
+
+    successUrl: { type: String, default: "" },
+    cancelUrl: { type: String, default: "" },
+    failureUrl: { type: String, default: "" },
+
+    gateway: {
+      type: String,
+      required: true,
+      enum: ["santimpay", "chapa"],
+      index: true,
+    },
+
+    transactions: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Transaction",
+      },
+    ],
+
+    metadata: { type: Object, default: {} },
+  },
+  { timestamps: true },
+);
+
+// ✅ Compound index to ensure slug is unique per merchant
+PaymentLinkSchema.index(
+  { merchantId: 1, slug: 1 },
+  { unique: true, sparse: true },
+);
+
+// ✅ Performance index
+PaymentLinkSchema.index({ merchantId: 1, type: 1, status: 1 });
+
+export default mongoose.models.PaymentLink ||
+  mongoose.model("PaymentLink", PaymentLinkSchema);
