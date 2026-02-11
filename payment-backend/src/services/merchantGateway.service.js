@@ -1,3 +1,4 @@
+//payment-backend\src\services\merchantGateway.service.js
 import Merchant from "../models/Merchant.js";
 import { encryptSecret, decryptSecret } from "../utils/crypto.js";
 
@@ -11,7 +12,7 @@ export async function saveChapaSecret(merchantId, plainSecret) {
         "chapa.secretEncrypted": encrypted,
         updatedAt: new Date(),
       },
-    }
+    },
   );
 }
 

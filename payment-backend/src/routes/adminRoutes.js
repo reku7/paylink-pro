@@ -1,3 +1,4 @@
+//src\routes\adminRoutes.js
 import express from "express";
 import { ROLES } from "../constants/roles.js";
 import requireRole from "../middleware/roleMiddleware.js";

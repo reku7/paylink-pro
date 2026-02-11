@@ -1,3 +1,4 @@
+//src\routes\paymentRoutes.js
 import express from "express";
 import authMiddleware from "../middleware/auth.js";
 import requireRole from "../middleware/roleMiddleware.js";

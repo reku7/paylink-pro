@@ -6,6 +6,7 @@ const PaymentLinkSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Merchant",
       required: true,
+      index: true,
     },
 
     linkId: {
@@ -15,95 +16,80 @@ const PaymentLinkSchema = new mongoose.Schema(
       index: true,
     },
 
-    title: {
+    slug: {
       type: String,
-      default: "",
+      unique: true,
+      sparse: true,
+      trim: true,
+      lowercase: true,
     },
 
-    description: {
-      type: String,
-      default: "",
-    },
+    title: { type: String, default: "" },
+    description: { type: String, default: "" },
 
     amount: {
       type: Number,
       required: true,
+      min: 1,
     },
 
-    currency: {
-      type: String,
-      default: "ETB",
-    },
+    currency: { type: String, default: "ETB" },
 
-    // CUSTOMER INFORMATION
-
-    customerName: {
+    type: {
       type: String,
-      default: "",
+      enum: ["one_time", "reusable"],
+      default: "one_time",
+      index: true,
     },
-    customerEmail: {
-      type: String,
-      default: "",
-    },
-    customerPhone: {
-      type: String,
-      default: "",
-    },
-
-    // PAYMENT STATUS & EXPIRY
 
     status: {
       type: String,
       enum: ["active", "disabled", "expired"],
       default: "active",
+      index: true,
     },
 
-    expiresAt: {
-      type: Date,
-      default: () => new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+    isPaid: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
+    paidAt: Date,
 
-    // REDIRECT URLS
+    expiresAt: Date,
 
-    successUrl: {
-      type: String,
-      default: "",
-    },
-    cancelUrl: {
-      type: String,
-      default: "",
-    },
-    failureUrl: {
-      type: String,
-      default: "",
-    },
+    customerName: { type: String, default: "" },
+    customerEmail: { type: String, default: "" },
+    customerPhone: { type: String, default: "" },
 
-    // TRANSACTIONS (Relation)
-
-    transactions: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Transaction",
-      },
-    ],
-
-    // OPTIONAL PAYMENT METHOD
+    successUrl: { type: String, default: "" },
+    cancelUrl: { type: String, default: "" },
+    failureUrl: { type: String, default: "" },
 
     gateway: {
       type: String,
       required: true,
       enum: ["santimpay", "chapa"],
+      index: true,
     },
 
-    // EXTRA DATA
-
-    metadata: {
-      type: Object,
-      default: {},
+    transactions: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Transaction",
+        },
+      ],
+      default: [],
     },
+
+    metadata: { type: Object, default: {} },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
+
+// Performance index
+PaymentLinkSchema.index({ merchantId: 1, type: 1, status: 1 });
 
 export default mongoose.models.PaymentLink ||
   mongoose.model("PaymentLink", PaymentLinkSchema);
