@@ -15,6 +15,7 @@ function mapGateway(status) {
       return { label: "Unknown", color: "#6b7280" };
   }
 }
+
 export default function DashboardHome() {
   const [stats, setStats] = useState({
     totalRevenue: 0,
@@ -24,6 +25,7 @@ export default function DashboardHome() {
     totalLinks: 0,
     paidLinks: 0,
     activeLinks: 0,
+    conversionRate: 0, // ✅ Added conversionRate to state
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -54,6 +56,7 @@ export default function DashboardHome() {
           totalLinks: summaryRes.data.data?.totalLinks || 0,
           paidLinks: summaryRes.data.data?.paidLinks || 0,
           activeLinks: summaryRes.data.data?.activeLinks || 0,
+          conversionRate: summaryRes.data.data?.conversionRate || 0, // ✅ Use backend conversionRate
         });
       } else {
         throw new Error(
@@ -165,11 +168,7 @@ export default function DashboardHome() {
         <StatCard
           title="Conversion"
           emoji="📊"
-          value={
-            stats.totalLinks > 0
-              ? `${Math.round((stats.paidLinks / stats.totalLinks) * 100)}%`
-              : "0%"
-          }
+          value={`${stats.conversionRate}%`} // ✅ Use backend value, always correct
           color="#7b1fa2"
           gradient={["#f3e5f5", "#e1bee7"]}
         />
@@ -197,31 +196,30 @@ export default function DashboardHome() {
       </Section>
 
       {/* Gateway Status */}
-
       <Section title="Gateway Status">
         <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
           {gatewayStatus ? (
             <>
               {(() => {
-                const g = mapGateway(gatewayStatus.santimpay.status);
+                const g = mapGateway(gatewayStatus.santimpay?.status);
                 return (
                   <GatewayCard
                     name="SantimPay (Type A)"
                     color={g.color}
                     status={g.label}
-                    description={gatewayStatus.santimpay.message}
+                    description={gatewayStatus.santimpay?.message || ""}
                   />
                 );
               })()}
 
               {(() => {
-                const g = mapGateway(gatewayStatus.chapa.status);
+                const g = mapGateway(gatewayStatus.chapa?.status);
                 return (
                   <GatewayCard
                     name="Chapa (Type B Lite)"
                     color={g.color}
                     status={g.label}
-                    description={gatewayStatus.chapa.message}
+                    description={gatewayStatus.chapa?.message || ""}
                   />
                 );
               })()}
