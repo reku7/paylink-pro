@@ -3,13 +3,13 @@ import { useState, useEffect, useCallback } from "react";
 import { privateApi as api } from "../api/api";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useGateways } from "../context/GatewayContext";
-import "./responsive.css";
 
 export default function CreatePaymentLink() {
   const [amount, setAmount] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [gateway, setGateway] = useState("santimpay");
+  const [linkType, setLinkType] = useState("one_time"); // <-- new state for link type
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -50,6 +50,7 @@ export default function CreatePaymentLink() {
         amount: Number(amount),
         currency: "ETB",
         gateway,
+        type: linkType, // <-- send link type to backend
         successUrl: `${origin}/success`,
         cancelUrl: `${origin}/cancel`,
         failureUrl: `${origin}/failed`,
@@ -85,7 +86,15 @@ export default function CreatePaymentLink() {
     } finally {
       setLoading(false);
     }
-  }, [amount, title, description, gateway, connectedGateways, location.state]);
+  }, [
+    amount,
+    title,
+    description,
+    gateway,
+    linkType,
+    connectedGateways,
+    location.state,
+  ]); // <-- added linkType
 
   // Check Chapa connection and auto-fill/create if redirected from ConnectChapa
   useEffect(() => {
@@ -230,6 +239,22 @@ export default function CreatePaymentLink() {
           />
         </div>
 
+        {/* Link Type Selection - NEW */}
+        <div style={{ marginBottom: "24px" }}>
+          <label style={styles.label}>Link Type</label>
+          <select
+            value={linkType}
+            onChange={(e) => setLinkType(e.target.value)}
+            style={styles.input}
+          >
+            <option value="one_time">One-Time</option>
+            <option value="reusable">Reusable</option>
+          </select>
+          <small style={{ color: "#666" }}>
+            One-Time: expires after 24h | Reusable: can be used multiple times
+          </small>
+        </div>
+
         {/* Gateway Selection */}
         <div style={{ marginBottom: "32px" }}>
           <label style={styles.label}>Select Payment Gateway</label>
@@ -285,7 +310,9 @@ export default function CreatePaymentLink() {
         >
           {loading
             ? "Creating Payment Link..."
-            : `Create Payment Link with ${gateway === "santimpay" ? "SantimPay" : "Chapa"}`}
+            : `Create Payment Link with ${
+                gateway === "santimpay" ? "SantimPay" : "Chapa"
+              }`}
         </button>
 
         {/* Created Link */}
