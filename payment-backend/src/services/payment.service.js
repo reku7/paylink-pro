@@ -44,14 +44,12 @@ export function normalizeProviderStatus(status) {
 
 function canTransition(from, to) {
   if (from === to) return true;
-
   const allowed = {
     initialized: ["processing", "success", "failed"],
     processing: ["success", "failed"],
     success: ["success"],
     failed: ["failed"],
   };
-
   return allowed[from]?.includes(to);
 }
 
@@ -75,17 +73,11 @@ export async function createInternalTransaction(merchantId, linkId, opts = {}) {
 
     const link = await PaymentLink.findOne({ linkId }).session(session);
     if (!link) throw new Error("Payment link not found");
-
-    if (merchantId && link.merchantId.toString() !== merchantId.toString()) {
+    if (merchantId && link.merchantId.toString() !== merchantId.toString())
       throw new Error("Unauthorized payment link access");
-    }
-
     if (link.status !== "active") throw new Error("Payment link not available");
-
     if (link.expiresAt && link.expiresAt < new Date())
       throw new Error("Payment link expired");
-
-    // Prevent reusing one-time paid link
     if (link.type === "one_time" && link.isPaid)
       throw new Error("This payment link has already been used");
 
@@ -98,7 +90,6 @@ export async function createInternalTransaction(merchantId, linkId, opts = {}) {
         linkId,
         "metadata.idempotencyKey": idempotencyKey,
       }).session(session);
-
       if (existing) {
         await session.commitTransaction();
         return existing;
@@ -126,10 +117,7 @@ export async function createInternalTransaction(merchantId, linkId, opts = {}) {
 
     await PaymentLink.updateOne(
       { _id: link._id },
-      {
-        $push: { transactions: tx[0]._id },
-        $set: { updatedAt: new Date() },
-      },
+      { $push: { transactions: tx[0]._id }, $set: { updatedAt: new Date() } },
       { session },
     );
 
@@ -165,13 +153,11 @@ export async function markTransactionProcessing(
     { new: true },
   );
 
-  if (tx) {
+  if (tx)
     await PaymentLink.updateOne(
       { linkId: tx.linkId },
       { $set: { updatedAt: new Date() } },
     );
-  }
-
   return tx;
 }
 
@@ -186,39 +172,67 @@ export async function markTransactionSuccess(
     const tx = await Transaction.findOne({ internalRef }).session(session);
     if (!tx) throw new Error("Transaction not found");
 
+    // If already success, return immediately
     if (tx.status === "success") {
       await session.commitTransaction();
       return tx;
     }
 
+    // Update transaction
     tx.status = "success";
     tx.paidAt = paidAt ? new Date(paidAt) : new Date();
-    tx.gatewayResponse = {
-      ...(tx.gatewayResponse || {}),
-      ...gatewayPayload,
-    };
-
+    tx.gatewayResponse = { ...(tx.gatewayResponse || {}), ...gatewayPayload };
     await tx.save({ session });
 
-    const link = await PaymentLink.findOne({
-      linkId: tx.linkId,
-    }).session(session);
-
+    // Fetch the link
+    const link = await PaymentLink.findOne({ linkId: tx.linkId }).session(
+      session,
+    );
     if (!link) throw new Error("Payment link not found");
 
     link.updatedAt = new Date();
 
+    // Handle one-time link
     if (link.type === "one_time") {
-      link.status = "expired";
-      link.isPaid = true;
-      link.paidAt = tx.paidAt;
+      if (!link.isPaid) {
+        link.status = "expired";
+        link.isPaid = true;
+        link.paidAt = tx.paidAt;
+
+        // Only increment totals if not counted yet
+        if (!tx.processedInTotals) {
+          await PaymentLink.updateOne(
+            { linkId: tx.linkId },
+            {
+              $inc: { totalCollected: tx.amount, totalPayments: 1 },
+              $set: { updatedAt: new Date() },
+            },
+            { session },
+          );
+          tx.processedInTotals = true;
+          await tx.save({ session });
+        }
+      }
     }
 
+    // Handle reusable link
     if (link.type === "reusable") {
-      link.totalCollected = (link.totalCollected || 0) + tx.amount;
-      link.totalPayments = (link.totalPayments || 0) + 1;
+      // Increment totals only if not counted yet for this transaction
+      if (!tx.processedInTotals) {
+        await PaymentLink.updateOne(
+          { linkId: tx.linkId },
+          {
+            $inc: { totalCollected: tx.amount, totalPayments: 1 },
+            $set: { updatedAt: new Date() },
+          },
+          { session },
+        );
+        tx.processedInTotals = true;
+        await tx.save({ session });
+      }
     }
 
+    // Save link changes
     await link.save({ session });
 
     await session.commitTransaction();
@@ -242,14 +256,12 @@ export async function markTransactionFailed(
   tx.gatewayResponse = gatewayPayload;
   if (reason) tx.metadata.failReason = reason;
   tx.updatedAt = new Date();
-
   await tx.save();
 
   await PaymentLink.updateOne(
     { linkId: tx.linkId },
     { $set: { updatedAt: new Date() } },
   );
-
   return tx;
 }
 
@@ -262,7 +274,6 @@ export async function startPayment({ transaction, returnUrls }) {
     throw new Error("WEBHOOK_BASE_URL not configured");
 
   const notifyUrl = `${process.env.WEBHOOK_BASE_URL}/api/webhooks/${transaction.gateway}`;
-
   const urls = returnUrls || {
     successUrl:
       process.env.DEFAULT_SUCCESS_URL || "http://localhost:5173/success",
@@ -273,25 +284,18 @@ export async function startPayment({ transaction, returnUrls }) {
   };
 
   ensureValidUrls(urls);
-
   await assertGatewayReady(transaction.merchantId, transaction.gateway);
 
   const context = await buildGatewayContext(
     transaction.merchantId,
     transaction.gateway,
   );
-
   const gateway = getGateway(transaction.gateway, context);
-
-  const response = await gateway.initializePayment({
-    transaction,
-    urls,
-  });
+  const response = await gateway.initializePayment({ transaction, urls });
 
   await markTransactionProcessing(transaction.internalRef, {
     gatewayPayload: response,
   });
-
   return response;
 }
 
@@ -302,22 +306,16 @@ export async function startPayment({ transaction, returnUrls }) {
 export async function handleSantimWebhook(payload) {
   const refId =
     payload.thirdPartyId || payload.id || payload.externalId || payload.txnId;
-
   if (!refId || !payload.status) throw new Error("Invalid SantimPay payload");
 
   const normalized = normalizeProviderStatus(payload.status);
-
   const tx = await Transaction.findOne({ internalRef: refId });
   if (!tx) throw new Error("Transaction not found");
-
   if (tx.gateway !== "santimpay" || !canTransition(tx.status, normalized))
     return tx;
 
   if (normalized === "success")
-    return markTransactionSuccess(refId, {
-      gatewayPayload: payload,
-    });
-
+    return markTransactionSuccess(refId, { gatewayPayload: payload });
   if (normalized === "failed")
     return markTransactionFailed(refId, {
       gatewayPayload: payload,
@@ -332,10 +330,8 @@ export async function handleChapaWebhook(payload) {
   if (!refId || !payload.status) throw new Error("Invalid Chapa payload");
 
   const normalized = normalizeProviderStatus(payload.status);
-
   const tx = await Transaction.findOne({ internalRef: refId });
   if (!tx) throw new Error("Transaction not found");
-
   if (tx.gateway !== "chapa" || !canTransition(tx.status, normalized))
     return tx;
 
@@ -344,7 +340,6 @@ export async function handleChapaWebhook(payload) {
       gatewayPayload: payload,
       paidAt: payload.created_at,
     });
-
   if (normalized === "failed")
     return markTransactionFailed(refId, {
       gatewayPayload: payload,
@@ -361,22 +356,23 @@ export async function handleChapaWebhook(payload) {
 export async function forceSyncTransactionStatus(internalRef) {
   const { transaction, gatewayStatus } =
     await verifyTransactionWithGateway(internalRef);
-
   if (!gatewayStatus?.status) throw new Error("No status from gateway");
 
   const normalized = normalizeProviderStatus(gatewayStatus.status);
 
-  if (normalized === "success" && transaction.status !== "success")
+  if (normalized === "success" && transaction.status !== "success") {
     return markTransactionSuccess(internalRef, {
       gatewayPayload: gatewayStatus,
       paidAt: gatewayStatus.paidAt || gatewayStatus.updated_at || new Date(),
     });
+  }
 
-  if (normalized === "failed" && transaction.status !== "failed")
+  if (normalized === "failed" && transaction.status !== "failed") {
     return markTransactionFailed(internalRef, {
       gatewayPayload: gatewayStatus,
       reason: gatewayStatus.reason,
     });
+  }
 
   return transaction;
 }
@@ -389,7 +385,6 @@ export async function verifyTransactionWithGateway(internalRef) {
     transaction.merchantId,
     transaction.gateway,
   );
-
   const gateway = getGateway(transaction.gateway, context);
   const gatewayStatus = await gateway.fetchTransaction(internalRef);
 
