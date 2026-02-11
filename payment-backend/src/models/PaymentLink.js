@@ -18,10 +18,9 @@ const PaymentLinkSchema = new mongoose.Schema(
 
     slug: {
       type: String,
-      unique: true,
-      sparse: true,
       trim: true,
       lowercase: true,
+      sparse: true,
     },
 
     title: { type: String, default: "" },
@@ -49,14 +48,22 @@ const PaymentLinkSchema = new mongoose.Schema(
       index: true,
     },
 
-    isPaid: {
-      type: Boolean,
-      default: false,
-      index: true,
+    expiresAt: {
+      type: Date,
+      default: function () {
+        return this.type === "one_time"
+          ? new Date(Date.now() + 24 * 60 * 60 * 1000)
+          : null;
+      },
     },
-    paidAt: Date,
 
-    expiresAt: Date,
+    // Track if a one-time link has been paid
+    isPaid: { type: Boolean, default: false },
+    paidAt: { type: Date, default: null },
+
+    // For reusable links
+    totalCollected: { type: Number, default: 0 },
+    totalPayments: { type: Number, default: 0 },
 
     customerName: { type: String, default: "" },
     customerEmail: { type: String, default: "" },
@@ -73,22 +80,25 @@ const PaymentLinkSchema = new mongoose.Schema(
       index: true,
     },
 
-    transactions: {
-      type: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Transaction",
-        },
-      ],
-      default: [],
-    },
+    transactions: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Transaction",
+      },
+    ],
 
     metadata: { type: Object, default: {} },
   },
   { timestamps: true },
 );
 
-// Performance index
+// ✅ Compound index to ensure slug is unique per merchant
+PaymentLinkSchema.index(
+  { merchantId: 1, slug: 1 },
+  { unique: true, sparse: true },
+);
+
+// ✅ Performance index
 PaymentLinkSchema.index({ merchantId: 1, type: 1, status: 1 });
 
 export default mongoose.models.PaymentLink ||
