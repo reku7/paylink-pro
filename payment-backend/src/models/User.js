@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { ROLES } from "../constants/roles.js";
 
 const UserSchema = new mongoose.Schema(
   {
@@ -12,7 +13,7 @@ const UserSchema = new mongoose.Schema(
       trim: true,
     },
     passwordHash: { type: String, required: true },
-    roles: { type: [String], default: ["merchant_owner"] },
+    roles: { type: [String], default: [ROLES.MERCHANT_OWNER] },
     avatar: {
       type: String,
       default: null,
