@@ -1,16 +1,20 @@
-// src/gateways/index.js
-import SantimPayGateway from "./santimPay.js";
-import ChapaGateway from "./chapa.js";
+import SantimPay from "./santimPay.js";
+import Chapa from "./chapa.js";
+
+const gateways = {
+  santimpay: SantimPay,
+  chapa: Chapa,
+};
 
 export function getGateway(name, context = {}) {
-  switch (name) {
-    case "santimpay":
-      return new SantimPayGateway();
-
-    case "chapa":
-      return new ChapaGateway(context);
-
-    default:
-      throw new Error(`Unsupported gateway: ${name}`);
+  const gateway = gateways[name];
+  if (!gateway) {
+    throw new Error(`Unsupported payment gateway: ${name}`);
   }
+
+  if (typeof gateway.setContext === "function") {
+    gateway.setContext(context);
+  }
+
+  return gateway;
 }

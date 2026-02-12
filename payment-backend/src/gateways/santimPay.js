@@ -2,35 +2,22 @@
 import BaseGateway from "./BaseGateway.js";
 import SantimpaySdk from "./nodeSDK/lib/index.js";
 
-function requiredEnv(name) {
-  if (!process.env[name]) {
-    throw new Error(`Missing environment variable: ${name}`);
+const SANTIMPAY_PRIVATE_KEY = process.env.SANTIMPAY_PRIVATE_KEY.replace(
+  /\\n/g,
+  "\n",
+);
+
+const client = new SantimpaySdk(
+  process.env.SANTIMPAY_MERCHANT_ID,
+  SANTIMPAY_PRIVATE_KEY,
+  process.env.SANTIMPAY_TESTBED === "false",
+);
+
+class SantimPayGateway extends BaseGateway {
+  setContext() {
+    // SantimPay is platform-owned
+    // context intentionally ignored
   }
-  return process.env[name];
-}
-
-export default class SantimPayGateway extends BaseGateway {
-  constructor() {
-    super();
-
-    const privateKey = requiredEnv("SANTIMPAY_PRIVATE_KEY").replace(
-      /\\n/g,
-      "\n",
-    );
-
-    this.client = new SantimpaySdk(
-      requiredEnv("SANTIMPAY_MERCHANT_ID"),
-      privateKey,
-      process.env.SANTIMPAY_TESTBED !== "false",
-    );
-  }
-
-  /**
-   * SantimPay is platform-owned
-   * Context is intentionally ignored
-   */
-  setContext() {}
-
   async initializePayment({ transaction, urls }) {
     return this.createPayment({
       reference: transaction.internalRef,
@@ -43,7 +30,7 @@ export default class SantimPayGateway extends BaseGateway {
       notifyUrl: urls.notifyUrl,
     });
   }
-
+  // Create hosted checkout payment
   async createPayment(payload) {
     const {
       reference,
@@ -56,63 +43,100 @@ export default class SantimPayGateway extends BaseGateway {
       customerPhone,
     } = payload;
 
-    if (!reference) throw new Error("reference is required");
-    if (!amount || amount <= 0) throw new Error("invalid amount");
+    // 🔍 Log all URLs for debugging
+    console.log("🔗 SantimPay Payment URLs:", {
+      reference,
+      successUrl,
+      failureUrl,
+      cancelUrl,
+      notifyUrl,
+    });
 
     try {
-      const checkoutUrl = await this.client.generatePaymentUrl(
+      const checkoutUrl = await client.generatePaymentUrl(
         reference,
         amount,
         paymentReason,
         successUrl,
         failureUrl,
-        notifyUrl,
-        customerPhone || "",
-        cancelUrl,
+        notifyUrl, // 6th param: notifyUrl
+        customerPhone || "", // 7th param: phoneNumber
+        cancelUrl, // 8th param: cancelRedirectUrl
       );
 
+      console.log(
+        "✅ SantimPay Checkout URL:",
+        checkoutUrl.substring(0, 100) + "...",
+      );
       return { checkoutUrl };
     } catch (error) {
-      // Log minimal safe info
-      console.error("SantimPay createPayment failed:", {
-        reference,
+      console.error("❌ SantimPay SDK Error Details:", {
         message: error.message,
+        stack: error.stack,
+        parameters: {
+          reference,
+          amount,
+          paymentReason,
+          successUrl: successUrl?.substring(0, 50),
+          failureUrl: failureUrl?.substring(0, 50),
+          cancelUrl: cancelUrl?.substring(0, 50),
+          notifyUrl: notifyUrl?.substring(0, 50),
+        },
       });
-
       throw error;
     }
   }
 
+  /**
+   * B2C payout / refund
+   */
+  // In santimPay.js, enhance the fetchTransaction method:
+
   async fetchTransaction(reference) {
     if (!reference) throw new Error("reference is required");
 
-    let retries = 3;
-    let lastError;
+    try {
+      // SantimPay SDK might have issues, add retry logic
+      let retries = 3;
+      let lastError;
 
-    while (retries > 0) {
-      try {
-        return await this.client.checkTransactionStatus(reference);
-      } catch (err) {
-        lastError = err;
-        retries--;
+      while (retries > 0) {
+        try {
+          const result = await client.checkTransactionStatus(reference);
 
-        if (retries > 0) {
-          await new Promise((r) => setTimeout(r, 1000));
+          // Log for debugging
+          console.log("🔍 SantimPay fetchTransaction result:", {
+            reference,
+            status: result?.status,
+            rawResult: result,
+          });
+
+          return result;
+        } catch (error) {
+          lastError = error;
+          retries--;
+
+          if (retries === 0) break;
+
+          console.log(
+            `🔄 Retrying SantimPay status check (${retries} left)...`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
+
+      throw lastError || new Error("Failed to fetch transaction status");
+    } catch (error) {
+      console.error("❌ SantimPay fetchTransaction error:", error.message);
+
+      // Return a default structure if API fails
+      return {
+        status: "unknown",
+        reference,
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      };
     }
-
-    console.error("SantimPay fetchTransaction failed:", {
-      reference,
-      message: lastError?.message,
-    });
-
-    return {
-      status: "unknown",
-      reference,
-      error: lastError?.message || "unknown error",
-      timestamp: new Date().toISOString(),
-    };
   }
 
   async sendToCustomer(payload) {
@@ -125,7 +149,7 @@ export default class SantimPayGateway extends BaseGateway {
     if (!phoneNumber) throw new Error("phoneNumber is required");
     if (!paymentMethod) throw new Error("paymentMethod is required");
 
-    return this.client.sendToCustomer(
+    return client.sendToCustomer(
       reference,
       amount,
       reason,
@@ -135,3 +159,5 @@ export default class SantimPayGateway extends BaseGateway {
     );
   }
 }
+
+export default new SantimPayGateway();
