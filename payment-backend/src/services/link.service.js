@@ -1,20 +1,14 @@
-//payment-backend\src\services\link.service.js
 import mongoose from "mongoose";
 import crypto from "crypto";
 import PaymentLink from "../models/PaymentLink.js";
 import Merchant from "../models/Merchant.js";
 
-/**
- * Generate secure payment link ID
- * Example: pay_a3f1c9d2e4
- */
+/** Generate secure linkId */
 function generateLinkId() {
   return "pay_" + crypto.randomBytes(5).toString("hex");
 }
 
-/**
- * Generate slug from title
- */
+/** Generate a unique slug for reusable links */
 async function generateUniqueSlug(title, merchantId) {
   let slug;
   let exists = true;
@@ -35,9 +29,7 @@ async function generateUniqueSlug(title, merchantId) {
   return slug;
 }
 
-/**
- * Create a new payment link
- */
+/** Create a new payment link */
 export async function createPaymentLink(merchantId, data) {
   if (!data.amount || data.amount <= 0)
     throw new Error("Invalid payment amount");
@@ -48,13 +40,13 @@ export async function createPaymentLink(merchantId, data) {
   const type = data.type || "one_time";
   const gateway = data.gateway || merchant.preferredGateway || "santimpay";
 
-  let slug = null;
+  let slug;
   if (type === "reusable") {
     slug = data.slug
       ? data.slug.toLowerCase().trim()
       : await generateUniqueSlug(data.title || "payment", merchantId);
 
-    // Reuse existing reusable link
+    // Reuse existing active reusable link
     const existing = await PaymentLink.findOne({
       merchantId,
       slug,
@@ -67,7 +59,7 @@ export async function createPaymentLink(merchantId, data) {
   return PaymentLink.create({
     merchantId,
     linkId: generateLinkId(),
-    slug,
+    ...(slug && { slug }), // only include slug if exists
     title: data.title || "",
     description: data.description || "",
     amount: data.amount,
@@ -87,9 +79,7 @@ export async function createPaymentLink(merchantId, data) {
   });
 }
 
-/**
- * List active payment links for a merchant (with transaction count)
- */
+/** List active payment links */
 export function listPaymentLinks(merchantId) {
   return PaymentLink.aggregate([
     {
@@ -99,16 +89,12 @@ export function listPaymentLinks(merchantId) {
         $or: [{ type: "reusable" }, { expiresAt: { $gt: new Date() } }],
       },
     },
-    {
-      $addFields: { transactionCount: { $size: "$transactions" } },
-    },
+    { $addFields: { transactionCount: { $size: "$transactions" } } },
     { $sort: { createdAt: -1 } },
   ]);
 }
 
-/**
- * Get a single active payment link by linkId
- */
+/** Get a single active link by linkId */
 export function getPaymentLinkById(linkId) {
   return PaymentLink.findOne({
     linkId,

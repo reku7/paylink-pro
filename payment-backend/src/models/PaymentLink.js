@@ -91,10 +91,13 @@ const PaymentLinkSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// ✅ Compound index to ensure slug is unique per merchant
+// ✅ Partial index: only enforce uniqueness for reusable slugs
 PaymentLinkSchema.index(
   { merchantId: 1, slug: 1 },
-  { unique: true, sparse: true },
+  {
+    unique: true,
+    partialFilterExpression: { slug: { $type: "string" } },
+  },
 );
 
 // ✅ Performance index
