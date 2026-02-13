@@ -96,7 +96,7 @@ PaymentLinkSchema.index(
   { merchantId: 1, slug: 1 },
   {
     unique: true,
-    partialFilterExpression: { slug: { $type: "string" } },
+    partialFilterExpression: { type: "reusable" },
   },
 );
 
