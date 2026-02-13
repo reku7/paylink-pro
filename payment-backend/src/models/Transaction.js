@@ -60,14 +60,21 @@ const TransactionSchema = new mongoose.Schema(
     },
     santimTxnId: { type: String, index: true, default: null },
 
+    processedInTotals: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
     gateway: {
       type: String,
       enum: ["santimpay", "chapa"],
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
+TransactionSchema.index({ linkId: 1, status: 1 });
 
 export default mongoose.models.Transaction ||
   mongoose.model("Transaction", TransactionSchema);

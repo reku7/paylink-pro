@@ -26,7 +26,6 @@ export default class ChapaGateway extends BaseGateway {
         transaction.customerEmail?.trim() ||
         transaction.metadata?.customerEmail?.trim() ||
         this.getTestEmail(transaction),
-
       first_name,
       last_name,
 
@@ -66,7 +65,11 @@ export default class ChapaGateway extends BaseGateway {
   }
 
   getTestEmail(transaction) {
-    return `test_${transaction.internalRef}@chapa.test`;
+    const cleanRef = transaction.internalRef
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+
+    return `test${cleanRef}@gmail.com`;
   }
 
   async fetchTransaction(txRef) {

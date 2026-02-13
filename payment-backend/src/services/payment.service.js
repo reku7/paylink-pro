@@ -200,17 +200,29 @@ export async function markTransactionSuccess(
         link.paidAt = tx.paidAt;
 
         // Only increment totals if not counted yet
-        if (!tx.processedInTotals) {
+        const updatedTx = await Transaction.findOneAndUpdate(
+          {
+            internalRef,
+            processedInTotals: false,
+          },
+          {
+            $set: { processedInTotals: true },
+          },
+          { new: true, session },
+        );
+
+        if (updatedTx) {
           await PaymentLink.updateOne(
             { linkId: tx.linkId },
             {
-              $inc: { totalCollected: tx.amount, totalPayments: 1 },
+              $inc: {
+                totalCollected: tx.amount,
+                totalPayments: 1,
+              },
               $set: { updatedAt: new Date() },
             },
             { session },
           );
-          tx.processedInTotals = true;
-          await tx.save({ session });
         }
       }
     }
@@ -218,17 +230,29 @@ export async function markTransactionSuccess(
     // Handle reusable link
     if (link.type === "reusable") {
       // Increment totals only if not counted yet for this transaction
-      if (!tx.processedInTotals) {
+      const updatedTx = await Transaction.findOneAndUpdate(
+        {
+          internalRef,
+          processedInTotals: false,
+        },
+        {
+          $set: { processedInTotals: true },
+        },
+        { new: true, session },
+      );
+
+      if (updatedTx) {
         await PaymentLink.updateOne(
           { linkId: tx.linkId },
           {
-            $inc: { totalCollected: tx.amount, totalPayments: 1 },
+            $inc: {
+              totalCollected: tx.amount,
+              totalPayments: 1,
+            },
             $set: { updatedAt: new Date() },
           },
           { session },
         );
-        tx.processedInTotals = true;
-        await tx.save({ session });
       }
     }
 
