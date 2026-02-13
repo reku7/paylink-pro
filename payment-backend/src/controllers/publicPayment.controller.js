@@ -36,9 +36,9 @@ export async function startPublicPaymentController(req, res) {
     );
 
     // 5️⃣ Build public URLs with linkId (retry works now)
-    const successUrl = `${process.env.PUBLIC_PAYMENT_SUCCESS_URL}?linkId=${link.linkId}`;
-    const cancelUrl = `${process.env.PUBLIC_PAYMENT_CANCEL_URL}?linkId=${link.linkId}`;
-    const failureUrl = `${process.env.PUBLIC_PAYMENT_FAILURE_URL}?linkId=${link.linkId}`;
+    const successUrl = `${process.env.DEFAULT_SUCCESS_URL}?linkId=${link.linkId}`;
+    const cancelUrl = `${process.env.DEFAULT_CANCEL_URL}?linkId=${link.linkId}`;
+    const failureUrl = `${process.env.DEFAULT_FAILURE_URL}?linkId=${link.linkId}`;
 
     // 6️⃣ Start payment via gateway
     const gatewayResponse = await startPayment({
