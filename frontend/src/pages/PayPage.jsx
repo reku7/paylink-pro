@@ -1,3 +1,4 @@
+// PayPage.jsx
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { publicApi, privateApi } from "../api/api";
@@ -19,15 +20,12 @@ export default function PayPage() {
       try {
         setError("");
         setFetching(true);
-
-        // Always fetch public link info
         const res = await publicApi.get(`/links/public/${linkId}`);
-        const data = res.data.data || res.data || null;
-        setLink(data);
+        setLink(res.data.data || res.data || null);
 
         // Check if link is already paid/expired
-        if (["paid", "expired", "failed"].includes(data?.status)) {
-          setError(`This payment link is ${data.status}`);
+        if (["paid", "expired", "failed"].includes(res.data.data?.status)) {
+          setError(`This payment link is ${res.data.data.status}`);
         }
       } catch (err) {
         console.error("Fetch link error:", err);
@@ -43,82 +41,56 @@ export default function PayPage() {
   const handlePay = async () => {
     if (!link) return;
 
-    // Validate essential fields
-    if (!link.amount || !link.currency) {
-      setError("Invalid payment data. Please contact support.");
-      return;
-    }
-
     try {
       setLoading(true);
       setError("");
 
       let res;
-      const successUrl = userIsLoggedIn
-        ? "/dashboard/success"
-        : "/public-success";
-      const cancelUrl = userIsLoggedIn ? "/dashboard/cancel" : "/public-cancel";
-
       if (userIsLoggedIn) {
         res = await privateApi.post(`/payments/${linkId}/start`, {
           amount: link.amount,
           currency: link.currency,
-          successUrl,
-          cancelUrl,
         });
       } else {
-        res = await publicApi.post(`/payments/public/start/${linkId}`, {
-          successUrl,
-          cancelUrl,
-        });
+        res = await publicApi.post(`/payments/public/start/${linkId}`, {});
       }
 
-      // Extract checkout URL safely
       const checkoutUrl =
-        res?.data?.checkoutUrl ||
-        res?.data?.url ||
-        res?.data?.gateway?.checkoutUrl ||
-        res?.data?.data?.checkoutUrl;
+        res.data.checkoutUrl ||
+        res.data.url ||
+        res.data.gateway?.checkoutUrl ||
+        res.data.data?.checkoutUrl;
 
       if (!checkoutUrl) {
-        console.error("No checkout URL received:", res?.data);
-        setError(
-          "Payment initiation failed. Please contact support or try again later.",
-        );
-        return;
+        throw new Error("No checkout URL received");
       }
 
-      // Small delay for UX
+      // Add small delay for better UX
       setTimeout(() => {
         window.location.href = checkoutUrl;
       }, 500);
     } catch (err) {
-      console.error("Payment initiation error:", err.response?.data || err);
-
-      // Distinguish 500 server errors
-      if (err.response?.status === 500) {
-        setError(
-          "Server error occurred while starting the payment. Please try again in a few minutes.",
-        );
-      } else {
-        setError(
-          err.response?.data?.error ||
-            err.response?.data?.message ||
-            err.message ||
-            "Payment initiation failed. Please try again.",
-        );
-      }
+      console.error("Payment initiation error:", err);
+      setError(
+        err.response?.data?.error ||
+          err.response?.data?.message ||
+          err.message ||
+          "Payment initiation failed. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   // Format currency
-  const formatCurrency = (amount, currency = "ETB") =>
-    new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount) + ` ${currency}`;
+  const formatCurrency = (amount, currency = "ETB") => {
+    return (
+      new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(amount) + ` ${currency}`
+    );
+  };
 
   // Format date
   const formatDate = (dateString, includeTime = false) => {
@@ -179,14 +151,15 @@ export default function PayPage() {
     );
   }
 
-  // Render main payment page
   return (
     <div style={styles.container}>
+      {/* Main Content */}
       <div style={styles.mainContent}>
         <div style={styles.grid}>
-          {/* Left Column */}
+          {/* Left Column - Payment Details */}
           <div style={styles.leftColumn}>
             <div style={styles.paymentCard}>
+              {/* Merchant Info */}
               <div style={styles.merchantInfo}>
                 <div>
                   <h2 style={styles.merchantTitle}>
@@ -198,6 +171,7 @@ export default function PayPage() {
                 </div>
               </div>
 
+              {/* Amount Section */}
               <div style={styles.amountSection}>
                 <div style={styles.amountHeader}>
                   <span style={styles.amountLabel}>Amount to pay</span>
@@ -213,6 +187,7 @@ export default function PayPage() {
                 )}
               </div>
 
+              {/* Payment Button */}
               <div style={styles.paymentButtonSection}>
                 <button
                   onClick={handlePay}
@@ -292,7 +267,7 @@ export default function PayPage() {
             </div>
           </div>
 
-          {/* Right Column */}
+          {/* Right Column - Info & Support */}
           <div style={styles.rightColumn}>
             {/* Payment Summary */}
             <div style={styles.summaryCard}>
@@ -321,12 +296,15 @@ export default function PayPage() {
             <div style={styles.detailsCard}>
               <h3 style={styles.detailsTitle}>Payment Details</h3>
               <div style={styles.detailsContent}>
+                {/* Payment ID */}
                 <div>
                   <span style={styles.detailsLabel}>Payment ID</span>
                   <div style={styles.paymentId}>
                     <code>{linkId}</code>
                   </div>
                 </div>
+
+                {/* Created Date */}
                 {link.createdAt && (
                   <div>
                     <span style={styles.detailsLabel}>Created</span>
@@ -335,6 +313,8 @@ export default function PayPage() {
                     </p>
                   </div>
                 )}
+
+                {/* Expiration Date */}
                 {link.expiresAt && (
                   <div>
                     <span style={styles.detailsLabel}>Expires</span>
@@ -343,6 +323,8 @@ export default function PayPage() {
                     </p>
                   </div>
                 )}
+
+                {/* Status */}
                 {link.status && (
                   <div>
                     <span style={styles.detailsLabel}>Status</span>
@@ -363,6 +345,7 @@ export default function PayPage() {
                 payment
               </p>
               <div style={styles.supportOptions}>
+                {/* Web-friendly email link */}
                 <a
                   href="https://mail.google.com/mail/?view=cm&fs=1&to=rekiklegese@gmail.com"
                   target="_blank"
