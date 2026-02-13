@@ -84,7 +84,7 @@ export function listPaymentLinks(merchantId) {
   return PaymentLink.aggregate([
     {
       $match: {
-        merchantId: mongoose.Types.ObjectId(merchantId),
+        merchantId: new mongoose.Types.ObjectId(merchantId),
         status: "active",
         $or: [{ type: "reusable" }, { expiresAt: { $gt: new Date() } }],
       },
