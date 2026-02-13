@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import AdminRoute from "./routes/AdminRoute.jsx"; // Add this import
+import AdminRoute from "./routes/AdminRoute.jsx";
 import "./responsive.css";
 
 // Pages
@@ -11,6 +11,7 @@ import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import TransactionsPage from "./pages/Transactions.jsx";
 import CreateLinkPage from "./pages/CreatePaymentLink.jsx";
+import PaymentLinksPage from "./pages/PaymentLinks.jsx"; // List of created links
 import PayPage from "./pages/PayPage.jsx";
 import Success from "./pages/success.jsx";
 import Failed from "./pages/failed.jsx";
@@ -22,11 +23,11 @@ import ConnectChapaPage from "./pages/ConnectChapaPage.jsx";
 import PaymentGatewaysPage from "./pages/PaymentGatewaysPage.jsx";
 import Profile from "./pages/profile/Profile.jsx";
 
-// Admin Pages - Add these imports
+// Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminMerchants from "./pages/admin/AdminMerchants.jsx";
 
-// CONTEXTS
+// Contexts
 import { GatewayProvider } from "./context/GatewayContext.jsx";
 import { UserProvider } from "./context/userContext.jsx";
 
@@ -37,17 +38,14 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/pay/:linkId" element={<PayPage />} />
 
+      {/* Public payment pages for customers */}
+      <Route path="/pay/:linkId" element={<PayPage />} />
       <Route path="/public-success" element={<PublicSuccess />} />
       <Route path="/public-failed" element={<PublicFailed />} />
       <Route path="/public-cancel" element={<PublicCancel />} />
 
-      <Route path="/success" element={<Success />} />
-      <Route path="/failed" element={<Failed />} />
-      <Route path="/cancel" element={<Cancel />} />
-
-      {/* ===== PROTECTED DASHBOARD ===== */}
+      {/* ===== DASHBOARD / PROTECTED ROUTES ===== */}
       <Route
         path="/dashboard"
         element={
@@ -60,15 +58,23 @@ export default function App() {
           </ProtectedRoute>
         }
       >
+        {/* Default dashboard home */}
         <Route index element={<DashboardHome />} />
+
+        {/* Merchant dashboard pages */}
         <Route path="transactions" element={<TransactionsPage />} />
         <Route path="create-link" element={<CreateLinkPage />} />
+        <Route path="payment-links" element={<PaymentLinksPage />} />
         <Route path="settings/payments" element={<PaymentGatewaysPage />} />
         <Route path="connect-chapa" element={<ConnectChapaPage />} />
         <Route path="profile" element={<Profile />} />
+
+        {/* Dashboard-specific payment result pages */}
+        <Route path="success" element={<Success isPublic={false} />} />
+        <Route path="failed" element={<Failed isPublic={false} />} />
+        <Route path="cancel" element={<Cancel isPublic={false} />} />
       </Route>
 
-      {/* ===== ADMIN ROUTES ===== */}
       {/* ===== ADMIN ROUTES ===== */}
       <Route element={<AdminRoute />}>
         <Route path="/admin" element={<AdminDashboard />} />

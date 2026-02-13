@@ -44,6 +44,9 @@ export default function Dashboard() {
           <Link to="/dashboard/settings/payments" style={styles.link}>
             Payment Gateways
           </Link>
+          <Link to="/dashboard/payment-links" style={styles.link}>
+            Payment Links
+          </Link>
         </nav>
 
         {/* Profile Section */}
