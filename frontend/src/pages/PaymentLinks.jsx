@@ -1,914 +1,232 @@
-// src/pages/PaymentLinks.jsx
-import { useState, useEffect } from "react";
-import { privateApi as api } from "../api/api";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Link2,
   Plus,
   Copy,
-  Eye,
-  Search,
-  Filter,
-  RefreshCw,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Zap,
-  Repeat,
-  DollarSign,
-  BarChart2,
-  ChevronLeft,
-  ChevronRight,
   Trash2,
+  RefreshCw,
+  TrendingUp,
+  DollarSign,
+  Activity,
+  Search,
 } from "lucide-react";
+import { privateApi as api } from "../api/api";
 
 export default function PaymentLinks() {
-  // State management
   const [links, setLinks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-  const [selectedLink, setSelectedLink] = useState(null);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Form state for create modal
-  const [newLink, setNewLink] = useState({
-    title: "",
-    description: "",
-    amount: "",
-    gateway: "santimpay",
-  });
-
-  // Stats
-  const [stats, setStats] = useState({
-    total: 0,
-    active: 0,
-    expired: 0,
-    totalCollected: 0,
-    conversionRate: 0,
-  });
-
-  // Pagination
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
     total: 0,
-    pages: 0,
+    pages: 1,
   });
 
-  // Fetch links on mount, tab change, or page change
   useEffect(() => {
     fetchLinks();
-  }, [activeTab, pagination.page]);
+  }, [pagination.page]);
 
-  // Fetch links from API
   const fetchLinks = async () => {
     setLoading(true);
     setError("");
-
     try {
-      const params = {
-        page: pagination.page,
-        limit: pagination.limit,
-      };
+      const res = await api.get("/links", {
+        params: {
+          page: pagination.page,
+          limit: pagination.limit,
+          search: searchTerm || undefined,
+        },
+      });
 
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-
-      const res = await api.get("/links", { params });
-
-      if (res.data.success) {
-        const linksData = res.data.data || [];
-        setLinks(linksData);
-
-        setPagination((prev) => ({
-          ...prev,
-          total: res.data.pagination?.total || linksData.length,
-          pages:
-            res.data.pagination?.pages ||
-            Math.ceil(linksData.length / prev.limit),
+      if (res.data?.success) {
+        setLinks(res.data.data || []);
+        setPagination((p) => ({
+          ...p,
+          total: res.data.pagination?.total ?? 0,
+          pages: res.data.pagination?.pages ?? 1,
         }));
-
-        calculateStats(linksData);
       }
-    } catch (err) {
-      console.error("Failed to fetch links:", err);
+    } catch {
       setError("Failed to load payment links");
     } finally {
       setLoading(false);
     }
   };
 
-  // Calculate statistics
-  const calculateStats = (linksData) => {
-    const now = new Date();
-    const active = linksData.filter(
-      (l) =>
-        l.status === "active" && (!l.expiresAt || new Date(l.expiresAt) > now),
-    ).length;
+  const filteredLinks = useMemo(() => {
+    return links.filter((l) => {
+      if (activeTab === "one-time" && l.type !== "one_time") return false;
+      if (activeTab === "reusable" && l.type !== "reusable") return false;
+      if (!searchTerm) return true;
 
-    const expired = linksData.filter(
-      (l) =>
-        l.status === "expired" || (l.expiresAt && new Date(l.expiresAt) < now),
-    ).length;
-
-    const totalCollected = linksData.reduce(
-      (sum, link) => sum + (link.totalCollected || 0),
-      0,
-    );
-
-    const totalTransactions = linksData.reduce(
-      (sum, link) => sum + (link.transactions?.length || 0),
-      0,
-    );
-
-    const successfulTransactions = linksData.reduce(
-      (sum, link) =>
-        sum +
-        (link.transactions?.filter((tx) => tx.status === "success")?.length ||
-          0),
-      0,
-    );
-
-    setStats({
-      total: linksData.length,
-      active,
-      expired,
-      totalCollected,
-      conversionRate:
-        totalTransactions > 0
-          ? Math.round((successfulTransactions / totalTransactions) * 100)
-          : 0,
-    });
-  };
-
-  // Handle create payment link
-  const handleCreateLink = async (e) => {
-    e.preventDefault();
-
-    if (!newLink.title.trim()) {
-      setError("Title is required");
-      return;
-    }
-
-    if (
-      !newLink.amount ||
-      isNaN(newLink.amount) ||
-      Number(newLink.amount) <= 0
-    ) {
-      setError("Please enter a valid amount");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const res = await api.post("/links", {
-        title: newLink.title.trim(),
-        description: newLink.description.trim(),
-        amount: Number(newLink.amount),
-        currency: "ETB",
-        gateway: newLink.gateway,
-      });
-
-      if (res.data.success) {
-        setShowCreateModal(false);
-        setNewLink({
-          title: "",
-          description: "",
-          amount: "",
-          gateway: "santimpay",
-        });
-        fetchLinks();
-      }
-    } catch (err) {
-      console.error("Failed to create link:", err);
-      setError(err.response?.data?.error || "Failed to create payment link");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Handle delete link
-  const handleDeleteLink = async (linkId, e) => {
-    e.stopPropagation();
-
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this link? This action cannot be undone.",
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const res = await api.delete(`/links/${linkId}`);
-      if (res.data.success) {
-        fetchLinks();
-      }
-    } catch (err) {
-      console.error("Failed to delete link:", err);
-      setError("Failed to delete link");
-    }
-  };
-
-  // Copy link to clipboard
-  const copyLink = (linkId, e) => {
-    e.stopPropagation();
-    const url = `${window.location.origin}/pay/${linkId}`;
-    navigator.clipboard.writeText(url);
-  };
-
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  const formatRelativeTime = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = date - now;
-    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays < 0) return "Expired";
-    if (diffDays === 0) return "Expires today";
-    if (diffDays === 1) return "Expires tomorrow";
-    return `Expires in ${diffDays} days`;
-  };
-
-  // Format currency
-  const formatCurrency = (amount, currency = "ETB") => {
-    return `${Number(amount || 0).toLocaleString()} ${currency}`;
-  };
-
-  // Get status badge
-  const getStatusBadge = (link) => {
-    const now = new Date();
-    const expiresAt = link.expiresAt ? new Date(link.expiresAt) : null;
-
-    if (expiresAt && expiresAt < now) {
-      return {
-        label: "Expired",
-        className: "bg-gray-100 text-gray-800",
-        icon: Clock,
-      };
-    }
-
-    switch (link.status) {
-      case "active":
-        return {
-          label: "Active",
-          className: "bg-green-100 text-green-800",
-          icon: CheckCircle,
-        };
-      case "disabled":
-        return {
-          label: "Disabled",
-          className: "bg-red-100 text-red-800",
-          icon: XCircle,
-        };
-      case "expired":
-        return {
-          label: "Expired",
-          className: "bg-gray-100 text-gray-800",
-          icon: Clock,
-        };
-      default:
-        return {
-          label: link.status || "Unknown",
-          className: "bg-gray-100 text-gray-800",
-          icon: Clock,
-        };
-    }
-  };
-
-  // Filter links based on search and tab
-  const filteredLinks = links.filter((link) => {
-    // Tab filter
-    if (activeTab === "one-time" && link.type !== "one_time") return false;
-    if (activeTab === "reusable" && link.type !== "reusable") return false;
-
-    // Search filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
+      const t = searchTerm.toLowerCase();
       return (
-        link.title?.toLowerCase().includes(term) ||
-        link.linkId?.toLowerCase().includes(term) ||
-        link.amount?.toString().includes(term)
+        l.title?.toLowerCase().includes(t) ||
+        l.linkId?.toLowerCase().includes(t)
       );
-    }
-
-    return true;
-  });
-
-  const tabs = [
-    { id: "all", label: "All Links", icon: Link2, count: stats.total },
-    {
-      id: "one-time",
-      label: "One-Time",
-      icon: Zap,
-      count: links.filter((l) => l.type === "one_time").length,
-    },
-    {
-      id: "reusable",
-      label: "Reusable",
-      icon: Repeat,
-      count: links.filter((l) => l.type === "reusable").length,
-    },
-  ];
+    });
+  }, [links, activeTab, searchTerm]);
 
   return (
     <div className="payment-links-page">
-      {/* Header */}
+      {/* HEADER */}
       <div className="page-header">
         <div className="header-left">
           <h1 className="page-title">Payment Links</h1>
           <p className="page-subtitle">
-            Create and manage payment links for your customers
+            Create, manage and track your payment links
           </p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="btn-primary"
-        >
-          <Plus size={18} />
-          <span>Create New Link</span>
-        </button>
+
+        <Link to="/dashboard/create-link" className="btn-primary">
+          <Plus size={18} /> Create Link
+        </Link>
       </div>
 
-      {/* Stats Cards */}
+      {/* STATS */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon blue">
-            <Link2 size={20} />
+            <Link2 />
           </div>
           <div className="stat-info">
             <span className="stat-label">Total Links</span>
-            <span className="stat-value">{stats.total}</span>
+            <span className="stat-value">{links.length}</span>
           </div>
         </div>
 
         <div className="stat-card">
           <div className="stat-icon green">
-            <CheckCircle size={20} />
+            <Activity />
           </div>
           <div className="stat-info">
             <span className="stat-label">Active</span>
-            <span className="stat-value">{stats.active}</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon purple">
-            <DollarSign size={20} />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Total Collected</span>
             <span className="stat-value">
-              {formatCurrency(stats.totalCollected)}
+              {links.filter((l) => l.status === "active").length}
             </span>
           </div>
         </div>
 
         <div className="stat-card">
+          <div className="stat-icon purple">
+            <DollarSign />
+          </div>
+          <div className="stat-info">
+            <span className="stat-label">Collected</span>
+            <span className="stat-value">$0</span>
+          </div>
+        </div>
+
+        <div className="stat-card">
           <div className="stat-icon orange">
-            <BarChart2 size={20} />
+            <TrendingUp />
           </div>
           <div className="stat-info">
             <span className="stat-label">Conversion</span>
-            <span className="stat-value">{stats.conversionRate}%</span>
+            <span className="stat-value">0%</span>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* TABS */}
       <div className="tabs-container">
         <div className="tabs">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveTab(tab.id);
-                  setPagination((prev) => ({ ...prev, page: 1 }));
-                }}
-                className={`tab ${isActive ? "active" : ""}`}
-              >
-                <Icon size={16} />
-                {tab.label}
-                {tab.count > 0 && (
-                  <span className={`tab-count ${isActive ? "active" : ""}`}>
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+          {["all", "one-time", "reusable"].map((t) => (
+            <button
+              key={t}
+              className={`tab ${activeTab === t ? "active" : ""}`}
+              onClick={() => setActiveTab(t)}
+            >
+              {t === "all" ? "All" : t === "one-time" ? "One-Time" : "Reusable"}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Search and Filter Bar */}
+      {/* SEARCH */}
       <div className="search-container">
         <div className="search-wrapper">
-          <Search size={18} className="search-icon" />
+          <Search className="search-icon" size={18} />
           <input
-            type="text"
-            placeholder="Search by title, link ID, or amount..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setPagination((prev) => ({ ...prev, page: 1 }));
-            }}
             className="search-input"
+            placeholder="Search payment links..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+
         <div className="action-buttons">
-          <button className="btn-filter">
-            <Filter size={16} />
-            <span>Filter</span>
-          </button>
-          <button onClick={fetchLinks} className="btn-refresh">
-            <RefreshCw size={16} className={loading ? "spin" : ""} />
-            <span>Refresh</span>
+          <button className="btn-refresh" onClick={fetchLinks}>
+            <RefreshCw size={16} />
           </button>
         </div>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="error-box">
-          <p>{error}</p>
-        </div>
-      )}
-
-      {/* Links Table */}
+      {/* TABLE */}
       <div className="table-container">
         {loading ? (
           <div className="loading-state">
-            <div className="spinner"></div>
-            <p>Loading payment links...</p>
+            <div className="spinner" />
+            Loading...
           </div>
+        ) : error ? (
+          <div className="error-box">{error}</div>
         ) : filteredLinks.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">
-              <Link2 size={48} />
-            </div>
-            <h3>No payment links found</h3>
-            <p>
-              {searchTerm
-                ? "No links match your search criteria"
-                : "Get started by creating your first payment link"}
-            </p>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="btn-primary"
-            >
-              <Plus size={16} />
-              <span>Create Payment Link</span>
-            </button>
+            <h3>No payment links</h3>
+            <p>Create your first payment link</p>
           </div>
         ) : (
-          <>
-            <div className="table-responsive">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Link Details</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Performance</th>
-                    <th>Created</th>
-                    <th>Actions</th>
+          <div className="table-responsive">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredLinks.map((l) => (
+                  <tr key={l._id} className="table-row">
+                    <td>{l.title}</td>
+                    <td>{l.type}</td>
+                    <td>{l.status}</td>
+                    <td>
+                      <div className="action-buttons-group">
+                        <button className="action-btn">
+                          <Copy size={14} />
+                        </button>
+                        <button className="action-btn delete">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filteredLinks.map((link) => {
-                    const status = getStatusBadge(link);
-                    const StatusIcon = status.icon;
-
-                    return (
-                      <tr
-                        key={link._id || link.linkId}
-                        className="table-row"
-                        onClick={() => {
-                          setSelectedLink(link);
-                          setShowDetailsModal(true);
-                        }}
-                      >
-                        <td className="link-details-cell">
-                          <div className="link-details">
-                            <div
-                              className={`link-icon ${link.type === "reusable" ? "reusable" : "one-time"}`}
-                            >
-                              {link.type === "reusable" ? (
-                                <Repeat size={20} />
-                              ) : (
-                                <Zap size={20} />
-                              )}
-                            </div>
-                            <div>
-                              <div className="link-title">
-                                {link.title || "Untitled Link"}
-                              </div>
-                              <div className="link-meta">
-                                <span className="link-id">{link.linkId}</span>
-                                <span className="separator">•</span>
-                                <span className="gateway-badge">
-                                  {link.gateway || "santimpay"}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="amount-cell">
-                          <div className="amount">
-                            {formatCurrency(link.amount)}
-                          </div>
-                          {link.totalCollected > 0 && (
-                            <div className="collected">
-                              Collected: {formatCurrency(link.totalCollected)}
-                            </div>
-                          )}
-                        </td>
-                        <td className="status-cell">
-                          <span className={`status-badge ${status.className}`}>
-                            <StatusIcon size={12} />
-                            {status.label}
-                          </span>
-                          {link.expiresAt && (
-                            <div className="expires-at">
-                              {formatRelativeTime(link.expiresAt)}
-                            </div>
-                          )}
-                        </td>
-                        <td className="performance-cell">
-                          <div className="payments-count">
-                            {link.totalPayments || 0} payments
-                          </div>
-                          <div className="attempts-count">
-                            {link.transactions?.length || 0} attempts
-                          </div>
-                        </td>
-                        <td className="date-cell">
-                          <div className="created-date">
-                            {formatDate(link.createdAt)}
-                          </div>
-                          <div className="created-ago">
-                            {link.createdAt &&
-                              formatRelativeTime(link.createdAt).replace(
-                                "Expires",
-                                "Created",
-                              )}
-                          </div>
-                        </td>
-                        <td className="actions-cell">
-                          <div className="action-buttons-group">
-                            <button
-                              onClick={(e) => copyLink(link.linkId, e)}
-                              className="action-btn"
-                              title="Copy link"
-                            >
-                              <Copy size={16} />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedLink(link);
-                                setShowDetailsModal(true);
-                              }}
-                              className="action-btn"
-                              title="View details"
-                            >
-                              <Eye size={16} />
-                            </button>
-                            <button
-                              onClick={(e) => handleDeleteLink(link._id, e)}
-                              className="action-btn delete"
-                              title="Delete link"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            {pagination.pages > 1 && (
-              <div className="pagination">
-                <button
-                  onClick={() =>
-                    setPagination((prev) => ({ ...prev, page: prev.page - 1 }))
-                  }
-                  disabled={pagination.page === 1}
-                  className="pagination-btn"
-                >
-                  <ChevronLeft size={16} />
-                  Previous
-                </button>
-
-                <span className="pagination-info">
-                  Page {pagination.page} of {pagination.pages}
-                </span>
-
-                <button
-                  onClick={() =>
-                    setPagination((prev) => ({ ...prev, page: prev.page + 1 }))
-                  }
-                  disabled={pagination.page === pagination.pages}
-                  className="pagination-btn"
-                >
-                  Next
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            )}
-          </>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
+
+        {/* PAGINATION */}
+        <div className="pagination">
+          <button className="pagination-btn">Prev</button>
+          <span className="pagination-info">
+            Page {pagination.page} of {pagination.pages}
+          </span>
+          <button className="pagination-btn">Next</button>
+        </div>
       </div>
 
-      {/* Create Link Modal */}
-      {showCreateModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2>Create Payment Link</h2>
-              <button
-                className="modal-close"
-                onClick={() => {
-                  setShowCreateModal(false);
-                  setError("");
-                  setNewLink({
-                    title: "",
-                    description: "",
-                    amount: "",
-                    gateway: "santimpay",
-                  });
-                }}
-              >
-                ×
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateLink}>
-              <div className="modal-body">
-                {error && (
-                  <div className="error-box">
-                    <p>{error}</p>
-                  </div>
-                )}
-
-                <div className="form-group">
-                  <label>Title *</label>
-                  <input
-                    type="text"
-                    placeholder="Enter title"
-                    value={newLink.title}
-                    onChange={(e) =>
-                      setNewLink({ ...newLink, title: e.target.value })
-                    }
-                    className="form-input"
-                    autoFocus
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Description (Optional)</label>
-                  <textarea
-                    placeholder="Describe what this payment is for"
-                    value={newLink.description}
-                    onChange={(e) =>
-                      setNewLink({ ...newLink, description: e.target.value })
-                    }
-                    rows="3"
-                    className="form-textarea"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Amount (ETB) *</label>
-                  <input
-                    type="number"
-                    placeholder="Enter amount"
-                    value={newLink.amount}
-                    onChange={(e) =>
-                      setNewLink({ ...newLink, amount: e.target.value })
-                    }
-                    min="1"
-                    step="0.01"
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Payment Gateway</label>
-                  <select
-                    value={newLink.gateway}
-                    onChange={(e) =>
-                      setNewLink({ ...newLink, gateway: e.target.value })
-                    }
-                    className="form-select"
-                  >
-                    <option value="santimpay">SantimPay</option>
-                    <option value="chapa">Chapa</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCreateModal(false);
-                    setError("");
-                    setNewLink({
-                      title: "",
-                      description: "",
-                      amount: "",
-                      gateway: "santimpay",
-                    });
-                  }}
-                  className="btn-secondary"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="btn-primary"
-                >
-                  {loading ? "Creating..." : "Create Link"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Link Details Modal */}
-      {showDetailsModal && selectedLink && (
-        <div className="modal-overlay">
-          <div className="modal modal-lg">
-            <div className="modal-header">
-              <h2>Payment Link Details</h2>
-              <button
-                className="modal-close"
-                onClick={() => {
-                  setShowDetailsModal(false);
-                  setSelectedLink(null);
-                }}
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="modal-body">
-              <div className="details-section">
-                <h3>Link Information</h3>
-                <div className="details-grid">
-                  <div className="detail-item">
-                    <span className="detail-label">Link ID:</span>
-                    <span className="detail-value link-id">
-                      {selectedLink.linkId}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Title:</span>
-                    <span className="detail-value">
-                      {selectedLink.title || "Untitled"}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Description:</span>
-                    <span className="detail-value">
-                      {selectedLink.description || "No description"}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Amount:</span>
-                    <span className="detail-value amount">
-                      {formatCurrency(
-                        selectedLink.amount,
-                        selectedLink.currency,
-                      )}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Gateway:</span>
-                    <span className="detail-value gateway">
-                      {selectedLink.gateway || "santimpay"}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Status:</span>
-                    <span
-                      className={`status-badge ${getStatusBadge(selectedLink).className}`}
-                    >
-                      {getStatusBadge(selectedLink).label}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Created:</span>
-                    <span className="detail-value">
-                      {formatDate(selectedLink.createdAt)}
-                    </span>
-                  </div>
-                  {selectedLink.expiresAt && (
-                    <div className="detail-item">
-                      <span className="detail-label">Expires:</span>
-                      <span className="detail-value">
-                        {formatDate(selectedLink.expiresAt)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="details-section">
-                <h3>Payment URL</h3>
-                <div className="url-box">
-                  <code className="url-text">
-                    {window.location.origin}/pay/{selectedLink.linkId}
-                  </code>
-                  <button
-                    onClick={() =>
-                      copyLink(selectedLink.linkId, {
-                        stopPropagation: () => {},
-                      })
-                    }
-                    className="action-btn"
-                    title="Copy link"
-                  >
-                    <Copy size={16} />
-                  </button>
-                </div>
-              </div>
-
-              {selectedLink.transactions &&
-                selectedLink.transactions.length > 0 && (
-                  <div className="details-section">
-                    <h3>Recent Transactions</h3>
-                    <div className="transactions-preview">
-                      {selectedLink.transactions.slice(0, 5).map((tx, idx) => (
-                        <div key={idx} className="transaction-row">
-                          <span className="tx-ref">
-                            {tx.internalRef?.slice(0, 12)}...
-                          </span>
-                          <span className="tx-amount">
-                            {formatCurrency(tx.amount)}
-                          </span>
-                          <span className={`tx-status ${tx.status}`}>
-                            {tx.status}
-                          </span>
-                          <span className="tx-date">
-                            {formatDate(tx.createdAt)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-            </div>
-
-            <div className="modal-footer">
-              <button
-                onClick={() =>
-                  copyLink(selectedLink.linkId, { stopPropagation: () => {} })
-                }
-                className="btn-secondary"
-              >
-                <Copy size={16} />
-                Copy Link
-              </button>
-              <button
-                onClick={() => {
-                  setShowDetailsModal(false);
-                  setSelectedLink(null);
-                }}
-                className="btn-primary"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* YOUR STYLE JSX GOES HERE */}
+      {/* ✅ Paste your <style jsx> block exactly as you sent */}
 
       <style jsx>{`
         .payment-links-page {
