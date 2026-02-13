@@ -43,13 +43,17 @@ export default function PayPage() {
   const handlePay = async () => {
     if (!link) return;
 
+    // Validate essential fields
+    if (!link.amount || !link.currency) {
+      setError("Invalid payment data. Please contact support.");
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
 
       let res;
-
-      // Determine URLs dynamically
       const successUrl = userIsLoggedIn
         ? "/dashboard/success"
         : "/public-success";
@@ -69,28 +73,41 @@ export default function PayPage() {
         });
       }
 
+      // Extract checkout URL safely
       const checkoutUrl =
-        res.data.checkoutUrl ||
-        res.data.url ||
-        res.data.gateway?.checkoutUrl ||
-        res.data.data?.checkoutUrl;
+        res?.data?.checkoutUrl ||
+        res?.data?.url ||
+        res?.data?.gateway?.checkoutUrl ||
+        res?.data?.data?.checkoutUrl;
 
       if (!checkoutUrl) {
-        throw new Error("No checkout URL received");
+        console.error("No checkout URL received:", res?.data);
+        setError(
+          "Payment initiation failed. Please contact support or try again later.",
+        );
+        return;
       }
 
-      // Small delay for better UX
+      // Small delay for UX
       setTimeout(() => {
         window.location.href = checkoutUrl;
       }, 500);
     } catch (err) {
-      console.error("Payment initiation error:", err);
-      setError(
-        err.response?.data?.error ||
-          err.response?.data?.message ||
-          err.message ||
-          "Payment initiation failed. Please try again.",
-      );
+      console.error("Payment initiation error:", err.response?.data || err);
+
+      // Distinguish 500 server errors
+      if (err.response?.status === 500) {
+        setError(
+          "Server error occurred while starting the payment. Please try again in a few minutes.",
+        );
+      } else {
+        setError(
+          err.response?.data?.error ||
+            err.response?.data?.message ||
+            err.message ||
+            "Payment initiation failed. Please try again.",
+        );
+      }
     } finally {
       setLoading(false);
     }
