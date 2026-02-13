@@ -10,36 +10,35 @@ import {
  * POST /api/payments/public/start/:linkId
  */
 // controllers/publicPayment.controller.js
+// src/controllers/publicPayment.controller.js
 export async function startPublicPaymentController(req, res) {
   try {
     const { linkId } = req.params;
 
-    // 1️⃣ Load the payment link
-    // 1️⃣ Load the payment link
     const link = await PaymentLink.findOne({ linkId });
     if (!link) return res.status(400).json({ error: "Payment link not found" });
 
-    // ✅ Allow retries if link is active
     if (link.status !== "active") {
-      // Only block if truly expired
       if (link.expiresAt && link.expiresAt < new Date()) {
         return res.status(400).json({ error: "Payment link expired" });
       }
-      // Otherwise, allow retry without changing status
     }
 
-    // 4️⃣ Create new internal transaction
-    const transaction = await createInternalTransaction(null, link.linkId, {
-      amount: link.amount,
-      currency: link.currency,
-    });
+    // ✅ Create internal transaction for public payment
+    const transaction = await createInternalTransaction(
+      null,
+      link.linkId,
+      {
+        amount: link.amount,
+        currency: link.currency,
+      },
+      true,
+    ); // <-- true = public
 
-    // 5️⃣ Build public URLs with linkId (retry works now)
     const successUrl = `${process.env.PUBLIC_PAYMENT_SUCCESS_URL}?linkId=${link.linkId}`;
     const cancelUrl = `${process.env.PUBLIC_PAYMENT_CANCEL_URL}?linkId=${link.linkId}`;
     const failureUrl = `${process.env.PUBLIC_PAYMENT_FAILURE_URL}?linkId=${link.linkId}`;
 
-    // 6️⃣ Start payment via gateway
     const gatewayResponse = await startPayment({
       transaction,
       returnUrls: { successUrl, cancelUrl, failureUrl },
