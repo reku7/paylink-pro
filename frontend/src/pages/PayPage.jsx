@@ -11,9 +11,6 @@ export default function PayPage() {
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
 
-  // Determine if user is logged in
-  const userIsLoggedIn = !!getAuthToken();
-
   // Fetch payment link details
   useEffect(() => {
     const fetchLink = async () => {

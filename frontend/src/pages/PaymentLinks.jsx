@@ -371,6 +371,9 @@ const LinkTableRow = ({ link, onCopy, onView, onDelete }) => {
       </td>
       <td className="date-cell">
         <div className="created-date">{formatDate(link.createdAt)}</div>
+        {link.expiresAt && (
+          <div className="expires-at-text">{formatRelativeTime(link.expiresAt)}</div>
+        )}
       </td>
       <td className="actions-cell">
         <div className="action-buttons-group">
@@ -1230,9 +1233,9 @@ export default function PaymentLinks() {
           margin-bottom: 4px;
         }
 
-        .created-ago {
-          font-size: 12px;
-          color: #6b7280;
+        .expires-at-text {
+          font-size: 11px;
+          color: #9ca3af;
         }
 
         .action-buttons-group {
