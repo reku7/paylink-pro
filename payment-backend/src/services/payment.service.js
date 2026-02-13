@@ -57,13 +57,7 @@ function canTransition(from, to) {
    CREATE INTERNAL TRANSACTION
 ============================================================ */
 
-// src/services/payment.service.js
-export async function createInternalTransaction(
-  merchantId,
-  linkId,
-  opts = {},
-  isPublic = false, // <-- new flag
-) {
+export async function createInternalTransaction(merchantId, linkId, opts = {}) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -79,27 +73,13 @@ export async function createInternalTransaction(
 
     const link = await PaymentLink.findOne({ linkId }).session(session);
     if (!link) throw new Error("Payment link not found");
-
-    // ✅ Only check merchantId for private payments
-    if (
-      !isPublic &&
-      merchantId &&
-      link.merchantId.toString() !== merchantId.toString()
-    )
+    if (merchantId && link.merchantId.toString() !== merchantId.toString())
       throw new Error("Unauthorized payment link access");
-
-    // ✅ Allow public payments on active links
-    if (link.status !== "active") {
-      if (isPublic && link.status === "expired")
-        throw new Error("Payment link expired");
-      if (!isPublic) throw new Error("Payment link not available");
-    }
-
-    // Prevent one-time link reuse
-    if (link.type === "one_time" && link.isPaid) {
-      if (!isPublic) throw new Error("This payment link has already been used");
-      // For public, allow if it’s first transaction (or you may block again if already paid)
-    }
+    if (link.status !== "active") throw new Error("Payment link not available");
+    if (link.expiresAt && link.expiresAt < new Date())
+      throw new Error("Payment link expired");
+    if (link.type === "one_time" && link.isPaid)
+      throw new Error("This payment link has already been used");
 
     const finalAmount = amount ?? link.amount;
     if (!finalAmount || finalAmount <= 0) throw new Error("Invalid amount");
