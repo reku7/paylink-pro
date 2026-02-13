@@ -25,6 +25,7 @@ import {
 // Constants
 const API_ENDPOINTS = {
   LINKS: "/links",
+  DASHBOARD_SUMMARY: "/dashboard/summary",
 };
 
 const LINK_TYPES = {
@@ -67,6 +68,18 @@ const formatRelativeTime = (dateString) => {
   if (diffDays === 0) return "Expires today";
   if (diffDays === 1) return "Expires tomorrow";
   return `Expires in ${diffDays} days`;
+};
+
+const formatDateTime = (dateString) => {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 const formatCurrency = (amount, currency = "ETB") => {
@@ -168,6 +181,7 @@ const useLinkStats = (links) => {
       0,
     );
 
+    // Calculate conversion rate properly
     const totalTransactions = links.reduce(
       (sum, link) => sum + (link.transactions?.length || 0),
       0,
@@ -181,21 +195,33 @@ const useLinkStats = (links) => {
       0,
     );
 
+    // Calculate total payments (successful transactions)
+    const totalPayments = links.reduce(
+      (sum, link) => sum + (link.totalPayments || 0),
+      0,
+    );
+
+    // Conversion rate = (successful transactions / total transactions) * 100
+    const conversionRate =
+      totalTransactions > 0
+        ? Math.round((successfulTransactions / totalTransactions) * 100)
+        : 0;
+
     return {
       total: links.length,
       active,
       expired,
       totalCollected,
-      conversionRate:
-        totalTransactions > 0
-          ? Math.round((successfulTransactions / totalTransactions) * 100)
-          : 0,
+      totalPayments,
+      totalTransactions,
+      successfulTransactions,
+      conversionRate,
     };
   }, [links]);
 };
 
 // Components
-const StatCard = ({ icon: Icon, label, value, color }) => (
+const StatCard = ({ icon: Icon, label, value, color, subValue }) => (
   <div className="stat-card">
     <div className={`stat-icon ${color}`}>
       <Icon size={20} />
@@ -203,6 +229,7 @@ const StatCard = ({ icon: Icon, label, value, color }) => (
     <div className="stat-info">
       <span className="stat-label">{label}</span>
       <span className="stat-value">{value}</span>
+      {subValue && <span className="stat-subvalue">{subValue}</span>}
     </div>
   </div>
 );
@@ -327,6 +354,11 @@ const LinkTableRow = ({ link, onCopy, onView, onDelete }) => {
     }
   };
 
+  // Calculate successful payments count
+  const successfulPayments =
+    link.transactions?.filter((tx) => tx.status === PAYMENT_STATUS.SUCCESS)
+      .length || 0;
+
   return (
     <tr className="table-row" onClick={handleView}>
       <td className="link-details-cell">
@@ -364,28 +396,38 @@ const LinkTableRow = ({ link, onCopy, onView, onDelete }) => {
         <StatusBadge status={link.status} expiresAt={link.expiresAt} />
       </td>
       <td className="performance-cell">
-        <div className="payments-count">{link.totalPayments || 0} payments</div>
+        <div className="payments-count">
+          <span className="success-badge">{successfulPayments} paid</span>
+        </div>
         <div className="attempts-count">
-          {link.transactions?.length || 0} attempts
+          {link.transactions?.length || 0} total attempts
         </div>
       </td>
       <td className="date-cell">
         <div className="created-date">{formatDate(link.createdAt)}</div>
         {link.expiresAt && (
-          <div className="expires-at-text">{formatRelativeTime(link.expiresAt)}</div>
+          <div className="expires-at-text">
+            {formatRelativeTime(link.expiresAt)}
+          </div>
         )}
       </td>
       <td className="actions-cell">
         <div className="action-buttons-group">
-          <button onClick={handleCopy} className="action-btn" title="Copy link">
+          <button
+            onClick={handleCopy}
+            className="action-btn copy"
+            title="Copy payment link"
+          >
             <Copy size={16} />
+            <span className="action-tooltip">Copy</span>
           </button>
           <button
             onClick={handleView}
-            className="action-btn"
-            title="View details"
+            className="action-btn view"
+            title="View link details"
           >
             <Eye size={16} />
+            <span className="action-tooltip">Details</span>
           </button>
           <button
             onClick={handleDelete}
@@ -393,6 +435,7 @@ const LinkTableRow = ({ link, onCopy, onView, onDelete }) => {
             title="Delete link"
           >
             <Trash2 size={16} />
+            <span className="action-tooltip">Delete</span>
           </button>
         </div>
       </td>
@@ -439,6 +482,11 @@ const LinkDetailsModal = ({ link, onClose, onCopy }) => {
     expired: { className: "bg-gray-100 text-gray-800" },
   };
 
+  // Filter successful transactions
+  const successfulTransactions =
+    link.transactions?.filter((tx) => tx.status === PAYMENT_STATUS.SUCCESS) ||
+    [];
+
   return (
     <div className="modal-overlay">
       <div className="modal modal-lg">
@@ -471,13 +519,25 @@ const LinkDetailsModal = ({ link, onClose, onCopy }) => {
                 isStatus
                 statusClassName={statusConfig[link.status]?.className}
               />
-              <DetailItem label="Created" value={formatDate(link.createdAt)} />
+              <DetailItem
+                label="Created"
+                value={formatDateTime(link.createdAt)}
+              />
               {link.expiresAt && (
                 <DetailItem
                   label="Expires"
-                  value={formatDate(link.expiresAt)}
+                  value={formatDateTime(link.expiresAt)}
                 />
               )}
+              <DetailItem
+                label="Total Collected"
+                value={formatCurrency(link.totalCollected || 0)}
+                className="amount"
+              />
+              <DetailItem
+                label="Successful Payments"
+                value={link.totalPayments || 0}
+              />
             </div>
           </section>
 
@@ -487,7 +547,7 @@ const LinkDetailsModal = ({ link, onClose, onCopy }) => {
               <code className="url-text">{getPaymentUrl(link.linkId)}</code>
               <button
                 onClick={() => onCopy(link.linkId)}
-                className="action-btn"
+                className="action-btn copy"
                 title="Copy link"
               >
                 <Copy size={16} />
@@ -495,11 +555,22 @@ const LinkDetailsModal = ({ link, onClose, onCopy }) => {
             </div>
           </section>
 
+          {successfulTransactions.length > 0 && (
+            <section className="details-section">
+              <h3>Successful Transactions ({successfulTransactions.length})</h3>
+              <div className="transactions-preview">
+                {successfulTransactions.map((tx, idx) => (
+                  <TransactionRow key={idx} transaction={tx} />
+                ))}
+              </div>
+            </section>
+          )}
+
           {link.transactions?.length > 0 && (
             <section className="details-section">
-              <h3>Recent Transactions</h3>
+              <h3>All Transactions ({link.transactions.length})</h3>
               <div className="transactions-preview">
-                {link.transactions.slice(0, 5).map((tx, idx) => (
+                {link.transactions.map((tx, idx) => (
                   <TransactionRow key={idx} transaction={tx} />
                 ))}
               </div>
@@ -534,12 +605,12 @@ const DetailItem = ({ label, value, className, isStatus, statusClassName }) => (
 
 const TransactionRow = ({ transaction }) => (
   <div className="transaction-row">
-    <span className="tx-ref">{transaction.internalRef?.slice(0, 12)}...</span>
+    <span className="tx-ref">{transaction.internalRef || "N/A"}</span>
     <span className="tx-amount">{formatCurrency(transaction.amount)}</span>
     <span className={`tx-status ${transaction.status}`}>
       {transaction.status}
     </span>
-    <span className="tx-date">{formatDate(transaction.createdAt)}</span>
+    <span className="tx-date">{formatDateTime(transaction.createdAt)}</span>
   </div>
 );
 
@@ -635,8 +706,13 @@ export default function PaymentLinks() {
   };
 
   const handleCopyLink = async (linkId) => {
-    await navigator.clipboard.writeText(getPaymentUrl(linkId));
-    // Optional: Show toast notification
+    try {
+      await navigator.clipboard.writeText(getPaymentUrl(linkId));
+      // You could add a toast notification here
+      console.log("Link copied to clipboard");
+    } catch (err) {
+      console.error("Failed to copy link:", err);
+    }
   };
 
   const handleViewLink = (link) => {
@@ -717,12 +793,14 @@ export default function PaymentLinks() {
           label="Total Collected"
           value={formatCurrency(stats.totalCollected)}
           color="purple"
+          subValue={`${stats.totalPayments} payments`}
         />
         <StatCard
           icon={BarChart2}
           label="Conversion"
           value={`${stats.conversionRate}%`}
           color="orange"
+          subValue={`${stats.successfulTransactions}/${stats.totalTransactions} successful`}
         />
       </div>
 
@@ -937,6 +1015,12 @@ export default function PaymentLinks() {
           font-size: 24px;
           font-weight: 700;
           color: #111827;
+        }
+
+        .stat-subvalue {
+          font-size: 12px;
+          color: #6b7280;
+          margin-top: 2px;
         }
 
         .tabs-container {
@@ -1222,6 +1306,15 @@ export default function PaymentLinks() {
           margin-bottom: 4px;
         }
 
+        .success-badge {
+          display: inline-block;
+          padding: 2px 8px;
+          background: #ecfdf5;
+          color: #065f46;
+          border-radius: 12px;
+          font-size: 12px;
+        }
+
         .attempts-count {
           font-size: 12px;
           color: #6b7280;
@@ -1241,31 +1334,67 @@ export default function PaymentLinks() {
         .action-buttons-group {
           display: flex;
           gap: 8px;
+          position: relative;
         }
 
         .action-btn {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 32px;
-          height: 32px;
+          width: 36px;
+          height: 36px;
           background: white;
           border: 1px solid #e5e7eb;
-          border-radius: 6px;
-          color: #6b7280;
+          border-radius: 8px;
+          color: #4b5563;
           cursor: pointer;
           transition: all 0.2s;
+          position: relative;
         }
 
         .action-btn:hover {
           background: #f9fafb;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn.copy:hover {
           color: #059669;
           border-color: #059669;
+        }
+
+        .action-btn.view:hover {
+          color: #3b82f6;
+          border-color: #3b82f6;
         }
 
         .action-btn.delete:hover {
           color: #dc2626;
           border-color: #dc2626;
+        }
+
+        .action-tooltip {
+          position: absolute;
+          bottom: -30px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #1f2937;
+          color: white;
+          font-size: 11px;
+          padding: 4px 8px;
+          border-radius: 4px;
+          white-space: nowrap;
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.2s;
+          pointer-events: none;
+          z-index: 10;
+        }
+
+        .action-btn:hover .action-tooltip {
+          opacity: 1;
+          visibility: visible;
+          bottom: -35px;
         }
 
         .loading-state {
