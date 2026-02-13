@@ -1,3 +1,4 @@
+// App.jsx
 import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AdminRoute from "./routes/AdminRoute.jsx";
@@ -11,7 +12,7 @@ import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import TransactionsPage from "./pages/Transactions.jsx";
 import CreateLinkPage from "./pages/CreatePaymentLink.jsx";
-import PaymentLinksPage from "./pages/PaymentLinks.jsx"; // List of created links
+import PaymentLinksPage from "./pages/PaymentLinks.jsx"; // ✅ Add this
 import PayPage from "./pages/PayPage.jsx";
 import Success from "./pages/success.jsx";
 import Failed from "./pages/failed.jsx";
@@ -60,15 +61,14 @@ export default function App() {
       >
         {/* Default dashboard home */}
         <Route index element={<DashboardHome />} />
-
         {/* Merchant dashboard pages */}
         <Route path="transactions" element={<TransactionsPage />} />
         <Route path="create-link" element={<CreateLinkPage />} />
-        <Route path="payment-links" element={<PaymentLinksPage />} />
+        <Route path="payment-links" element={<PaymentLinksPage />} />{" "}
+        {/* ✅ Add this */}
         <Route path="settings/payments" element={<PaymentGatewaysPage />} />
         <Route path="connect-chapa" element={<ConnectChapaPage />} />
         <Route path="profile" element={<Profile />} />
-
         {/* Dashboard-specific payment result pages */}
         <Route path="success" element={<Success isPublic={false} />} />
         <Route path="failed" element={<Failed isPublic={false} />} />
