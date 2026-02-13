@@ -19,12 +19,15 @@ export default function PayPage() {
       try {
         setError("");
         setFetching(true);
+
+        // Always fetch public link info
         const res = await publicApi.get(`/links/public/${linkId}`);
-        setLink(res.data.data || res.data || null);
+        const data = res.data.data || res.data || null;
+        setLink(data);
 
         // Check if link is already paid/expired
-        if (["paid", "expired", "failed"].includes(res.data.data?.status)) {
-          setError(`This payment link is ${res.data.data.status}`);
+        if (["paid", "expired", "failed"].includes(data?.status)) {
+          setError(`This payment link is ${data.status}`);
         }
       } catch (err) {
         console.error("Fetch link error:", err);
@@ -45,13 +48,25 @@ export default function PayPage() {
       setError("");
 
       let res;
+
+      // Determine URLs dynamically
+      const successUrl = userIsLoggedIn
+        ? "/dashboard/success"
+        : "/public-success";
+      const cancelUrl = userIsLoggedIn ? "/dashboard/cancel" : "/public-cancel";
+
       if (userIsLoggedIn) {
         res = await privateApi.post(`/payments/${linkId}/start`, {
           amount: link.amount,
           currency: link.currency,
+          successUrl,
+          cancelUrl,
         });
       } else {
-        res = await publicApi.post(`/payments/public/start/${linkId}`, {});
+        res = await publicApi.post(`/payments/public/start/${linkId}`, {
+          successUrl,
+          cancelUrl,
+        });
       }
 
       const checkoutUrl =
@@ -64,7 +79,7 @@ export default function PayPage() {
         throw new Error("No checkout URL received");
       }
 
-      // Add small delay for better UX
+      // Small delay for better UX
       setTimeout(() => {
         window.location.href = checkoutUrl;
       }, 500);
@@ -82,14 +97,11 @@ export default function PayPage() {
   };
 
   // Format currency
-  const formatCurrency = (amount, currency = "ETB") => {
-    return (
-      new Intl.NumberFormat("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(amount) + ` ${currency}`
-    );
-  };
+  const formatCurrency = (amount, currency = "ETB") =>
+    new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount) + ` ${currency}`;
 
   // Format date
   const formatDate = (dateString, includeTime = false) => {
@@ -150,15 +162,14 @@ export default function PayPage() {
     );
   }
 
+  // Render main payment page
   return (
     <div style={styles.container}>
-      {/* Main Content */}
       <div style={styles.mainContent}>
         <div style={styles.grid}>
-          {/* Left Column - Payment Details */}
+          {/* Left Column */}
           <div style={styles.leftColumn}>
             <div style={styles.paymentCard}>
-              {/* Merchant Info */}
               <div style={styles.merchantInfo}>
                 <div>
                   <h2 style={styles.merchantTitle}>
@@ -170,7 +181,6 @@ export default function PayPage() {
                 </div>
               </div>
 
-              {/* Amount Section */}
               <div style={styles.amountSection}>
                 <div style={styles.amountHeader}>
                   <span style={styles.amountLabel}>Amount to pay</span>
@@ -186,7 +196,6 @@ export default function PayPage() {
                 )}
               </div>
 
-              {/* Payment Button */}
               <div style={styles.paymentButtonSection}>
                 <button
                   onClick={handlePay}
@@ -266,7 +275,7 @@ export default function PayPage() {
             </div>
           </div>
 
-          {/* Right Column - Info & Support */}
+          {/* Right Column */}
           <div style={styles.rightColumn}>
             {/* Payment Summary */}
             <div style={styles.summaryCard}>
@@ -295,15 +304,12 @@ export default function PayPage() {
             <div style={styles.detailsCard}>
               <h3 style={styles.detailsTitle}>Payment Details</h3>
               <div style={styles.detailsContent}>
-                {/* Payment ID */}
                 <div>
                   <span style={styles.detailsLabel}>Payment ID</span>
                   <div style={styles.paymentId}>
                     <code>{linkId}</code>
                   </div>
                 </div>
-
-                {/* Created Date */}
                 {link.createdAt && (
                   <div>
                     <span style={styles.detailsLabel}>Created</span>
@@ -312,8 +318,6 @@ export default function PayPage() {
                     </p>
                   </div>
                 )}
-
-                {/* Expiration Date */}
                 {link.expiresAt && (
                   <div>
                     <span style={styles.detailsLabel}>Expires</span>
@@ -322,8 +326,6 @@ export default function PayPage() {
                     </p>
                   </div>
                 )}
-
-                {/* Status */}
                 {link.status && (
                   <div>
                     <span style={styles.detailsLabel}>Status</span>
@@ -344,7 +346,6 @@ export default function PayPage() {
                 payment
               </p>
               <div style={styles.supportOptions}>
-                {/* Web-friendly email link */}
                 <a
                   href="https://mail.google.com/mail/?view=cm&fs=1&to=rekiklegese@gmail.com"
                   target="_blank"
