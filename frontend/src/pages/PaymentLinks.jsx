@@ -37,6 +37,7 @@ const PAYMENT_STATUS = {
   SUCCESS: "success",
   FAILED: "failed",
   PROCESSING: "processing",
+  INITIALIZED: "initialized",
 };
 
 const TAB_CONFIG = [
@@ -57,6 +58,18 @@ const formatDate = (dateString, options = {}) => {
   });
 };
 
+const formatDateTime = (dateString) => {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 const formatRelativeTime = (dateString) => {
   if (!dateString) return "";
   const date = new Date(dateString);
@@ -68,18 +81,6 @@ const formatRelativeTime = (dateString) => {
   if (diffDays === 0) return "Expires today";
   if (diffDays === 1) return "Expires tomorrow";
   return `Expires in ${diffDays} days`;
-};
-
-const formatDateTime = (dateString) => {
-  if (!dateString) return "N/A";
-  const date = new Date(dateString);
-  return date.toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 };
 
 const formatCurrency = (amount, currency = "ETB") => {
@@ -95,6 +96,19 @@ const usePaymentLinks = () => {
   const [links, setLinks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [dashboardStats, setDashboardStats] = useState({
+    totalRevenue: 0,
+    successfulCount: 0,
+    failedCount: 0,
+    processingCount: 0,
+    pendingCount: 0,
+    totalLinks: 0,
+    activeLinks: 0,
+    paidLinks: 0,
+    expiredLinks: 0,
+    failedLinks: 0,
+    conversionRate: 0,
+  });
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -131,12 +145,24 @@ const usePaymentLinks = () => {
     }
   }, []);
 
+  const fetchDashboardStats = useCallback(async () => {
+    try {
+      const response = await api.get(API_ENDPOINTS.DASHBOARD_SUMMARY);
+      if (response.data.success) {
+        setDashboardStats(response.data.data || {});
+      }
+    } catch (err) {
+      console.error("Failed to fetch dashboard stats:", err);
+    }
+  }, []);
+
   const deleteLink = useCallback(
     async (linkId) => {
       try {
         const response = await api.delete(`${API_ENDPOINTS.LINKS}/${linkId}`);
         if (response.data.success) {
           await fetchLinks();
+          await fetchDashboardStats();
           return true;
         }
       } catch (err) {
@@ -145,79 +171,25 @@ const usePaymentLinks = () => {
         return false;
       }
     },
-    [fetchLinks],
+    [fetchLinks, fetchDashboardStats],
   );
+
+  // Fetch dashboard stats on mount
+  useEffect(() => {
+    fetchDashboardStats();
+  }, [fetchDashboardStats]);
 
   return {
     links,
     loading,
     error,
+    dashboardStats,
     pagination,
     setPagination,
     fetchLinks,
     deleteLink,
     setError,
   };
-};
-
-const useLinkStats = (links) => {
-  return useMemo(() => {
-    const now = new Date();
-
-    const active = links.filter(
-      (link) =>
-        link.status === "active" &&
-        (!link.expiresAt || new Date(link.expiresAt) > now),
-    ).length;
-
-    const expired = links.filter(
-      (link) =>
-        link.status === "expired" ||
-        (link.expiresAt && new Date(link.expiresAt) < now),
-    ).length;
-
-    const totalCollected = links.reduce(
-      (sum, link) => sum + (link.totalCollected || 0),
-      0,
-    );
-
-    // Calculate conversion rate properly
-    const totalTransactions = links.reduce(
-      (sum, link) => sum + (link.transactions?.length || 0),
-      0,
-    );
-
-    const successfulTransactions = links.reduce(
-      (sum, link) =>
-        sum +
-        (link.transactions?.filter((tx) => tx.status === PAYMENT_STATUS.SUCCESS)
-          ?.length || 0),
-      0,
-    );
-
-    // Calculate total payments (successful transactions)
-    const totalPayments = links.reduce(
-      (sum, link) => sum + (link.totalPayments || 0),
-      0,
-    );
-
-    // Conversion rate = (successful transactions / total transactions) * 100
-    const conversionRate =
-      totalTransactions > 0
-        ? Math.round((successfulTransactions / totalTransactions) * 100)
-        : 0;
-
-    return {
-      total: links.length,
-      active,
-      expired,
-      totalCollected,
-      totalPayments,
-      totalTransactions,
-      successfulTransactions,
-      conversionRate,
-    };
-  }, [links]);
 };
 
 // Components
@@ -354,10 +326,15 @@ const LinkTableRow = ({ link, onCopy, onView, onDelete }) => {
     }
   };
 
-  // Calculate successful payments count
+  // Calculate successful payments from transactions
   const successfulPayments =
     link.transactions?.filter((tx) => tx.status === PAYMENT_STATUS.SUCCESS)
       .length || 0;
+
+  // Get the most recent successful transaction if any
+  const lastSuccessfulTx = link.transactions
+    ?.filter((tx) => tx.status === PAYMENT_STATUS.SUCCESS)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
 
   return (
     <tr className="table-row" onClick={handleView}>
@@ -397,11 +374,20 @@ const LinkTableRow = ({ link, onCopy, onView, onDelete }) => {
       </td>
       <td className="performance-cell">
         <div className="payments-count">
-          <span className="success-badge">{successfulPayments} paid</span>
+          {successfulPayments > 0 ? (
+            <span className="success-badge">{successfulPayments} paid</span>
+          ) : (
+            <span className="no-payments">0 payments</span>
+          )}
         </div>
         <div className="attempts-count">
-          {link.transactions?.length || 0} total attempts
+          {link.transactions?.length || 0} attempts
         </div>
+        {lastSuccessfulTx && (
+          <div className="last-paid">
+            Last: {formatDateTime(lastSuccessfulTx.createdAt)}
+          </div>
+        )}
       </td>
       <td className="date-cell">
         <div className="created-date">{formatDate(link.createdAt)}</div>
@@ -487,6 +473,12 @@ const LinkDetailsModal = ({ link, onClose, onCopy }) => {
     link.transactions?.filter((tx) => tx.status === PAYMENT_STATUS.SUCCESS) ||
     [];
 
+  // Calculate totals
+  const totalCollected = successfulTransactions.reduce(
+    (sum, tx) => sum + (tx.amount || 0),
+    0,
+  );
+
   return (
     <div className="modal-overlay">
       <div className="modal modal-lg">
@@ -531,12 +523,16 @@ const LinkDetailsModal = ({ link, onClose, onCopy }) => {
               )}
               <DetailItem
                 label="Total Collected"
-                value={formatCurrency(link.totalCollected || 0)}
+                value={formatCurrency(totalCollected)}
                 className="amount"
               />
               <DetailItem
                 label="Successful Payments"
-                value={link.totalPayments || 0}
+                value={successfulTransactions.length}
+              />
+              <DetailItem
+                label="Total Attempts"
+                value={link.transactions?.length || 0}
               />
             </div>
           </section>
@@ -555,21 +551,16 @@ const LinkDetailsModal = ({ link, onClose, onCopy }) => {
             </div>
           </section>
 
-          {successfulTransactions.length > 0 && (
-            <section className="details-section">
-              <h3>Successful Transactions ({successfulTransactions.length})</h3>
-              <div className="transactions-preview">
-                {successfulTransactions.map((tx, idx) => (
-                  <TransactionRow key={idx} transaction={tx} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {link.transactions?.length > 0 && (
+          {link.transactions && link.transactions.length > 0 && (
             <section className="details-section">
               <h3>All Transactions ({link.transactions.length})</h3>
               <div className="transactions-preview">
+                <div className="transactions-header">
+                  <span>Reference</span>
+                  <span>Amount</span>
+                  <span>Status</span>
+                  <span>Date</span>
+                </div>
                 {link.transactions.map((tx, idx) => (
                   <TransactionRow key={idx} transaction={tx} />
                 ))}
@@ -654,14 +645,13 @@ export default function PaymentLinks() {
     links,
     loading,
     error,
+    dashboardStats,
     pagination,
     setPagination,
     fetchLinks,
     deleteLink,
     setError,
   } = usePaymentLinks();
-
-  const stats = useLinkStats(links);
 
   // Computed values
   const filteredLinks = useMemo(() => {
@@ -774,33 +764,34 @@ export default function PaymentLinks() {
         </button>
       </header>
 
-      {/* Stats */}
+      {/* Stats - Using dashboardStats from backend */}
       <div className="stats-grid">
         <StatCard
           icon={Link2}
           label="Total Links"
-          value={stats.total}
+          value={dashboardStats.totalLinks || 0}
           color="blue"
         />
         <StatCard
           icon={CheckCircle}
           label="Active"
-          value={stats.active}
+          value={dashboardStats.activeLinks || 0}
           color="green"
+          subValue={`${dashboardStats.paidLinks || 0} paid`}
         />
         <StatCard
           icon={DollarSign}
           label="Total Collected"
-          value={formatCurrency(stats.totalCollected)}
+          value={formatCurrency(dashboardStats.totalRevenue || 0)}
           color="purple"
-          subValue={`${stats.totalPayments} payments`}
+          subValue={`${dashboardStats.successfulCount || 0} payments`}
         />
         <StatCard
           icon={BarChart2}
           label="Conversion"
-          value={`${stats.conversionRate}%`}
+          value={`${dashboardStats.conversionRate || 0}%`}
           color="orange"
-          subValue={`${stats.successfulTransactions}/${stats.totalTransactions} successful`}
+          subValue={`${dashboardStats.successfulCount || 0}/${(dashboardStats.successfulCount || 0) + (dashboardStats.failedCount || 0) + (dashboardStats.processingCount || 0) + (dashboardStats.pendingCount || 0)} successful`}
         />
       </div>
 
@@ -1308,16 +1299,28 @@ export default function PaymentLinks() {
 
         .success-badge {
           display: inline-block;
-          padding: 2px 8px;
+          padding: 4px 8px;
           background: #ecfdf5;
           color: #065f46;
           border-radius: 12px;
+          font-size: 12px;
+          font-weight: 500;
+        }
+
+        .no-payments {
+          color: #6b7280;
           font-size: 12px;
         }
 
         .attempts-count {
           font-size: 12px;
           color: #6b7280;
+          margin-bottom: 2px;
+        }
+
+        .last-paid {
+          font-size: 10px;
+          color: #9ca3af;
         }
 
         .created-date {
@@ -1361,16 +1364,19 @@ export default function PaymentLinks() {
         .action-btn.copy:hover {
           color: #059669;
           border-color: #059669;
+          background: #ecfdf5;
         }
 
         .action-btn.view:hover {
           color: #3b82f6;
           border-color: #3b82f6;
+          background: #eff6ff;
         }
 
         .action-btn.delete:hover {
           color: #dc2626;
           border-color: #dc2626;
+          background: #fee2e2;
         }
 
         .action-tooltip {
@@ -1628,12 +1634,25 @@ export default function PaymentLinks() {
           overflow: hidden;
         }
 
+        .transactions-header {
+          display: grid;
+          grid-template-columns: 1.5fr 1fr 1fr 1.5fr;
+          padding: 12px 16px;
+          background: #f9fafb;
+          border-bottom: 1px solid #e5e7eb;
+          font-size: 12px;
+          font-weight: 600;
+          color: #6b7280;
+          text-transform: uppercase;
+        }
+
         .transaction-row {
-          display: flex;
-          justify-content: space-between;
+          display: grid;
+          grid-template-columns: 1.5fr 1fr 1fr 1.5fr;
           align-items: center;
           padding: 12px 16px;
           border-bottom: 1px solid #e5e7eb;
+          font-size: 13px;
         }
 
         .transaction-row:last-child {
@@ -1643,7 +1662,7 @@ export default function PaymentLinks() {
         .tx-ref {
           font-family: monospace;
           font-size: 12px;
-          color: #6b7280;
+          color: #374151;
         }
 
         .tx-amount {
@@ -1657,6 +1676,7 @@ export default function PaymentLinks() {
           font-size: 11px;
           font-weight: 500;
           text-transform: capitalize;
+          width: fit-content;
         }
 
         .tx-status.success {
@@ -1672,6 +1692,11 @@ export default function PaymentLinks() {
         .tx-status.processing {
           background: #fff7ed;
           color: #9a3412;
+        }
+
+        .tx-status.initialized {
+          background: #e0f2fe;
+          color: #0369a1;
         }
 
         .tx-date {
@@ -1714,6 +1739,12 @@ export default function PaymentLinks() {
 
           .modal {
             margin: 20px;
+          }
+
+          .transactions-header,
+          .transaction-row {
+            grid-template-columns: 1fr;
+            gap: 8px;
           }
         }
       `}</style>
