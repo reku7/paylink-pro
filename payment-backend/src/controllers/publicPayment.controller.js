@@ -29,11 +29,10 @@ export async function startPublicPaymentController(req, res) {
     }
 
     // 4️⃣ Create new internal transaction
-    const transaction = await createInternalTransaction(
-      link.merchantId,
-      link.linkId,
-      { amount: link.amount, currency: link.currency }
-    );
+    const transaction = await createInternalTransaction(null, link.linkId, {
+      amount: link.amount,
+      currency: link.currency,
+    });
 
     // 5️⃣ Build public URLs with linkId (retry works now)
     const successUrl = `${process.env.PUBLIC_PAYMENT_SUCCESS_URL}?linkId=${link.linkId}`;
