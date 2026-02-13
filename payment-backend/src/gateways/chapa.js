@@ -69,7 +69,7 @@ export default class ChapaGateway extends BaseGateway {
       .toLowerCase()
       .replace(/[^a-z0-9]/g, "");
 
-    return `test${cleanRef}@gmail.com`;
+    return `test_${cleanRef}@test.chapa.co`;
   }
 
   async fetchTransaction(txRef) {
