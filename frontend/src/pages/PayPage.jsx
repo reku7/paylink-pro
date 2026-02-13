@@ -45,15 +45,7 @@ export default function PayPage() {
       setLoading(true);
       setError("");
 
-      let res;
-      if (userIsLoggedIn) {
-        res = await privateApi.post(`/payments/${linkId}/start`, {
-          amount: link.amount,
-          currency: link.currency,
-        });
-      } else {
-        res = await publicApi.post(`/payments/public/start/${linkId}`, {});
-      }
+      const res = await publicApi.post(`/payments/public/start/${linkId}`, {});
 
       const checkoutUrl =
         res.data.checkoutUrl ||
