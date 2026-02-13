@@ -1,75 +1,62 @@
-// src/controllers/paymentController.js
-import Transaction from "../models/Transaction.js";
+// src/controllers/publicPayment.controller.js
+import PaymentLink from "../models/PaymentLink.js";
 import {
   createInternalTransaction,
   startPayment,
 } from "../services/payment.service.js";
 
 /**
- * Start a private payment (authenticated merchant)
- * POST /api/payments/:linkId/start
+ * Start a public payment (customer, no auth)
+ * POST /api/payments/public/start/:linkId
  */
-export async function startPaymentController(req, res) {
+// controllers/publicPayment.controller.js
+export async function startPublicPaymentController(req, res) {
   try {
-    const merchantId = req.user?.merchantId;
-    if (!merchantId) {
-      return res.status(401).json({ error: "Unauthorized" });
+    const { linkId } = req.params;
+
+    // 1️⃣ Load the payment link
+    // 1️⃣ Load the payment link
+    const link = await PaymentLink.findOne({ linkId });
+    if (!link) return res.status(400).json({ error: "Payment link not found" });
+
+    // ✅ Allow retries if link is active
+    if (link.status !== "active") {
+      // Only block if truly expired
+      if (link.expiresAt && link.expiresAt < new Date()) {
+        return res.status(400).json({ error: "Payment link expired" });
+      }
+      // Otherwise, allow retry without changing status
     }
 
-    const { linkId } = req.params;
-    const {
-      amount,
-      currency,
-      customerName,
-      customerPhone,
-      metadata,
-      idempotencyKey,
-      returnUrls, // Optional, can override defaults
-    } = req.body;
+    // 4️⃣ Create new internal transaction
+    const transaction = await createInternalTransaction(
+      link.merchantId,
+      link.linkId,
+      { amount: link.amount, currency: link.currency },
+    );
 
-    // 1️⃣ Always create a new internal transaction
-    const tx = await createInternalTransaction(merchantId, linkId, {
-      amount,
-      currency,
-      customerName,
-      customerPhone,
-      metadata,
-      idempotencyKey: idempotencyKey || undefined, // optional
+    // 5️⃣ Build public URLs with linkId (retry works now)
+    const successUrl = `${process.env.PUBLIC_PAYMENT_SUCCESS_URL}?linkId=${link.linkId}`;
+    const cancelUrl = `${process.env.PUBLIC_PAYMENT_CANCEL_URL}?linkId=${link.linkId}`;
+    const failureUrl = `${process.env.PUBLIC_PAYMENT_FAILURE_URL}?linkId=${link.linkId}`;
+
+    // 6️⃣ Start payment via gateway
+    const gatewayResponse = await startPayment({
+      transaction,
+      returnUrls: { successUrl, cancelUrl, failureUrl },
     });
 
-    // 2️⃣ Determine return URLs (fallback to .env)
-    const urls = returnUrls || {
-      successUrl: process.env.DEFAULT_SUCCESS_URL,
-      cancelUrl: process.env.DEFAULT_CANCEL_URL,
-      failureUrl: process.env.DEFAULT_FAILURE_URL,
-    };
-
-    // 3️⃣ Start payment via gateway
-    let gatewayResp;
-    try {
-      gatewayResp = await startPayment({ transaction: tx, returnUrls: urls });
-    } catch (err) {
-      console.error("Payment gateway error:", err.message);
-      return res.status(502).json({
-        success: false,
-        message: "Payment gateway error",
-        details: err.message,
-      });
-    }
-
-    // 4️⃣ Fetch the latest transaction
-    const updatedTx = await Transaction.findById(tx._id);
-
-    // ✅ Return checkout URL to frontend so retry works
-    return res.status(200).json({
-      success: true,
-      transaction: updatedTx,
-      gateway: gatewayResp,
+    return res.json({
+      checkoutUrl:
+        gatewayResponse.checkoutUrl ||
+        gatewayResponse.data?.checkoutUrl ||
+        gatewayResponse.url,
+      gateway: transaction.gateway,
     });
   } catch (err) {
-    console.error("startPaymentController error:", err);
-    return res.status(500).json({
-      error: err.message || "Failed to start payment",
-    });
+    console.error("❌ startPublicPaymentController error:", err);
+    return res
+      .status(500)
+      .json({ error: err.message || "Failed to start public payment" });
   }
 }
