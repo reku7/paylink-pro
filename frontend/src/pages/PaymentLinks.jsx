@@ -1,232 +1,802 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+// src/pages/PaymentLinks.jsx
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { privateApi as api } from "../api/api";
 import {
   Link2,
   Plus,
   Copy,
-  Trash2,
-  RefreshCw,
-  TrendingUp,
-  DollarSign,
-  Activity,
+  Eye,
   Search,
+  Filter,
+  RefreshCw,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Zap,
+  Repeat,
+  DollarSign,
+  BarChart2,
+  ChevronLeft,
+  ChevronRight,
+  Trash2,
 } from "lucide-react";
-import { privateApi as api } from "../api/api";
 
-export default function PaymentLinks() {
+// Constants
+const API_ENDPOINTS = {
+  LINKS: "/links",
+};
+
+const LINK_TYPES = {
+  ONE_TIME: "one_time",
+  REUSABLE: "reusable",
+};
+
+const PAYMENT_STATUS = {
+  SUCCESS: "success",
+  FAILED: "failed",
+  PROCESSING: "processing",
+};
+
+const TAB_CONFIG = [
+  { id: "all", label: "All Links", icon: Link2 },
+  { id: LINK_TYPES.ONE_TIME, label: "One-Time", icon: Zap },
+  { id: LINK_TYPES.REUSABLE, label: "Reusable", icon: Repeat },
+];
+
+// Utility functions
+const formatDate = (dateString, options = {}) => {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    ...options,
+  });
+};
+
+const formatRelativeTime = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = date - now;
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) return "Expired";
+  if (diffDays === 0) return "Expires today";
+  if (diffDays === 1) return "Expires tomorrow";
+  return `Expires in ${diffDays} days`;
+};
+
+const formatCurrency = (amount, currency = "ETB") => {
+  return `${Number(amount || 0).toLocaleString()} ${currency}`;
+};
+
+const getPaymentUrl = (linkId) => {
+  return `${window.location.origin}/pay/${linkId}`;
+};
+
+// Custom Hooks
+const usePaymentLinks = () => {
   const [links, setLinks] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
-
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
     total: 0,
-    pages: 1,
+    pages: 0,
   });
 
-  useEffect(() => {
-    fetchLinks();
-  }, [pagination.page]);
-
-  const fetchLinks = async () => {
+  const fetchLinks = useCallback(async (params = {}) => {
     setLoading(true);
     setError("");
-    try {
-      const res = await api.get("/links", {
-        params: {
-          page: pagination.page,
-          limit: pagination.limit,
-          search: searchTerm || undefined,
-        },
-      });
 
-      if (res.data?.success) {
-        setLinks(res.data.data || []);
-        setPagination((p) => ({
-          ...p,
-          total: res.data.pagination?.total ?? 0,
-          pages: res.data.pagination?.pages ?? 1,
+    try {
+      const response = await api.get(API_ENDPOINTS.LINKS, { params });
+
+      if (response.data.success) {
+        const linksData = response.data.data || [];
+        setLinks(linksData);
+
+        setPagination((prev) => ({
+          ...prev,
+          total: response.data.pagination?.total || linksData.length,
+          pages:
+            response.data.pagination?.pages ||
+            Math.ceil(linksData.length / prev.limit),
         }));
+
+        return linksData;
       }
-    } catch {
+    } catch (err) {
+      console.error("Failed to fetch links:", err);
       setError("Failed to load payment links");
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const deleteLink = useCallback(
+    async (linkId) => {
+      try {
+        const response = await api.delete(`${API_ENDPOINTS.LINKS}/${linkId}`);
+        if (response.data.success) {
+          await fetchLinks();
+          return true;
+        }
+      } catch (err) {
+        console.error("Failed to delete link:", err);
+        setError("Failed to delete link");
+        return false;
+      }
+    },
+    [fetchLinks],
+  );
+
+  return {
+    links,
+    loading,
+    error,
+    pagination,
+    setPagination,
+    fetchLinks,
+    deleteLink,
+    setError,
+  };
+};
+
+const useLinkStats = (links) => {
+  return useMemo(() => {
+    const now = new Date();
+
+    const active = links.filter(
+      (link) =>
+        link.status === "active" &&
+        (!link.expiresAt || new Date(link.expiresAt) > now),
+    ).length;
+
+    const expired = links.filter(
+      (link) =>
+        link.status === "expired" ||
+        (link.expiresAt && new Date(link.expiresAt) < now),
+    ).length;
+
+    const totalCollected = links.reduce(
+      (sum, link) => sum + (link.totalCollected || 0),
+      0,
+    );
+
+    const totalTransactions = links.reduce(
+      (sum, link) => sum + (link.transactions?.length || 0),
+      0,
+    );
+
+    const successfulTransactions = links.reduce(
+      (sum, link) =>
+        sum +
+        (link.transactions?.filter((tx) => tx.status === PAYMENT_STATUS.SUCCESS)
+          ?.length || 0),
+      0,
+    );
+
+    return {
+      total: links.length,
+      active,
+      expired,
+      totalCollected,
+      conversionRate:
+        totalTransactions > 0
+          ? Math.round((successfulTransactions / totalTransactions) * 100)
+          : 0,
+    };
+  }, [links]);
+};
+
+// Components
+const StatCard = ({ icon: Icon, label, value, color }) => (
+  <div className="stat-card">
+    <div className={`stat-icon ${color}`}>
+      <Icon size={20} />
+    </div>
+    <div className="stat-info">
+      <span className="stat-label">{label}</span>
+      <span className="stat-value">{value}</span>
+    </div>
+  </div>
+);
+
+const Tabs = ({ activeTab, onTabChange, counts }) => (
+  <div className="tabs-container">
+    <div className="tabs">
+      {TAB_CONFIG.map(({ id, label, icon: Icon }) => (
+        <button
+          key={id}
+          onClick={() => onTabChange(id)}
+          className={`tab ${activeTab === id ? "active" : ""}`}
+        >
+          <Icon size={16} />
+          {label}
+          {counts[id] > 0 && (
+            <span className={`tab-count ${activeTab === id ? "active" : ""}`}>
+              {counts[id]}
+            </span>
+          )}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
+const SearchBar = ({ searchTerm, onSearchChange, onRefresh, loading }) => (
+  <div className="search-container">
+    <div className="search-wrapper">
+      <Search size={18} className="search-icon" />
+      <input
+        type="text"
+        placeholder="Search by title, link ID, or amount..."
+        value={searchTerm}
+        onChange={(e) => onSearchChange(e.target.value)}
+        className="search-input"
+      />
+    </div>
+    <div className="action-buttons">
+      <button className="btn-filter">
+        <Filter size={16} />
+        <span>Filter</span>
+      </button>
+      <button onClick={onRefresh} className="btn-refresh">
+        <RefreshCw size={16} className={loading ? "spin" : ""} />
+        <span>Refresh</span>
+      </button>
+    </div>
+  </div>
+);
+
+const StatusBadge = ({ status, expiresAt }) => {
+  const now = new Date();
+  const expiresAtDate = expiresAt ? new Date(expiresAt) : null;
+
+  const getStatusConfig = () => {
+    if (expiresAtDate && expiresAtDate < now) {
+      return {
+        label: "Expired",
+        className: "bg-gray-100 text-gray-800",
+        icon: Clock,
+      };
+    }
+
+    switch (status) {
+      case "active":
+        return {
+          label: "Active",
+          className: "bg-green-100 text-green-800",
+          icon: CheckCircle,
+        };
+      case "disabled":
+        return {
+          label: "Disabled",
+          className: "bg-red-100 text-red-800",
+          icon: XCircle,
+        };
+      default:
+        return {
+          label: status || "Unknown",
+          className: "bg-gray-100 text-gray-800",
+          icon: Clock,
+        };
+    }
   };
 
-  const filteredLinks = useMemo(() => {
-    return links.filter((l) => {
-      if (activeTab === "one-time" && l.type !== "one_time") return false;
-      if (activeTab === "reusable" && l.type !== "reusable") return false;
-      if (!searchTerm) return true;
-
-      const t = searchTerm.toLowerCase();
-      return (
-        l.title?.toLowerCase().includes(t) ||
-        l.linkId?.toLowerCase().includes(t)
-      );
-    });
-  }, [links, activeTab, searchTerm]);
+  const config = getStatusConfig();
+  const Icon = config.icon;
 
   return (
-    <div className="payment-links-page">
-      {/* HEADER */}
-      <div className="page-header">
-        <div className="header-left">
-          <h1 className="page-title">Payment Links</h1>
-          <p className="page-subtitle">
-            Create, manage and track your payment links
-          </p>
+    <div>
+      <span className={`status-badge ${config.className}`}>
+        <Icon size={12} />
+        {config.label}
+      </span>
+      {expiresAt && (
+        <div className="expires-at">{formatRelativeTime(expiresAt)}</div>
+      )}
+    </div>
+  );
+};
+
+const LinkTableRow = ({ link, onCopy, onView, onDelete }) => {
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    onCopy(link.linkId);
+  };
+
+  const handleView = (e) => {
+    e.stopPropagation();
+    onView(link);
+  };
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    if (
+      window.confirm(
+        "Are you sure you want to delete this link? This action cannot be undone.",
+      )
+    ) {
+      onDelete(link._id);
+    }
+  };
+
+  return (
+    <tr className="table-row" onClick={handleView}>
+      <td className="link-details-cell">
+        <div className="link-details">
+          <div
+            className={`link-icon ${link.type === LINK_TYPES.REUSABLE ? "reusable" : "one-time"}`}
+          >
+            {link.type === LINK_TYPES.REUSABLE ? (
+              <Repeat size={20} />
+            ) : (
+              <Zap size={20} />
+            )}
+          </div>
+          <div>
+            <div className="link-title">{link.title || "Untitled Link"}</div>
+            <div className="link-meta">
+              <span className="link-id">{link.linkId}</span>
+              <span className="separator">•</span>
+              <span className="gateway-badge">
+                {link.gateway || "santimpay"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </td>
+      <td className="amount-cell">
+        <div className="amount">{formatCurrency(link.amount)}</div>
+        {link.totalCollected > 0 && (
+          <div className="collected">
+            Collected: {formatCurrency(link.totalCollected)}
+          </div>
+        )}
+      </td>
+      <td className="status-cell">
+        <StatusBadge status={link.status} expiresAt={link.expiresAt} />
+      </td>
+      <td className="performance-cell">
+        <div className="payments-count">{link.totalPayments || 0} payments</div>
+        <div className="attempts-count">
+          {link.transactions?.length || 0} attempts
+        </div>
+      </td>
+      <td className="date-cell">
+        <div className="created-date">{formatDate(link.createdAt)}</div>
+      </td>
+      <td className="actions-cell">
+        <div className="action-buttons-group">
+          <button onClick={handleCopy} className="action-btn" title="Copy link">
+            <Copy size={16} />
+          </button>
+          <button
+            onClick={handleView}
+            className="action-btn"
+            title="View details"
+          >
+            <Eye size={16} />
+          </button>
+          <button
+            onClick={handleDelete}
+            className="action-btn delete"
+            title="Delete link"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+};
+
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  if (totalPages <= 1) return null;
+
+  return (
+    <div className="pagination">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="pagination-btn"
+      >
+        <ChevronLeft size={16} />
+        Previous
+      </button>
+
+      <span className="pagination-info">
+        Page {currentPage} of {totalPages}
+      </span>
+
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="pagination-btn"
+      >
+        Next
+        <ChevronRight size={16} />
+      </button>
+    </div>
+  );
+};
+
+const LinkDetailsModal = ({ link, onClose, onCopy }) => {
+  if (!link) return null;
+
+  const statusConfig = {
+    active: { className: "bg-green-100 text-green-800" },
+    disabled: { className: "bg-red-100 text-red-800" },
+    expired: { className: "bg-gray-100 text-gray-800" },
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal modal-lg">
+        <div className="modal-header">
+          <h2>Payment Link Details</h2>
+          <button className="modal-close" onClick={onClose}>
+            ×
+          </button>
         </div>
 
-        <Link to="/dashboard/create-link" className="btn-primary">
-          <Plus size={18} /> Create Link
-        </Link>
-      </div>
+        <div className="modal-body">
+          <section className="details-section">
+            <h3>Link Information</h3>
+            <div className="details-grid">
+              <DetailItem label="Link ID" value={link.linkId} />
+              <DetailItem label="Title" value={link.title || "Untitled"} />
+              <DetailItem
+                label="Description"
+                value={link.description || "No description"}
+              />
+              <DetailItem
+                label="Amount"
+                value={formatCurrency(link.amount, link.currency)}
+                className="amount"
+              />
+              <DetailItem label="Gateway" value={link.gateway || "santimpay"} />
+              <DetailItem
+                label="Status"
+                value={link.status}
+                isStatus
+                statusClassName={statusConfig[link.status]?.className}
+              />
+              <DetailItem label="Created" value={formatDate(link.createdAt)} />
+              {link.expiresAt && (
+                <DetailItem
+                  label="Expires"
+                  value={formatDate(link.expiresAt)}
+                />
+              )}
+            </div>
+          </section>
 
-      {/* STATS */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon blue">
-            <Link2 />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Total Links</span>
-            <span className="stat-value">{links.length}</span>
-          </div>
+          <section className="details-section">
+            <h3>Payment URL</h3>
+            <div className="url-box">
+              <code className="url-text">{getPaymentUrl(link.linkId)}</code>
+              <button
+                onClick={() => onCopy(link.linkId)}
+                className="action-btn"
+                title="Copy link"
+              >
+                <Copy size={16} />
+              </button>
+            </div>
+          </section>
+
+          {link.transactions?.length > 0 && (
+            <section className="details-section">
+              <h3>Recent Transactions</h3>
+              <div className="transactions-preview">
+                {link.transactions.slice(0, 5).map((tx, idx) => (
+                  <TransactionRow key={idx} transaction={tx} />
+                ))}
+              </div>
+            </section>
+          )}
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon green">
-            <Activity />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Active</span>
-            <span className="stat-value">
-              {links.filter((l) => l.status === "active").length}
-            </span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon purple">
-            <DollarSign />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Collected</span>
-            <span className="stat-value">$0</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon orange">
-            <TrendingUp />
-          </div>
-          <div className="stat-info">
-            <span className="stat-label">Conversion</span>
-            <span className="stat-value">0%</span>
-          </div>
-        </div>
-      </div>
-
-      {/* TABS */}
-      <div className="tabs-container">
-        <div className="tabs">
-          {["all", "one-time", "reusable"].map((t) => (
-            <button
-              key={t}
-              className={`tab ${activeTab === t ? "active" : ""}`}
-              onClick={() => setActiveTab(t)}
-            >
-              {t === "all" ? "All" : t === "one-time" ? "One-Time" : "Reusable"}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* SEARCH */}
-      <div className="search-container">
-        <div className="search-wrapper">
-          <Search className="search-icon" size={18} />
-          <input
-            className="search-input"
-            placeholder="Search payment links..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        <div className="action-buttons">
-          <button className="btn-refresh" onClick={fetchLinks}>
-            <RefreshCw size={16} />
+        <div className="modal-footer">
+          <button onClick={() => onCopy(link.linkId)} className="btn-secondary">
+            <Copy size={16} />
+            Copy Link
+          </button>
+          <button onClick={onClose} className="btn-primary">
+            Close
           </button>
         </div>
       </div>
+    </div>
+  );
+};
 
-      {/* TABLE */}
-      <div className="table-container">
-        {loading ? (
-          <div className="loading-state">
-            <div className="spinner" />
-            Loading...
-          </div>
-        ) : error ? (
-          <div className="error-box">{error}</div>
-        ) : filteredLinks.length === 0 ? (
-          <div className="empty-state">
-            <h3>No payment links</h3>
-            <p>Create your first payment link</p>
-          </div>
-        ) : (
-          <div className="table-responsive">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredLinks.map((l) => (
-                  <tr key={l._id} className="table-row">
-                    <td>{l.title}</td>
-                    <td>{l.type}</td>
-                    <td>{l.status}</td>
-                    <td>
-                      <div className="action-buttons-group">
-                        <button className="action-btn">
-                          <Copy size={14} />
-                        </button>
-                        <button className="action-btn delete">
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+const DetailItem = ({ label, value, className, isStatus, statusClassName }) => (
+  <div className="detail-item">
+    <span className="detail-label">{label}:</span>
+    {isStatus ? (
+      <span className={`status-badge ${statusClassName}`}>{value}</span>
+    ) : (
+      <span className={`detail-value ${className || ""}`}>{value}</span>
+    )}
+  </div>
+);
 
-        {/* PAGINATION */}
-        <div className="pagination">
-          <button className="pagination-btn">Prev</button>
-          <span className="pagination-info">
-            Page {pagination.page} of {pagination.pages}
-          </span>
-          <button className="pagination-btn">Next</button>
+const TransactionRow = ({ transaction }) => (
+  <div className="transaction-row">
+    <span className="tx-ref">{transaction.internalRef?.slice(0, 12)}...</span>
+    <span className="tx-amount">{formatCurrency(transaction.amount)}</span>
+    <span className={`tx-status ${transaction.status}`}>
+      {transaction.status}
+    </span>
+    <span className="tx-date">{formatDate(transaction.createdAt)}</span>
+  </div>
+);
+
+const EmptyState = ({ searchTerm, onCreate }) => (
+  <div className="empty-state">
+    <div className="empty-state-icon">
+      <Link2 size={48} />
+    </div>
+    <h3>No payment links found</h3>
+    <p>
+      {searchTerm
+        ? "No links match your search criteria"
+        : "Get started by creating your first payment link"}
+    </p>
+    <button onClick={onCreate} className="btn-primary">
+      <Plus size={16} />
+      <span>Create Payment Link</span>
+    </button>
+  </div>
+);
+
+const LoadingState = () => (
+  <div className="loading-state">
+    <div className="spinner"></div>
+    <p>Loading payment links...</p>
+  </div>
+);
+
+// Main Component
+export default function PaymentLinks() {
+  const navigate = useNavigate();
+
+  // State
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedLink, setSelectedLink] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  // Custom hooks
+  const {
+    links,
+    loading,
+    error,
+    pagination,
+    setPagination,
+    fetchLinks,
+    deleteLink,
+    setError,
+  } = usePaymentLinks();
+
+  const stats = useLinkStats(links);
+
+  // Computed values
+  const filteredLinks = useMemo(() => {
+    return links.filter((link) => {
+      // Tab filter
+      if (activeTab !== "all" && link.type !== activeTab) return false;
+
+      // Search filter
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        return (
+          link.title?.toLowerCase().includes(term) ||
+          link.linkId?.toLowerCase().includes(term) ||
+          link.amount?.toString().includes(term)
+        );
+      }
+
+      return true;
+    });
+  }, [links, activeTab, searchTerm]);
+
+  const tabCounts = useMemo(
+    () => ({
+      all: links.length,
+      [LINK_TYPES.ONE_TIME]: links.filter((l) => l.type === LINK_TYPES.ONE_TIME)
+        .length,
+      [LINK_TYPES.REUSABLE]: links.filter((l) => l.type === LINK_TYPES.REUSABLE)
+        .length,
+    }),
+    [links],
+  );
+
+  // Handlers
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  };
+
+  const handleCopyLink = async (linkId) => {
+    await navigator.clipboard.writeText(getPaymentUrl(linkId));
+    // Optional: Show toast notification
+  };
+
+  const handleViewLink = (link) => {
+    setSelectedLink(link);
+    setShowDetailsModal(true);
+  };
+
+  const handleDeleteLink = async (linkId) => {
+    const success = await deleteLink(linkId);
+    if (success && selectedLink?._id === linkId) {
+      setShowDetailsModal(false);
+      setSelectedLink(null);
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    setPagination((prev) => ({ ...prev, page: newPage }));
+  };
+
+  const handleRefresh = () => {
+    fetchLinks({
+      page: pagination.page,
+      limit: pagination.limit,
+      ...(searchTerm && { search: searchTerm }),
+    });
+  };
+
+  const handleCreateLink = () => {
+    navigate("/dashboard/create-link");
+  };
+
+  const handleCloseModal = () => {
+    setShowDetailsModal(false);
+    setSelectedLink(null);
+  };
+
+  // Effects
+  useEffect(() => {
+    fetchLinks({
+      page: pagination.page,
+      limit: pagination.limit,
+      ...(searchTerm && { search: searchTerm }),
+    });
+  }, [fetchLinks, activeTab, pagination.page, pagination.limit, searchTerm]);
+
+  return (
+    <div className="payment-links-page">
+      {/* Header */}
+      <header className="page-header">
+        <div className="header-left">
+          <h1 className="page-title">Payment Links</h1>
+          <p className="page-subtitle">
+            Create and manage payment links for your customers
+          </p>
         </div>
+        <button onClick={handleCreateLink} className="btn-primary">
+          <Plus size={18} />
+          <span>Create New Link</span>
+        </button>
+      </header>
+
+      {/* Stats */}
+      <div className="stats-grid">
+        <StatCard
+          icon={Link2}
+          label="Total Links"
+          value={stats.total}
+          color="blue"
+        />
+        <StatCard
+          icon={CheckCircle}
+          label="Active"
+          value={stats.active}
+          color="green"
+        />
+        <StatCard
+          icon={DollarSign}
+          label="Total Collected"
+          value={formatCurrency(stats.totalCollected)}
+          color="purple"
+        />
+        <StatCard
+          icon={BarChart2}
+          label="Conversion"
+          value={`${stats.conversionRate}%`}
+          color="orange"
+        />
       </div>
 
-      {/* YOUR STYLE JSX GOES HERE */}
-      {/* ✅ Paste your <style jsx> block exactly as you sent */}
+      {/* Tabs */}
+      <Tabs
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        counts={tabCounts}
+      />
+
+      {/* Search */}
+      <SearchBar
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        onRefresh={handleRefresh}
+        loading={loading}
+      />
+
+      {/* Error Message */}
+      {error && (
+        <div className="error-box">
+          <p>{error}</p>
+        </div>
+      )}
+
+      {/* Table */}
+      <div className="table-container">
+        {loading ? (
+          <LoadingState />
+        ) : filteredLinks.length === 0 ? (
+          <EmptyState searchTerm={searchTerm} onCreate={handleCreateLink} />
+        ) : (
+          <>
+            <div className="table-responsive">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Link Details</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Performance</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredLinks.map((link) => (
+                    <LinkTableRow
+                      key={link._id || link.linkId}
+                      link={link}
+                      onCopy={handleCopyLink}
+                      onView={handleViewLink}
+                      onDelete={handleDeleteLink}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={pagination.pages}
+              onPageChange={handlePageChange}
+            />
+          </>
+        )}
+      </div>
+
+      {/* Modal */}
+      {showDetailsModal && (
+        <LinkDetailsModal
+          link={selectedLink}
+          onClose={handleCloseModal}
+          onCopy={handleCopyLink}
+        />
+      )}
 
       <style jsx>{`
         .payment-links-page {
@@ -788,7 +1358,6 @@ export default function PaymentLinks() {
           color: #6b7280;
         }
 
-        /* Modal Styles */
         .modal-overlay {
           position: fixed;
           top: 0;
@@ -862,41 +1431,6 @@ export default function PaymentLinks() {
           gap: 12px;
           padding: 20px 24px;
           border-top: 1px solid #e5e7eb;
-        }
-
-        .form-group {
-          margin-bottom: 20px;
-        }
-
-        .form-group label {
-          display: block;
-          margin-bottom: 8px;
-          font-size: 14px;
-          font-weight: 500;
-          color: #374151;
-        }
-
-        .form-input,
-        .form-select,
-        .form-textarea {
-          width: 100%;
-          padding: 10px 12px;
-          border: 1px solid #d1d5db;
-          border-radius: 8px;
-          font-size: 14px;
-          outline: none;
-          transition: border-color 0.2s;
-        }
-
-        .form-input:focus,
-        .form-select:focus,
-        .form-textarea:focus {
-          border-color: #059669;
-        }
-
-        .form-textarea {
-          resize: vertical;
-          font-family: inherit;
         }
 
         .details-section {
