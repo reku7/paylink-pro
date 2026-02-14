@@ -170,6 +170,14 @@ export async function markOneTimeLinkPaid(linkId, transactionId) {
   return link;
 }
 
+export async function getArchivedPaymentLinkById(linkId, merchantId) {
+  return PaymentLink.findOne({
+    linkId,
+    merchantId,
+    isArchived: true,
+  });
+}
+
 /** List archived links */
 export function listArchivedPaymentLinks(merchantId) {
   return PaymentLink.aggregate([
