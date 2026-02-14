@@ -161,8 +161,6 @@ export async function markTransactionProcessing(
   return tx;
 }
 
-// In payment-backend/src/services/payment.service.js
-
 export async function markTransactionSuccess(
   internalRef,
   { gatewayPayload = {}, paidAt = null } = {},
@@ -175,7 +173,7 @@ export async function markTransactionSuccess(
     if (!tx) throw new Error("Transaction not found");
 
     // If already success, return immediately
-    if (tx.status === "success") {
+    if (tx.status === "success" && tx.processedInTotals) {
       await session.commitTransaction();
       return tx;
     }
@@ -184,12 +182,6 @@ export async function markTransactionSuccess(
     tx.status = "success";
     tx.paidAt = paidAt ? new Date(paidAt) : new Date();
     tx.gatewayResponse = { ...(tx.gatewayResponse || {}), ...gatewayPayload };
-
-    // IMPORTANT: Mark as processed in totals if not already
-    if (!tx.processedInTotals) {
-      tx.processedInTotals = true;
-    }
-
     await tx.save({ session });
 
     // Fetch the link
@@ -207,29 +199,60 @@ export async function markTransactionSuccess(
         link.isPaid = true;
         link.paidAt = tx.paidAt;
 
-        // Increment totals regardless of processedInTotals flag
-        // This ensures totals are updated even if the flag was missed
-        link.totalCollected = (link.totalCollected || 0) + tx.amount;
-        link.totalPayments = (link.totalPayments || 0) + 1;
+        // Only increment totals if not counted yet
+        const updatedTx = await Transaction.findOneAndUpdate(
+          {
+            internalRef,
+            processedInTotals: false,
+          },
+          {
+            $set: { processedInTotals: true },
+          },
+          { new: true, session },
+        );
 
-        // Mark transaction as processed
-        if (!tx.processedInTotals) {
-          tx.processedInTotals = true;
-          await tx.save({ session });
+        if (updatedTx) {
+          await PaymentLink.updateOne(
+            { linkId: tx.linkId },
+            {
+              $inc: {
+                totalCollected: tx.amount,
+                totalPayments: 1,
+              },
+              $set: { updatedAt: new Date() },
+            },
+            { session },
+          );
         }
       }
     }
 
     // Handle reusable link
     if (link.type === "reusable") {
-      // Always increment totals for successful transactions
-      link.totalCollected = (link.totalCollected || 0) + tx.amount;
-      link.totalPayments = (link.totalPayments || 0) + 1;
+      // Increment totals only if not counted yet for this transaction
+      const updatedTx = await Transaction.findOneAndUpdate(
+        {
+          internalRef,
+          processedInTotals: false,
+        },
+        {
+          $set: { processedInTotals: true },
+        },
+        { new: true, session },
+      );
 
-      // Mark transaction as processed
-      if (!tx.processedInTotals) {
-        tx.processedInTotals = true;
-        await tx.save({ session });
+      if (updatedTx) {
+        await PaymentLink.updateOne(
+          { linkId: tx.linkId },
+          {
+            $inc: {
+              totalCollected: tx.amount,
+              totalPayments: 1,
+            },
+            $set: { updatedAt: new Date() },
+          },
+          { session },
+        );
       }
     }
 
@@ -327,6 +350,7 @@ export async function handleSantimWebhook(payload) {
 }
 
 export async function handleChapaWebhook(payload) {
+  console.log("🔥🔥 CHAPA WEBHOOK RECEIVED:", payload);
   const refId = payload.tx_ref;
   if (!refId || !payload.status) throw new Error("Invalid Chapa payload");
 
