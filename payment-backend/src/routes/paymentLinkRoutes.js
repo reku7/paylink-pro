@@ -1,4 +1,4 @@
-//src\routes\paymentLinkRoutes.js
+// routes/paymentLinkRoutes.js
 import express from "express";
 import authMiddleware from "../middleware/auth.js";
 import { ROLES } from "../constants/roles.js";
@@ -8,12 +8,14 @@ import {
   getAllLinksController,
   getLinkDetailsController,
   archivePaymentLinkController,
+  unarchivePaymentLinkController,
+  getArchivedLinksController, // Add this import
 } from "../controllers/paymentLinkController.js";
 import { checkMerchantActive } from "../middleware/checkMerchantActive.js";
 
 const router = express.Router();
-// routes/paymentLinkRoutes.js
 
+// ========== CREATE PAYMENT LINK ==========
 router.post(
   "/",
   authMiddleware,
@@ -22,6 +24,7 @@ router.post(
   createLinkController,
 );
 
+// ========== GET ACTIVE LINKS ==========
 router.get(
   "/",
   authMiddleware,
@@ -30,6 +33,16 @@ router.get(
   getAllLinksController,
 );
 
+// ========== GET ARCHIVED LINKS ==========
+router.get(
+  "/archived",
+  authMiddleware,
+  requireRole([ROLES.MERCHANT_OWNER]),
+  checkMerchantActive,
+  getArchivedLinksController,
+);
+
+// ========== GET SINGLE LINK DETAILS ==========
 router.get(
   "/:linkId",
   authMiddleware,
@@ -38,6 +51,7 @@ router.get(
   getLinkDetailsController,
 );
 
+// ========== ARCHIVE LINK ==========
 router.patch(
   "/:linkId/archive",
   authMiddleware,
@@ -46,27 +60,13 @@ router.patch(
   archivePaymentLinkController,
 );
 
+// ========== UNARCHIVE LINK ==========
 router.patch(
   "/:linkId/unarchive",
   authMiddleware,
   requireRole([ROLES.MERCHANT_OWNER]),
   checkMerchantActive,
-  async (req, res) => {
-    const { linkId } = req.params;
-    const merchantId = req.user.merchantId;
-    const link = await PaymentLink.findOne({
-      linkId,
-      merchantId,
-      isArchived: true,
-    });
-    if (!link) return res.status(404).json({ error: "Link not found" });
-
-    link.isArchived = false;
-    link.status =
-      link.isPaid && link.type === "one_time" ? "disabled" : "active";
-    await link.save();
-    return res.json({ success: true, message: "Link unarchived" });
-  },
+  unarchivePaymentLinkController,
 );
 
 export default router;

@@ -3,10 +3,15 @@ import {
   createPaymentLink,
   listPaymentLinks,
   getPaymentLinkById,
+  listArchivedPaymentLinks,
+  getArchivedPaymentLinkById,
 } from "../services/link.service.js";
 import Merchant from "../models/Merchant.js";
 import PaymentLink from "../models/PaymentLink.js";
 
+/** ============================
+ * CREATE PAYMENT LINK
+ * ============================ */
 export const createLinkController = async (req, res) => {
   try {
     const merchantId = req.user.merchantId;
@@ -16,10 +21,9 @@ export const createLinkController = async (req, res) => {
       return res.status(400).json({ error: "Amount must be greater than 0" });
     }
 
-    // 🔒 ENFORCE CHAPA CONNECTION
+    // 🔒 Enforce Chapa connection if requested
     if (gateway === "chapa") {
       const merchant = await Merchant.findById(merchantId);
-
       if (!merchant?.chapa?.secretEncrypted) {
         return res.status(400).json({
           error: "Chapa is not connected. Please connect Chapa first.",
@@ -40,6 +44,9 @@ export const createLinkController = async (req, res) => {
   }
 };
 
+/** ============================
+ * LIST ACTIVE PAYMENT LINKS
+ * ============================ */
 export const getAllLinksController = async (req, res) => {
   try {
     const merchantId = req.user.merchantId;
@@ -56,6 +63,9 @@ export const getAllLinksController = async (req, res) => {
   }
 };
 
+/** ============================
+ * GET LINK DETAILS
+ * ============================ */
 export const getLinkDetailsController = async (req, res) => {
   try {
     const { linkId } = req.params;
@@ -76,6 +86,9 @@ export const getLinkDetailsController = async (req, res) => {
   }
 };
 
+/** ============================
+ * ARCHIVE PAYMENT LINK
+ * ============================ */
 export const archivePaymentLinkController = async (req, res) => {
   try {
     const { linkId } = req.params;
@@ -96,7 +109,7 @@ export const archivePaymentLinkController = async (req, res) => {
     link.isArchived = true;
     link.archivedAt = new Date();
     link.archivedBy = req.user._id;
-    link.status = "disabled"; // optional but recommended
+    link.status = "disabled"; // optional, prevents further payments
 
     await link.save();
 
@@ -107,5 +120,67 @@ export const archivePaymentLinkController = async (req, res) => {
   } catch (err) {
     console.error("Archive link error:", err);
     return res.status(500).json({ error: "Failed to archive payment link" });
+  }
+};
+
+/** ============================
+ * UNARCHIVE PAYMENT LINK
+ * ============================ */
+export const unarchivePaymentLinkController = async (req, res) => {
+  try {
+    const { linkId } = req.params;
+    const merchantId = req.user.merchantId;
+
+    const link = await getArchivedPaymentLinkById(linkId, merchantId);
+
+    if (!link) {
+      return res.status(404).json({
+        error: "Archived payment link not found",
+      });
+    }
+
+    // Optional: prevent unarchiving paid one-time links
+    if (link.type === "one_time" && link.isPaid) {
+      return res.status(400).json({
+        error: "Paid one-time links cannot be unarchived",
+      });
+    }
+
+    link.isArchived = false;
+    link.archivedAt = null;
+    link.archivedBy = null;
+    link.status = "active"; // re-enable payments
+
+    await link.save();
+
+    return res.json({
+      success: true,
+      message: "Payment link unarchived successfully",
+      data: link,
+    });
+  } catch (err) {
+    console.error("Unarchive link error:", err);
+    return res.status(500).json({ error: "Failed to unarchive payment link" });
+  }
+};
+
+/** ============================
+ * LIST ARCHIVED LINKS
+ * ============================ */
+export const getArchivedLinksController = async (req, res) => {
+  try {
+    const merchantId = req.user.merchantId;
+
+    const links = await listArchivedPaymentLinks(merchantId);
+
+    return res.status(200).json({
+      success: true,
+      data: links,
+    });
+  } catch (err) {
+    console.error("Error fetching archived links:", err);
+    return res
+      .status(500)
+      .json({ error: "Failed to fetch archived payment links" });
   }
 };
