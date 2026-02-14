@@ -155,9 +155,9 @@ export const unarchivePaymentLinkController = async (req, res) => {
     }
 
     // Only reusable links can be unarchived
-    if (link.type === "one_time") {
+    if (link.type === "one_time" && link.isPaid) {
       return res.status(400).json({
-        error: "One-time links cannot be unarchived",
+        error: "Paid one-time links cannot be unarchived",
       });
     }
 
