@@ -931,9 +931,7 @@ export default function PaymentLinks() {
       <header className="page-header">
         <div className="header-left">
           <h1 className="page-title">Payment Links</h1>
-          <p className="page-subtitle">
-            Create and manage payment links for your customers
-          </p>
+          <p className="page-subtitle">Create and manage payment links</p>
         </div>
         <button onClick={handleCreateLink} className="btn-primary">
           <Plus size={18} />
@@ -1257,7 +1255,7 @@ export default function PaymentLinks() {
         }
 
         .search-input {
-          width: 100%;
+          width: 90%;
           padding: 12px 16px 12px 44px;
           border: 1px solid #e5e7eb;
           border-radius: 8px;

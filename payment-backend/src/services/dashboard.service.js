@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import Transaction from "../models/Transaction.js";
 import PaymentLink from "../models/PaymentLink.js";
 import Merchant from "../models/Merchant.js";
+import fs from "fs";
 
 /* -------------------------------------------------------------------------- */
 /* Helpers                                                                     */
@@ -250,8 +251,19 @@ export async function getGatewayStatus(merchantId) {
     };
   }
 
-  const santimPayOperational =
-    process.env.SANTIMPAY_MERCHANT_ID && process.env.SANTIMPAY_PRIVATE_KEY;
+  let santimPayOperational = false;
+
+  try {
+    if (
+      process.env.SANTIMPAY_MERCHANT_ID &&
+      process.env.SANTIMPAY_PRIVATE_KEY
+    ) {
+      fs.accessSync(process.env.SANTIMPAY_PRIVATE_KEY);
+      santimPayOperational = true;
+    }
+  } catch {
+    santimPayOperational = false;
+  }
 
   return {
     santimpay: {

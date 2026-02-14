@@ -38,14 +38,11 @@ export default function Dashboard() {
           <Link to="/dashboard/transactions" style={styles.link}>
             Transactions
           </Link>
-          <Link to="/dashboard/create-link" style={styles.link}>
-            Create Payment Link
+          <Link to="/dashboard/payment-links" style={styles.link}>
+            Payment Links
           </Link>
           <Link to="/dashboard/settings/payments" style={styles.link}>
             Payment Gateways
-          </Link>
-          <Link to="/dashboard/payment-links" style={styles.link}>
-            Payment Links
           </Link>
         </nav>
 

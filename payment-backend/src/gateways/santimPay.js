@@ -1,6 +1,7 @@
 // src/gateways/santimPay.js
 import BaseGateway from "./BaseGateway.js";
 import SantimpaySdk from "./nodeSDK/lib/index.js";
+import fs from "fs";
 
 function requiredEnv(name) {
   if (!process.env[name]) {
@@ -13,9 +14,9 @@ export default class SantimPayGateway extends BaseGateway {
   constructor() {
     super();
 
-    const privateKey = requiredEnv("SANTIMPAY_PRIVATE_KEY").replace(
-      /\\n/g,
-      "\n",
+    const privateKey = fs.readFileSync(
+      requiredEnv("SANTIMPAY_PRIVATE_KEY"),
+      "utf8",
     );
 
     this.client = new SantimpaySdk(
