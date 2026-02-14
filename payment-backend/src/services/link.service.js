@@ -80,7 +80,6 @@ export async function createPaymentLink(merchantId, data) {
 }
 
 /** List active payment links */
-/** List active payment links (fixed) */
 export function listPaymentLinks(merchantId) {
   return PaymentLink.aggregate([
     {
@@ -100,15 +99,7 @@ export function listPaymentLinks(merchantId) {
     },
     {
       $addFields: {
-        successfulPayments: {
-          $size: {
-            $filter: {
-              input: "$txs",
-              as: "tx",
-              cond: { $eq: ["$$tx.status", "success"] },
-            },
-          },
-        },
+        transactions: "$txs", // 🔥 THIS LINE FIXES EVERYTHING
       },
     },
     { $sort: { createdAt: -1 } },
