@@ -12,6 +12,8 @@ export default function Transactions() {
   const [gatewayFilter, setGatewayFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState("desc");
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -52,7 +54,9 @@ export default function Transactions() {
       filtered = filtered.filter(
         (tx) =>
           tx.internalRef?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          tx.amount?.toString().includes(searchTerm),
+          tx.amount?.toString().includes(searchTerm) ||
+          tx.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          tx.gateway?.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -144,6 +148,7 @@ export default function Transactions() {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      second: "2-digit",
     });
   };
 
@@ -163,6 +168,21 @@ export default function Transactions() {
       setSortBy(field);
       setSortOrder("desc");
     }
+  };
+
+  const handleViewDetails = (transaction) => {
+    setSelectedTransaction(transaction);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedTransaction(null);
+  };
+
+  const handleCopyReference = (text) => {
+    navigator.clipboard.writeText(text);
+    alert("Reference copied to clipboard!");
   };
 
   return (
@@ -286,7 +306,7 @@ export default function Transactions() {
           <div className="search-input-wrapper">
             <input
               type="text"
-              placeholder="Search transactions..."
+              placeholder="Search by reference, amount, status..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -457,7 +477,10 @@ export default function Transactions() {
                     return (
                       <tr key={tx._id || tx.internalRef}>
                         <td className="reference-cell">
-                          <div className="flex flex-col">
+                          <div
+                            className="flex flex-col cursor-pointer hover:text-blue-600"
+                            onClick={() => handleCopyReference(tx.internalRef)}
+                          >
                             <code>{tx.internalRef?.slice(0, 20)}...</code>
                             <span className="reference-hint">
                               Click to copy
@@ -507,7 +530,10 @@ export default function Transactions() {
                           </span>
                         </td>
                         <td>
-                          <button className="view-details-button">
+                          <button
+                            onClick={() => handleViewDetails(tx)}
+                            className="view-details-button"
+                          >
                             View Details
                           </button>
                         </td>
@@ -592,6 +618,167 @@ export default function Transactions() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Transaction Details Modal */}
+      {showModal && selectedTransaction && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">Transaction Details</h2>
+              <button onClick={handleCloseModal} className="modal-close">
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="detail-section">
+                <h3 className="detail-section-title">Basic Information</h3>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <span className="detail-label">Reference</span>
+                    <code className="detail-value reference-code">
+                      {selectedTransaction.internalRef}
+                      <button
+                        onClick={() =>
+                          handleCopyReference(selectedTransaction.internalRef)
+                        }
+                        className="copy-button"
+                        title="Copy reference"
+                      >
+                        📋
+                      </button>
+                    </code>
+                  </div>
+
+                  <div className="detail-item">
+                    <span className="detail-label">Status</span>
+                    <div
+                      className={`status-badge ${
+                        selectedTransaction.status === "success"
+                          ? "status-success"
+                          : selectedTransaction.status === "failed"
+                            ? "status-failed"
+                            : selectedTransaction.status === "processing"
+                              ? "status-processing"
+                              : selectedTransaction.status === "initialized"
+                                ? "status-initialized"
+                                : "status-default"
+                      }`}
+                    >
+                      <span className="status-icon">
+                        {getStatusConfig(selectedTransaction.status).icon}
+                      </span>
+                      {selectedTransaction.status}
+                    </div>
+                  </div>
+
+                  <div className="detail-item">
+                    <span className="detail-label">Gateway</span>
+                    <div className="gateway-info">
+                      <span className="gateway-icon">
+                        {getGatewayConfig(selectedTransaction.gateway).icon}
+                      </span>
+                      <span className="gateway-name">
+                        {getGatewayConfig(selectedTransaction.gateway).name}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="detail-item">
+                    <span className="detail-label">Amount</span>
+                    <span className="detail-value amount">
+                      {formatCurrency(
+                        selectedTransaction.amount || 0,
+                        selectedTransaction.currency || "ETB",
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3 className="detail-section-title">Timeline</h3>
+                <div className="timeline">
+                  {selectedTransaction.createdAt && (
+                    <div className="timeline-item">
+                      <div className="timeline-dot"></div>
+                      <div className="timeline-content">
+                        <span className="timeline-label">Created</span>
+                        <span className="timeline-date">
+                          {formatDate(selectedTransaction.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {selectedTransaction.paidAt && (
+                    <div className="timeline-item">
+                      <div className="timeline-dot success"></div>
+                      <div className="timeline-content">
+                        <span className="timeline-label">Paid</span>
+                        <span className="timeline-date">
+                          {formatDate(selectedTransaction.paidAt)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {selectedTransaction.updatedAt &&
+                    selectedTransaction.updatedAt !==
+                      selectedTransaction.createdAt && (
+                      <div className="timeline-item">
+                        <div className="timeline-dot"></div>
+                        <div className="timeline-content">
+                          <span className="timeline-label">Last Updated</span>
+                          <span className="timeline-date">
+                            {formatDate(selectedTransaction.updatedAt)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                </div>
+              </div>
+
+              {selectedTransaction.metadata && (
+                <div className="detail-section">
+                  <h3 className="detail-section-title">
+                    Additional Information
+                  </h3>
+                  <div className="metadata-grid">
+                    {Object.entries(selectedTransaction.metadata).map(
+                      ([key, value]) => (
+                        <div key={key} className="metadata-item">
+                          <span className="metadata-key">{key}</span>
+                          <span className="metadata-value">
+                            {typeof value === "object"
+                              ? JSON.stringify(value)
+                              : String(value)}
+                          </span>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button
+                onClick={() =>
+                  handleCopyReference(selectedTransaction.internalRef)
+                }
+                className="modal-button primary"
+              >
+                Copy Reference
+              </button>
+              <button
+                onClick={handleCloseModal}
+                className="modal-button secondary"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
