@@ -7,7 +7,7 @@ import { ROLES } from "../src/constants/roles.js";
 async function createAdmin() {
   await mongoose.connect(process.env.MONGO_URI);
 
-  const email = "admin@payflow.com";
+  const email = "admin@payLinkPro.com";
 
   const existing = await User.findOne({ email });
   if (existing) {
@@ -18,7 +18,7 @@ async function createAdmin() {
   const passwordHash = await hashPassword(process.env.ADMIN_PASSWORD);
 
   await User.create({
-    name: "PayFlow Admin",
+    name: "payLinkPro Admin",
     email,
     passwordHash,
     roles: [ROLES.ADMIN],
