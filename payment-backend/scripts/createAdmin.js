@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-
 import User from "../src/models/User.js";
 import { hashPassword } from "../src/services/auth.service.js";
 import { ROLES } from "../src/constants/roles.js";
@@ -15,10 +14,15 @@ async function createAdmin() {
     process.exit(0);
   }
 
+  if (!process.env.ADMIN_PASSWORD) {
+    console.error("❌ ADMIN_PASSWORD not set in .env");
+    process.exit(1);
+  }
+
   const passwordHash = await hashPassword(process.env.ADMIN_PASSWORD);
 
   await User.create({
-    name: "paylinkpro Admin",
+    name: "PayLinkPro Admin",
     email,
     passwordHash,
     roles: [ROLES.ADMIN],
