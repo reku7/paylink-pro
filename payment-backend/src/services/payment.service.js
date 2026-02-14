@@ -294,8 +294,9 @@ export async function markTransactionFailed(
 ============================================================ */
 
 export async function startPayment({ transaction, returnUrls }) {
-  if (!process.env.WEBHOOK_BASE_URL)
+  if (!process.env.WEBHOOK_BASE_URL) {
     throw new Error("WEBHOOK_BASE_URL not configured");
+  }
 
   const defaultNotifyUrl = `${process.env.WEBHOOK_BASE_URL}/api/webhooks/${transaction.gateway}`;
 
@@ -322,76 +323,101 @@ export async function startPayment({ transaction, returnUrls }) {
   };
 
   ensureValidUrls(urls);
-  try {
-    await assertGatewayReady(transaction.merchantId, transaction.gateway);
-  } catch (guardError) {
-    console.log("Gateway not ready:", guardError.message);
 
-    if (transaction.gateway === "santimpay") {
-      console.log("🔁 SantimPay not ready. Switching to Chapa...");
-
-      await Transaction.updateOne(
-        { internalRef: transaction.internalRef },
-        { $set: { gateway: "chapa" } },
-      );
-
-      transaction.gateway = "chapa";
-    } else {
-      throw guardError;
-    }
-  }
-
-  const context = await buildGatewayContext(
-    transaction.merchantId,
-    transaction.gateway,
-  );
-  const gateway = getGateway(transaction.gateway, context);
+  let primaryGatewayName = transaction.gateway;
   let response;
 
+  /* ============================================================
+     STEP 1 — Ensure Primary Gateway Is Ready
+  ============================================================ */
+
   try {
-    response = await gateway.initializePayment({ transaction, urls });
-  } catch (primaryError) {
-    console.log("Primary gateway failed:", primaryError.message);
+    await assertGatewayReady(transaction.merchantId, primaryGatewayName);
+  } catch (guardError) {
+    console.log(`Primary gateway (${primaryGatewayName}) not ready:`);
 
-    if (transaction.gateway === "santimpay") {
+    // Try fallback only if primary is SantimPay
+    if (primaryGatewayName === "santimpay") {
       try {
-        console.log("🔁 Switching to Chapa...");
+        await assertGatewayReady(transaction.merchantId, "chapa");
 
-        // 1️⃣ Update DB
+        console.log("🔁 Switching to Chapa (guard-level failover)");
+
         await Transaction.updateOne(
           { internalRef: transaction.internalRef },
           { $set: { gateway: "chapa" } },
         );
 
-        // 2️⃣ Update in-memory object
+        transaction.gateway = "chapa";
+        primaryGatewayName = "chapa";
+      } catch {
+        // No fallback available
+        throw guardError;
+      }
+    } else {
+      throw guardError;
+    }
+  }
+
+  /* ============================================================
+     STEP 2 — Initialize Primary Gateway
+  ============================================================ */
+
+  try {
+    const context = await buildGatewayContext(
+      transaction.merchantId,
+      primaryGatewayName,
+    );
+
+    const gateway = getGateway(primaryGatewayName, context);
+
+    response = await gateway.initializePayment({ transaction, urls });
+  } catch (primaryError) {
+    console.log("Primary gateway runtime failure:", primaryError.message);
+
+    // Runtime fallback only if primary was SantimPay
+    if (primaryGatewayName === "santimpay") {
+      try {
+        // Check if Chapa is configured before switching
+        await assertGatewayReady(transaction.merchantId, "chapa");
+
+        console.log("🔁 Runtime failover → Chapa");
+
+        await Transaction.updateOne(
+          { internalRef: transaction.internalRef },
+          { $set: { gateway: "chapa" } },
+        );
+
         transaction.gateway = "chapa";
 
-        // 3️⃣ Rebuild context for Chapa
         const fallbackContext = await buildGatewayContext(
           transaction.merchantId,
           "chapa",
         );
 
-        // 4️⃣ Get fallback gateway
         const fallbackGateway = getGateway("chapa", fallbackContext);
 
-        // 5️⃣ Initialize payment again
         response = await fallbackGateway.initializePayment({
           transaction,
           urls,
         });
       } catch (fallbackError) {
         console.error("Fallback gateway also failed:", fallbackError.message);
-        throw fallbackError;
+        throw primaryError; // preserve original failure
       }
     } else {
       throw primaryError;
     }
   }
 
+  /* ============================================================
+     STEP 3 — Mark Processing
+  ============================================================ */
+
   await markTransactionProcessing(transaction.internalRef, {
     gatewayPayload: response,
   });
+
   return response;
 }
 
