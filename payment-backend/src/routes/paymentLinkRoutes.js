@@ -46,4 +46,27 @@ router.patch(
   archivePaymentLinkController,
 );
 
+router.patch(
+  "/:linkId/unarchive",
+  authMiddleware,
+  requireRole([ROLES.MERCHANT_OWNER]),
+  checkMerchantActive,
+  async (req, res) => {
+    const { linkId } = req.params;
+    const merchantId = req.user.merchantId;
+    const link = await PaymentLink.findOne({
+      linkId,
+      merchantId,
+      isArchived: true,
+    });
+    if (!link) return res.status(404).json({ error: "Link not found" });
+
+    link.isArchived = false;
+    link.status =
+      link.isPaid && link.type === "one_time" ? "disabled" : "active";
+    await link.save();
+    return res.json({ success: true, message: "Link unarchived" });
+  },
+);
+
 export default router;

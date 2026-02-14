@@ -84,10 +84,11 @@ export async function createPaymentLink(merchantId, data) {
 export function listPaymentLinks(merchantId) {
   return PaymentLink.aggregate([
     {
+       {
       $match: {
         merchantId: new mongoose.Types.ObjectId(merchantId),
         status: "active",
-        isArchived: false,
+        isArchived: false,  // only show active links by default
         $or: [{ type: "reusable" }, { expiresAt: { $gt: new Date() } }],
       },
     },

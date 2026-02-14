@@ -1,14 +1,14 @@
-// controllers/publicLink.controller.js
 import PaymentLink from "../models/PaymentLink.js";
 
 export async function getPublicPaymentLink(req, res) {
   try {
     const { linkId } = req.params;
 
+    // Fetch the link first
     const link = await PaymentLink.findOne({
       linkId,
       isArchived: false,
-    }).lean();
+    }).populate("transactions");
 
     if (!link) {
       return res.status(404).json({
@@ -17,7 +17,6 @@ export async function getPublicPaymentLink(req, res) {
       });
     }
 
-    // Only check real statuses
     if (link.status !== "active") {
       return res.status(400).json({
         success: false,
@@ -25,7 +24,7 @@ export async function getPublicPaymentLink(req, res) {
       });
     }
 
-    // Optional: expiry check (recommended)
+    // Optional: expiry check
     if (link.expiresAt && link.expiresAt < new Date()) {
       return res.status(400).json({
         success: false,
@@ -41,6 +40,11 @@ export async function getPublicPaymentLink(req, res) {
         description: link.description,
         amount: link.amount,
         currency: link.currency,
+        type: link.type,
+        gateway: link.gateway,
+        customerName: link.customerName,
+        customerEmail: link.customerEmail,
+        customerPhone: link.customerPhone,
       },
     });
   } catch (err) {
