@@ -5,6 +5,7 @@ import {
   getPaymentLinkById,
 } from "../services/link.service.js";
 import Merchant from "../models/Merchant.js";
+import PaymentLink from "../models/PaymentLink.js";
 
 export const createLinkController = async (req, res) => {
   try {
@@ -72,5 +73,39 @@ export const getLinkDetailsController = async (req, res) => {
   } catch (error) {
     console.error("❌ Error fetching link details:", error);
     return res.status(500).json({ error: "Failed to fetch payment link" });
+  }
+};
+
+export const archivePaymentLinkController = async (req, res) => {
+  try {
+    const { linkId } = req.params;
+    const merchantId = req.user.merchantId;
+
+    const link = await PaymentLink.findOne({
+      linkId,
+      merchantId,
+      isArchived: false,
+    });
+
+    if (!link) {
+      return res.status(404).json({
+        error: "Payment link not found or already archived",
+      });
+    }
+
+    link.isArchived = true;
+    link.archivedAt = new Date();
+    link.archivedBy = req.user._id;
+    link.status = "disabled"; // optional but recommended
+
+    await link.save();
+
+    return res.json({
+      success: true,
+      message: "Payment link archived successfully",
+    });
+  } catch (err) {
+    console.error("Archive link error:", err);
+    return res.status(500).json({ error: "Failed to archive payment link" });
   }
 };

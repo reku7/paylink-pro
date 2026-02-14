@@ -52,6 +52,7 @@ export async function createPaymentLink(merchantId, data) {
       slug,
       type: "reusable",
       status: "active",
+      isArchived: false,
     });
     if (existing) return existing;
   }
@@ -86,6 +87,7 @@ export function listPaymentLinks(merchantId) {
       $match: {
         merchantId: new mongoose.Types.ObjectId(merchantId),
         status: "active",
+        isArchived: false,
         $or: [{ type: "reusable" }, { expiresAt: { $gt: new Date() } }],
       },
     },
@@ -111,6 +113,7 @@ export function getPaymentLinkById(linkId) {
   return PaymentLink.findOne({
     linkId,
     status: "active",
+    isArchived: false,
     $or: [{ type: "reusable" }, { expiresAt: { $gt: new Date() } }],
   }).populate("transactions");
 }

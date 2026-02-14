@@ -71,7 +71,11 @@ export async function createInternalTransaction(merchantId, linkId, opts = {}) {
       idempotencyKey = null,
     } = opts;
 
-    const link = await PaymentLink.findOne({ linkId }).session(session);
+    const link = await PaymentLink.findOne({
+      linkId,
+      isArchived: false,
+    }).session(session);
+
     if (!link) throw new Error("Payment link not found");
     if (merchantId && link.merchantId.toString() !== merchantId.toString())
       throw new Error("Unauthorized payment link access");

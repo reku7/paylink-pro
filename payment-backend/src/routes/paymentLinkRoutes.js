@@ -37,4 +37,12 @@ router.get(
   getLinkDetailsController,
 );
 
+router.patch(
+  "/:linkId/archive",
+  authMiddleware,
+  requireRole([ROLES.MERCHANT_OWNER]),
+  checkMerchantActive,
+  archivePaymentLinkController,
+);
+
 export default router;

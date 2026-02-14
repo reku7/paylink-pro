@@ -5,7 +5,10 @@ export async function getPublicPaymentLink(req, res) {
   try {
     const { linkId } = req.params;
 
-    const link = await PaymentLink.findOne({ linkId }).lean();
+    const link = await PaymentLink.findOne({
+      linkId,
+      isArchived: false,
+    }).lean();
 
     if (!link) {
       return res.status(404).json({

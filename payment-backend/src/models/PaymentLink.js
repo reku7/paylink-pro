@@ -72,6 +72,21 @@ const PaymentLinkSchema = new mongoose.Schema(
     cancelUrl: { type: String, default: "" },
     failureUrl: { type: String, default: "" },
 
+    isArchived: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    archivedAt: {
+      type: Date,
+    },
+
+    archivedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+
     gateway: {
       type: String,
       required: true,
