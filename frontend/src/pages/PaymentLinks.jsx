@@ -20,7 +20,8 @@ import {
   BarChart2,
   ChevronLeft,
   ChevronRight,
-  Trash2,
+  Archive,
+  Download,
 } from "lucide-react";
 
 // Constants
@@ -157,18 +158,22 @@ const usePaymentLinks = () => {
     }
   }, []);
 
-  const deleteLink = useCallback(
+  // ✅ UPDATED: Use archive endpoint instead of delete
+  const archiveLink = useCallback(
     async (linkId) => {
       try {
-        const response = await api.delete(`${API_ENDPOINTS.LINKS}/${linkId}`);
+        const response = await api.patch(
+          `${API_ENDPOINTS.LINKS}/${linkId}/archive`,
+        );
+
         if (response.data.success) {
           await fetchLinks();
           await fetchDashboardStats();
           return true;
         }
       } catch (err) {
-        console.error("Failed to delete link:", err);
-        setError("Failed to delete link");
+        console.error("Failed to archive link:", err);
+        setError(err.response?.data?.error || "Failed to archive link");
         return false;
       }
     },
@@ -188,7 +193,7 @@ const usePaymentLinks = () => {
     pagination,
     setPagination,
     fetchLinks,
-    deleteLink,
+    archiveLink, // Renamed from deleteLink
     setError,
   };
 };
@@ -305,11 +310,12 @@ const StatusBadge = ({ status, expiresAt }) => {
   );
 };
 
+// ✅ UPDATED: Renamed onDelete to onArchive
 const LinkTableRow = ({
   link,
   onCopy,
   onView,
-  onDelete,
+  onArchive,
   openMenuId,
   setOpenMenuId,
 }) => {
@@ -328,14 +334,15 @@ const LinkTableRow = ({
     setOpenMenuId(null);
   };
 
-  const handleDelete = (e) => {
+  // ✅ UPDATED: Archive handler
+  const handleArchive = (e) => {
     e.stopPropagation();
     if (
       window.confirm(
-        "Are you sure you want to delete this link? This action cannot be undone.",
+        "Are you sure you want to archive this link? It will be hidden from the main list but all transaction data will be preserved.",
       )
     ) {
-      onDelete(link._id);
+      onArchive(link._id);
     }
     setOpenMenuId(null);
   };
@@ -365,7 +372,7 @@ const LinkTableRow = ({
     (tx) => tx && tx.status === "success",
   );
 
-  // 🔐 Prevent deletion of links with successful payments
+  // 🔐 Prevent archiving of links with successful payments (optional safety)
   const hasSuccessfulPayments = successfulTransactions.length > 0;
 
   const totalCollected = successfulTransactions.reduce(
@@ -519,20 +526,21 @@ const LinkTableRow = ({
 
               <div className="dropdown-divider" />
 
+              {/* ✅ UPDATED: Archive button instead of delete */}
               <button
-                onClick={handleDelete}
-                onKeyDown={(e) => handleKeyDown(e, handleDelete)}
-                className="dropdown-item delete"
+                onClick={handleArchive}
+                onKeyDown={(e) => handleKeyDown(e, handleArchive)}
+                className="dropdown-item archive"
                 role="menuitem"
                 disabled={hasSuccessfulPayments}
                 title={
                   hasSuccessfulPayments
-                    ? "Cannot delete links with successful payments"
-                    : "Delete link"
+                    ? "Cannot archive links with successful payments"
+                    : "Archive link"
                 }
               >
-                <Trash2 size={14} className="dropdown-icon" />
-                Delete Link
+                <Archive size={14} className="dropdown-icon" />
+                Archive Link
               </button>
             </div>
           )}
@@ -829,7 +837,7 @@ export default function PaymentLinks() {
     pagination,
     setPagination,
     fetchLinks,
-    deleteLink,
+    archiveLink, // ✅ Renamed from deleteLink
     setError,
   } = usePaymentLinks();
 
@@ -886,9 +894,10 @@ export default function PaymentLinks() {
     setShowDetailsModal(true);
   };
 
-  const handleDeleteLink = async (linkId) => {
+  // ✅ UPDATED: Archive handler
+  const handleArchiveLink = async (linkId) => {
     setOpenMenuId(null); // Prevent race UI issues
-    const success = await deleteLink(linkId);
+    const success = await archiveLink(linkId);
     if (success && selectedLink?._id === linkId) {
       setShowDetailsModal(false);
       setSelectedLink(null);
@@ -1019,7 +1028,7 @@ export default function PaymentLinks() {
                       link={link}
                       onCopy={handleCopyLink}
                       onView={handleViewLink}
-                      onDelete={handleDeleteLink}
+                      onArchive={handleArchiveLink} // ✅ Updated prop name
                       openMenuId={openMenuId}
                       setOpenMenuId={setOpenMenuId}
                     />
@@ -1047,1067 +1056,23 @@ export default function PaymentLinks() {
         />
       )}
 
+      {/* Add archive class to dropdown item styles */}
       <style jsx>{`
-        .payment-links-page {
-          width: 100%;
-        }
+        /* ... (keep all your existing styles) ... */
 
-        .page-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 24px;
-        }
-
-        .header-left {
-          flex: 1;
-        }
-
-        .page-title {
-          font-size: 28px;
-          font-weight: 700;
-          color: #111827;
-          margin: 0 0 8px 0;
-          letter-spacing: -0.5px;
-        }
-
-        .page-subtitle {
-          font-size: 15px;
+        /* Add archive button style */
+        .dropdown-item.archive {
           color: #6b7280;
-          margin: 0;
         }
 
-        .btn-primary {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 16px;
-          background: #059669;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background 0.2s;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-          background: #047857;
-        }
-
-        .btn-primary:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .btn-secondary {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 16px;
-          background: white;
-          color: #374151;
-          border: 1px solid #d1d5db;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .btn-secondary:hover {
-          background: #f9fafb;
-          border-color: #9ca3af;
-        }
-
-        .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 20px;
-          margin-bottom: 32px;
-        }
-
-        .stat-card {
-          display: flex;
-          align-items: center;
-          padding: 20px;
-          background: white;
-          border-radius: 12px;
-          border: 1px solid #f3f4f6;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .stat-icon {
-          width: 48px;
-          height: 48px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-right: 16px;
-        }
-
-        .stat-icon.blue {
-          background: #eff6ff;
-          color: #3b82f6;
-        }
-
-        .stat-icon.green {
-          background: #ecfdf5;
-          color: #10b981;
-        }
-
-        .stat-icon.purple {
-          background: #f5f3ff;
-          color: #8b5cf6;
-        }
-
-        .stat-icon.orange {
-          background: #fff7ed;
-          color: #f59e0b;
-        }
-
-        .stat-info {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .stat-label {
-          font-size: 13px;
-          color: #6b7280;
-          margin-bottom: 4px;
-        }
-
-        .stat-value {
-          font-size: 24px;
-          font-weight: 700;
-          color: #111827;
-        }
-
-        .stat-subvalue {
-          font-size: 12px;
-          color: #6b7280;
-          margin-top: 2px;
-        }
-
-        .tabs-container {
-          border-bottom: 1px solid #e5e7eb;
-          margin-bottom: 24px;
-        }
-
-        .tabs {
-          display: flex;
-          gap: 8px;
-        }
-
-        .tab {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 12px 16px;
-          background: transparent;
-          border: none;
-          border-bottom: 2px solid transparent;
-          font-size: 14px;
-          font-weight: 500;
-          color: #6b7280;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .tab.active {
-          color: #059669;
-          border-bottom-color: #059669;
-        }
-
-        .tab-count {
-          margin-left: 4px;
-          padding: 2px 8px;
+        .dropdown-item.archive:hover:not(:disabled) {
           background: #f3f4f6;
-          border-radius: 12px;
-          font-size: 12px;
-          color: #6b7280;
-        }
-
-        .tab-count.active {
-          background: #ecfdf5;
-          color: #059669;
-        }
-
-        .search-container {
-          display: flex;
-          gap: 16px;
-          margin-bottom: 24px;
-        }
-
-        .search-wrapper {
-          flex: 1;
-          position: relative;
-        }
-
-        .search-icon {
-          position: absolute;
-          left: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #9ca3af;
-        }
-
-        .search-input {
-          width: 90%;
-          padding: 12px 16px 12px 44px;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          font-size: 14px;
-          outline: none;
-          transition: border-color 0.2s;
-        }
-
-        .search-input:focus {
-          border-color: #059669;
-        }
-
-        .action-buttons {
-          display: flex;
-          gap: 12px;
-        }
-
-        .btn-filter,
-        .btn-refresh {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 12px 16px;
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 500;
-          color: #374151;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .btn-filter:hover,
-        .btn-refresh:hover {
-          background: #f9fafb;
-        }
-
-        .spin {
-          animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .error-box {
-          padding: 12px 16px;
-          background: #fee2e2;
-          border-left: 4px solid #dc2626;
-          border-radius: 8px;
-          color: #991b1b;
-          margin-bottom: 20px;
-        }
-
-        .error-box p {
-          margin: 0;
-        }
-
-        .table-container {
-          background: white;
-          border-radius: 12px;
-          border: 1px solid #f3f4f6;
-          overflow: hidden;
-        }
-
-        .table-responsive {
-          overflow-x: auto;
-        }
-
-        .table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        .table th {
-          padding: 16px 20px;
-          text-align: left;
-          font-size: 13px;
-          font-weight: 600;
-          color: #6b7280;
-          background: #f9fafb;
-          border-bottom: 1px solid #e5e7eb;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .table td {
-          padding: 20px;
-          border-bottom: 1px solid #f3f4f6;
-        }
-
-        .table-row {
-          cursor: pointer;
-          transition: background 0.2s;
-        }
-
-        .table-row:hover {
-          background: #f9fafb;
-        }
-
-        .link-details {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .link-icon {
-          width: 44px;
-          height: 44px;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .link-icon.one-time {
-          background: #fff7ed;
-          color: #f59e0b;
-        }
-
-        .link-icon.reusable {
-          background: #f5f3ff;
-          color: #8b5cf6;
-        }
-
-        .link-title {
-          font-size: 15px;
-          font-weight: 600;
-          color: #111827;
-          margin-bottom: 4px;
-        }
-
-        .link-meta {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 13px;
-          color: #6b7280;
-        }
-
-        .link-id {
-          font-family: monospace;
-        }
-
-        .separator {
-          color: #d1d5db;
-        }
-
-        .gateway-badge {
-          padding: 2px 8px;
-          background: #f3f4f6;
-          border-radius: 12px;
-          font-size: 11px;
-          font-weight: 500;
-          color: #4b5563;
-          text-transform: capitalize;
-        }
-
-        .amount {
-          font-size: 15px;
-          font-weight: 600;
-          color: #111827;
-          margin-bottom: 4px;
-        }
-
-        .collected {
-          font-size: 12px;
-          color: #6b7280;
-        }
-
-        .status-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          padding: 4px 10px;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 500;
-          margin-bottom: 4px;
-        }
-
-        .bg-green-100 {
-          background: #ecfdf5;
-        }
-        .text-green-800 {
-          color: #065f46;
-        }
-        .bg-red-100 {
-          background: #fee2e2;
-        }
-        .text-red-800 {
-          color: #991b1b;
-        }
-        .bg-gray-100 {
-          background: #f3f4f6;
-        }
-        .text-gray-800 {
-          color: #1f2937;
-        }
-
-        .expires-at {
-          font-size: 11px;
-          color: #9ca3af;
-        }
-
-        .payments-count {
-          font-size: 14px;
-          font-weight: 500;
-          color: #111827;
-          margin-bottom: 4px;
-        }
-
-        .success-badge {
-          display: inline-block;
-          padding: 4px 8px;
-          background: #ecfdf5;
-          color: #065f46;
-          border-radius: 12px;
-          font-size: 12px;
-          font-weight: 500;
-        }
-
-        .no-payments {
-          color: #6b7280;
-          font-size: 12px;
-        }
-
-        .attempts-count {
-          font-size: 12px;
-          color: #6b7280;
-          margin-bottom: 2px;
-        }
-
-        .last-paid {
-          font-size: 10px;
-          color: #9ca3af;
-        }
-
-        .created-date {
-          font-size: 14px;
-          color: #111827;
-          margin-bottom: 4px;
-        }
-
-        .expires-at-text {
-          font-size: 11px;
-          color: #9ca3af;
-        }
-
-        /* Dropdown Styles */
-        .dropdown-wrapper {
-          position: relative;
-          display: inline-block;
-        }
-
-        .action-menu-btn {
-          width: 36px;
-          height: 36px;
-          border-radius: 8px;
-          border: 1px solid #e5e7eb;
-          background: white;
-          color: #6b7280;
-          cursor: pointer;
-          transition: all 0.2s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .action-menu-btn:hover {
-          background: #f9fafb;
-          border-color: #d1d5db;
           color: #374151;
         }
 
-        .action-menu-btn:focus-visible {
-          outline: 2px solid #059669;
-          outline-offset: 2px;
-        }
-
-        .dropdown-menu {
-          position: absolute;
-          right: 0;
-          top: 42px;
-          width: 200px;
-          background: white;
-          border-radius: 10px;
-          border: 1px solid #e5e7eb;
-          box-shadow:
-            0 10px 25px -5px rgba(0, 0, 0, 0.1),
-            0 8px 10px -6px rgba(0, 0, 0, 0.02);
-          padding: 6px;
-          z-index: 50;
-          opacity: 0;
-          transform: translateY(-5px);
-          animation: dropdownFade 0.15s ease forwards;
-        }
-
-        @keyframes dropdownFade {
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .dropdown-item {
-          width: 100%;
-          padding: 10px 12px;
-          border: none;
-          background: none;
-          text-align: left;
-          font-size: 13px;
-          font-weight: 500;
-          color: #374151;
-          cursor: pointer;
-          border-radius: 6px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          transition: background 0.15s;
-        }
-
-        .dropdown-item:hover:not(:disabled) {
-          background: #f3f4f6;
-        }
-
-        .dropdown-item:focus-visible {
-          outline: 2px solid #059669;
-          outline-offset: -2px;
-        }
-
-        .dropdown-item:disabled {
+        .dropdown-item.archive:disabled {
           opacity: 0.5;
           cursor: not-allowed;
-        }
-
-        .dropdown-item.delete {
-          color: #dc2626;
-        }
-
-        .dropdown-item.delete:hover:not(:disabled) {
-          background: #fee2e2;
-        }
-
-        .dropdown-icon {
-          opacity: 0.7;
-        }
-
-        .dropdown-divider {
-          height: 1px;
-          background: #e5e7eb;
-          margin: 6px 0;
-        }
-
-        .icon-button {
-          width: 32px;
-          height: 32px;
-          border-radius: 6px;
-          border: 1px solid #e5e7eb;
-          background: white;
-          color: #6b7280;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s;
-        }
-
-        .icon-button:hover {
-          background: #f9fafb;
-          color: #059669;
-          border-color: #059669;
-        }
-
-        .loading-state {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 60px;
-          text-align: center;
-        }
-
-        .spinner {
-          width: 40px;
-          height: 40px;
-          border: 3px solid #f3f4f6;
-          border-top-color: #059669;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin-bottom: 16px;
-        }
-
-        .empty-state {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 60px;
-          text-align: center;
-        }
-
-        .empty-state-icon {
-          width: 80px;
-          height: 80px;
-          background: #f9fafb;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #9ca3af;
-          margin-bottom: 16px;
-        }
-
-        .empty-state h3 {
-          font-size: 18px;
-          font-weight: 600;
-          color: #111827;
-          margin: 0 0 8px 0;
-        }
-
-        .empty-state p {
-          font-size: 14px;
-          color: #6b7280;
-          margin: 0 0 24px 0;
-        }
-
-        .pagination {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 16px;
-          padding: 20px;
-          border-top: 1px solid #f3f4f6;
-        }
-
-        .pagination-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 16px;
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 6px;
-          font-size: 14px;
-          font-weight: 500;
-          color: #374151;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .pagination-btn:hover:not(:disabled) {
-          background: #f9fafb;
-          border-color: #059669;
-          color: #059669;
-        }
-
-        .pagination-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .pagination-info {
-          font-size: 14px;
-          color: #6b7280;
-        }
-
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-          padding: 20px;
-          backdrop-filter: blur(4px);
-        }
-
-        .modal {
-          background: white;
-          border-radius: 16px;
-          max-width: 600px;
-          width: 100%;
-          max-height: 90vh;
-          overflow-y: auto;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal.modal-lg {
-          max-width: 800px;
-        }
-
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 20px 24px;
-          border-bottom: 1px solid #e5e7eb;
-          position: sticky;
-          top: 0;
-          background: white;
-          z-index: 10;
-        }
-
-        .modal-header h2 {
-          margin: 0;
-          font-size: 20px;
-          font-weight: 600;
-          color: #111827;
-        }
-
-        .modal-close {
-          width: 32px;
-          height: 32px;
-          border-radius: 6px;
-          border: 1px solid #e5e7eb;
-          background: white;
-          font-size: 20px;
-          line-height: 1;
-          color: #6b7280;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s;
-        }
-
-        .modal-close:hover {
-          background: #f9fafb;
-          color: #111827;
-          border-color: #9ca3af;
-        }
-
-        .modal-body {
-          padding: 24px;
-        }
-
-        .modal-footer {
-          display: flex;
-          justify-content: flex-end;
-          gap: 12px;
-          padding: 20px 24px;
-          border-top: 1px solid #e5e7eb;
-          position: sticky;
-          bottom: 0;
-          background: white;
-          z-index: 10;
-        }
-
-        .details-section {
-          margin-bottom: 32px;
-        }
-
-        .details-section h3 {
-          font-size: 16px;
-          font-weight: 600;
-          color: #111827;
-          margin: 0 0 16px 0;
-          padding-bottom: 8px;
-          border-bottom: 1px solid #e5e7eb;
-        }
-
-        .details-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 16px;
-        }
-
-        .detail-item {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .detail-label {
-          font-size: 12px;
-          color: #6b7280;
-        }
-
-        .detail-value {
-          font-size: 14px;
-          color: #111827;
-          font-weight: 500;
-        }
-
-        .detail-value.amount {
-          font-weight: 600;
-          color: #059669;
-        }
-
-        .summary-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-          gap: 16px;
-          padding: 16px;
-          background: #f9fafb;
-          border-radius: 12px;
-        }
-
-        .summary-item {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .summary-label {
-          font-size: 11px;
-          color: #6b7280;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .summary-value {
-          font-size: 18px;
-          font-weight: 600;
-        }
-
-        .summary-value.success {
-          color: #059669;
-        }
-
-        .summary-value.failed {
-          color: #dc2626;
-        }
-
-        .summary-value.processing {
-          color: #f59e0b;
-        }
-
-        .summary-value.initialized {
-          color: #3b82f6;
-        }
-
-        .url-box {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 12px;
-          background: #f9fafb;
-          border-radius: 8px;
-          border: 1px solid #e5e7eb;
-        }
-
-        .url-text {
-          flex: 1;
-          font-size: 13px;
-          color: #374151;
-          word-break: break-all;
-          font-family: monospace;
-        }
-
-        .transactions-preview {
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          overflow: hidden;
-        }
-
-        .transactions-header {
-          display: grid;
-          grid-template-columns: 1.5fr 1fr 1fr 1.5fr;
-          padding: 12px 16px;
-          background: #f9fafb;
-          border-bottom: 1px solid #e5e7eb;
-          font-size: 11px;
-          font-weight: 600;
-          color: #6b7280;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .transaction-row {
-          display: grid;
-          grid-template-columns: 1.5fr 1fr 1fr 1.5fr;
-          align-items: center;
-          padding: 12px 16px;
-          border-bottom: 1px solid #e5e7eb;
-          font-size: 13px;
-          transition: background 0.15s;
-        }
-
-        .transaction-row:hover {
-          background: #f9fafb;
-        }
-
-        .transaction-row:last-child {
-          border-bottom: none;
-        }
-
-        .tx-ref {
-          font-family: monospace;
-          font-size: 12px;
-          color: #374151;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .tx-amount {
-          font-weight: 600;
-          color: #111827;
-        }
-
-        .tx-status {
-          padding: 4px 8px;
-          border-radius: 20px;
-          font-size: 11px;
-          font-weight: 600;
-          text-transform: capitalize;
-          width: fit-content;
-        }
-
-        .tx-status.success {
-          background: #ecfdf5;
-          color: #065f46;
-        }
-
-        .tx-status.failed {
-          background: #fee2e2;
-          color: #991b1b;
-        }
-
-        .tx-status.processing {
-          background: #fff7ed;
-          color: #9a3412;
-        }
-
-        .tx-status.initialized {
-          background: #e0f2fe;
-          color: #0369a1;
-        }
-
-        .tx-status.unknown {
-          background: #f3f4f6;
-          color: #6b7280;
-        }
-
-        .tx-date {
-          font-size: 11px;
-          color: #6b7280;
-        }
-
-        .no-transactions {
-          text-align: center;
-          padding: 48px;
-          background: #f9fafb;
-          border-radius: 8px;
-          color: #6b7280;
-          font-size: 14px;
-        }
-
-        @media (max-width: 1024px) {
-          .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-
-        @media (max-width: 768px) {
-          .page-header {
-            flex-direction: column;
-            gap: 16px;
-          }
-
-          .search-container {
-            flex-direction: column;
-          }
-
-          .stats-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .table td {
-            padding: 16px;
-          }
-
-          .link-details {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-
-          .details-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .summary-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-
-          .modal {
-            margin: 20px;
-          }
-
-          .transactions-header,
-          .transaction-row {
-            grid-template-columns: 1fr;
-            gap: 8px;
-          }
-
-          .transactions-header {
-            display: none;
-          }
-
-          .transaction-row {
-            grid-template-columns: 1fr;
-            gap: 8px;
-            padding: 16px;
-            border-bottom: 1px solid #e5e7eb;
-          }
-
-          .tx-ref,
-          .tx-amount,
-          .tx-status,
-          .tx-date {
-            padding: 4px 0;
-          }
-
-          .tx-ref::before {
-            content: "Ref: ";
-            font-weight: 600;
-            color: #6b7280;
-            margin-right: 4px;
-          }
-
-          .tx-amount::before {
-            content: "Amount: ";
-            font-weight: 600;
-            color: #6b7280;
-            margin-right: 4px;
-          }
-
-          .tx-status::before {
-            content: "Status: ";
-            font-weight: 600;
-            color: #6b7280;
-            margin-right: 4px;
-          }
-
-          .tx-date::before {
-            content: "Date: ";
-            font-weight: 600;
-            color: #6b7280;
-            margin-right: 4px;
-          }
         }
       `}</style>
     </div>
