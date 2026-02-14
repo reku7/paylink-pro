@@ -297,14 +297,28 @@ export async function startPayment({ transaction, returnUrls }) {
   if (!process.env.WEBHOOK_BASE_URL)
     throw new Error("WEBHOOK_BASE_URL not configured");
 
-  const notifyUrl = `${process.env.WEBHOOK_BASE_URL}/api/webhooks/${transaction.gateway}`;
-  const urls = returnUrls || {
+  const defaultNotifyUrl = `${process.env.WEBHOOK_BASE_URL}/api/webhooks/${transaction.gateway}`;
+
+  const urls = {
     successUrl:
-      process.env.DEFAULT_SUCCESS_URL || "http://localhost:5173/success",
-    cancelUrl: process.env.DEFAULT_CANCEL_URL || "http://localhost:5173/cancel",
+      returnUrls?.successUrl ||
+      process.env.DEFAULT_SUCCESS_URL ||
+      "http://localhost:5173/success",
+
+    cancelUrl:
+      returnUrls?.cancelUrl ||
+      process.env.DEFAULT_CANCEL_URL ||
+      "http://localhost:5173/cancel",
+
     failureUrl:
-      process.env.DEFAULT_FAILURE_URL || "http://localhost:5173/failed",
-    notifyUrl,
+      returnUrls?.failureUrl ||
+      process.env.DEFAULT_FAILURE_URL ||
+      "http://localhost:5173/failed",
+
+    notifyUrl:
+      returnUrls?.notifyUrl ||
+      process.env.DEFAULT_NOTIFY_URL ||
+      defaultNotifyUrl,
   };
 
   ensureValidUrls(urls);
