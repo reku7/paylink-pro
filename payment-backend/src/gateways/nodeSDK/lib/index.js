@@ -2,7 +2,7 @@ import axios from "axios";
 import { signES256 } from "./utils/cryptography.js";
 import { PRODUCTION_BASE_URL, TEST_BASE_URL } from "./utils/constants.js";
 export class SantimpaySdk {
-  constructor(merchantId, privateKey, testBed = true) {
+  constructor(merchantId, privateKey, testBed = false) {
     this.privateKey = privateKey;
     this.merchantId = merchantId;
     this.baseUrl = PRODUCTION_BASE_URL;
