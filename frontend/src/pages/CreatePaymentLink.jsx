@@ -21,10 +21,17 @@ export default function CreatePaymentLink() {
 
   // Function to create payment link
   const handleCreate = useCallback(async () => {
-    if (!amount || isNaN(amount) || Number(amount) <= 0) {
-      setError("Please enter a valid amount (greater than 0).");
+    // Convert string to number
+    const numAmount = parseFloat(amount);
+
+    // Validate
+    if (isNaN(numAmount) || numAmount <= 0) {
+      setError("Please enter a valid amount greater than 0.");
       return;
     }
+
+    // Round to 2 decimals (safely)
+    const finalAmount = Math.round(numAmount * 100) / 100;
 
     if (!title.trim()) {
       setError("Please enter a title for your payment link.");
@@ -47,10 +54,10 @@ export default function CreatePaymentLink() {
       const res = await api.post("/links", {
         title: title.trim(),
         description: description.trim(),
-        amount: Number(amount),
+        amount: finalAmount, // ✅ use finalAmount here
         currency: "ETB",
         gateway,
-        type: linkType, // <-- send link type to backend
+        type: linkType,
         successUrl: `${origin}/success`,
         cancelUrl: `${origin}/cancel`,
         failureUrl: `${origin}/failed`,
@@ -229,12 +236,10 @@ export default function CreatePaymentLink() {
         <div style={{ marginBottom: "24px" }}>
           <label style={styles.label}>Amount (ETB)</label>
           <input
-            type="number"
+            type="text" // change from number to text
             placeholder="Enter Amount"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            min="1"
-            step="0.01"
             style={styles.input}
           />
         </div>
