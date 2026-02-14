@@ -322,14 +322,72 @@ export async function startPayment({ transaction, returnUrls }) {
   };
 
   ensureValidUrls(urls);
-  await assertGatewayReady(transaction.merchantId, transaction.gateway);
+  try {
+    await assertGatewayReady(transaction.merchantId, transaction.gateway);
+  } catch (guardError) {
+    console.log("Gateway not ready:", guardError.message);
+
+    if (transaction.gateway === "santimpay") {
+      console.log("🔁 SantimPay not ready. Switching to Chapa...");
+
+      await Transaction.updateOne(
+        { internalRef: transaction.internalRef },
+        { $set: { gateway: "chapa" } },
+      );
+
+      transaction.gateway = "chapa";
+    } else {
+      throw guardError;
+    }
+  }
 
   const context = await buildGatewayContext(
     transaction.merchantId,
     transaction.gateway,
   );
   const gateway = getGateway(transaction.gateway, context);
-  const response = await gateway.initializePayment({ transaction, urls });
+  let response;
+
+  try {
+    response = await gateway.initializePayment({ transaction, urls });
+  } catch (primaryError) {
+    console.log("Primary gateway failed:", primaryError.message);
+
+    if (transaction.gateway === "santimpay") {
+      try {
+        console.log("🔁 Switching to Chapa...");
+
+        // 1️⃣ Update DB
+        await Transaction.updateOne(
+          { internalRef: transaction.internalRef },
+          { $set: { gateway: "chapa" } },
+        );
+
+        // 2️⃣ Update in-memory object
+        transaction.gateway = "chapa";
+
+        // 3️⃣ Rebuild context for Chapa
+        const fallbackContext = await buildGatewayContext(
+          transaction.merchantId,
+          "chapa",
+        );
+
+        // 4️⃣ Get fallback gateway
+        const fallbackGateway = getGateway("chapa", fallbackContext);
+
+        // 5️⃣ Initialize payment again
+        response = await fallbackGateway.initializePayment({
+          transaction,
+          urls,
+        });
+      } catch (fallbackError) {
+        console.error("Fallback gateway also failed:", fallbackError.message);
+        throw fallbackError;
+      }
+    } else {
+      throw primaryError;
+    }
+  }
 
   await markTransactionProcessing(transaction.internalRef, {
     gatewayPayload: response,
