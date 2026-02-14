@@ -3,7 +3,7 @@ import crypto from "crypto";
 import PaymentLink from "../models/PaymentLink.js";
 import Merchant from "../models/Merchant.js";
 
-/** Generate secure linkId */
+/** Generate a secure linkId */
 function generateLinkId() {
   return "pay_" + crypto.randomBytes(5).toString("hex");
 }
@@ -60,7 +60,7 @@ export async function createPaymentLink(merchantId, data) {
   return PaymentLink.create({
     merchantId,
     linkId: generateLinkId(),
-    ...(slug && { slug }), // only include slug if exists
+    ...(slug ? { slug } : {}),
     title: data.title || "",
     description: data.description || "",
     amount: data.amount,
@@ -75,6 +75,8 @@ export async function createPaymentLink(merchantId, data) {
     failureUrl: data.failureUrl || process.env.DEFAULT_FAILURE_URL || "",
     metadata: data.metadata || {},
     status: "active",
+    isArchived: false,
+    archivedAt: null,
     expiresAt:
       type === "one_time" ? new Date(Date.now() + 24 * 60 * 60 * 1000) : null,
   });
@@ -84,11 +86,10 @@ export async function createPaymentLink(merchantId, data) {
 export function listPaymentLinks(merchantId) {
   return PaymentLink.aggregate([
     {
-       {
       $match: {
         merchantId: new mongoose.Types.ObjectId(merchantId),
         status: "active",
-        isArchived: false,  // only show active links by default
+        isArchived: false,
         $or: [{ type: "reusable" }, { expiresAt: { $gt: new Date() } }],
       },
     },
@@ -100,11 +101,7 @@ export function listPaymentLinks(merchantId) {
         as: "txs",
       },
     },
-    {
-      $addFields: {
-        transactions: "$txs", // 🔥 THIS LINE FIXES EVERYTHING
-      },
-    },
+    { $addFields: { transactions: "$txs" } },
     { $sort: { createdAt: -1 } },
   ]);
 }
@@ -117,4 +114,80 @@ export function getPaymentLinkById(linkId) {
     isArchived: false,
     $or: [{ type: "reusable" }, { expiresAt: { $gt: new Date() } }],
   }).populate("transactions");
+}
+
+/** Archive a link (for one-time after payment or manual) */
+export async function archivePaymentLink(linkId) {
+  const link = await PaymentLink.findOne({ linkId });
+  if (!link) throw new Error("Link not found");
+
+  link.isArchived = true;
+  link.status = "disabled";
+  link.archivedAt = new Date();
+  await link.save();
+
+  return link;
+}
+
+/** Unarchive reusable links */
+export async function unarchivePaymentLink(linkId, merchantId) {
+  const link = await PaymentLink.findOne({
+    linkId,
+    merchantId,
+    isArchived: true,
+  });
+
+  if (!link) throw new Error("Archived link not found");
+  if (link.type !== "reusable")
+    throw new Error("Only reusable links can be unarchived");
+
+  link.isArchived = false;
+  link.status = "active";
+  link.archivedAt = null;
+  await link.save();
+
+  return link;
+}
+
+/** Mark one-time link as paid and archive it automatically */
+export async function markOneTimeLinkPaid(linkId, transactionId) {
+  const link = await PaymentLink.findOne({
+    linkId,
+    type: "one_time",
+    isArchived: false,
+  });
+  if (!link) throw new Error("Link not found or already paid");
+
+  // Attach transaction
+  link.transactions.push(transactionId);
+
+  // Auto-archive one-time link
+  link.isArchived = true;
+  link.status = "disabled";
+  link.archivedAt = new Date();
+
+  await link.save();
+  return link;
+}
+
+/** List archived links */
+export function listArchivedPaymentLinks(merchantId) {
+  return PaymentLink.aggregate([
+    {
+      $match: {
+        merchantId: new mongoose.Types.ObjectId(merchantId),
+        isArchived: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "transactions",
+        localField: "transactions",
+        foreignField: "_id",
+        as: "txs",
+      },
+    },
+    { $addFields: { transactions: "$txs" } },
+    { $sort: { archivedAt: -1 } },
+  ]);
 }
