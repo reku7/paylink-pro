@@ -89,15 +89,18 @@ export const getLinkDetailsController = async (req, res) => {
 /** ============================
  * ARCHIVE PAYMENT LINK
  * ============================ */
+// controllers/paymentLinkController.js
+
 export const archivePaymentLinkController = async (req, res) => {
   try {
     const { linkId } = req.params;
     const merchantId = req.user.merchantId;
 
+    // Support either public linkId or MongoDB _id
     const link = await PaymentLink.findOne({
-      linkId,
       merchantId,
-      isArchived: false,
+      isArchived: false, // only active links
+      $or: [{ linkId }, { _id: linkId }],
     });
 
     if (!link) {
@@ -106,16 +109,23 @@ export const archivePaymentLinkController = async (req, res) => {
       });
     }
 
+    // Prevent archiving a paid one-time link
+    if (link.type === "one_time" && link.isPaid) {
+      return res.status(400).json({
+        error: "Paid one-time links cannot be archived",
+      });
+    }
+
     link.isArchived = true;
     link.archivedAt = new Date();
     link.archivedBy = req.user._id;
-    link.status = "disabled"; // optional, prevents further payments
-
+    link.status = "disabled"; // prevent further payments
     await link.save();
 
     return res.json({
       success: true,
       message: "Payment link archived successfully",
+      data: link,
     });
   } catch (err) {
     console.error("Archive link error:", err);
@@ -131,7 +141,12 @@ export const unarchivePaymentLinkController = async (req, res) => {
     const { linkId } = req.params;
     const merchantId = req.user.merchantId;
 
-    const link = await getArchivedPaymentLinkById(linkId, merchantId);
+    // Find archived link by linkId or _id
+    const link = await PaymentLink.findOne({
+      merchantId,
+      isArchived: true,
+      $or: [{ linkId }, { _id: linkId }],
+    });
 
     if (!link) {
       return res.status(404).json({
@@ -139,10 +154,10 @@ export const unarchivePaymentLinkController = async (req, res) => {
       });
     }
 
-    // Optional: prevent unarchiving paid one-time links
-    if (link.type === "one_time" && link.isPaid) {
+    // Only reusable links can be unarchived
+    if (link.type === "one_time") {
       return res.status(400).json({
-        error: "Paid one-time links cannot be unarchived",
+        error: "One-time links cannot be unarchived",
       });
     }
 
@@ -150,7 +165,6 @@ export const unarchivePaymentLinkController = async (req, res) => {
     link.archivedAt = null;
     link.archivedBy = null;
     link.status = "active"; // re-enable payments
-
     await link.save();
 
     return res.json({
