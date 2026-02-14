@@ -1,5 +1,5 @@
 // src/pages/PaymentLinks.jsx
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { privateApi as api } from "../api/api";
 import {
@@ -9,6 +9,7 @@ import {
   Eye,
   Search,
   Filter,
+  MoreVertical,
   RefreshCw,
   CheckCircle,
   XCircle,
@@ -304,15 +305,27 @@ const StatusBadge = ({ status, expiresAt }) => {
   );
 };
 
-const LinkTableRow = ({ link, onCopy, onView, onDelete }) => {
+const LinkTableRow = ({
+  link,
+  onCopy,
+  onView,
+  onDelete,
+  openMenuId,
+  setOpenMenuId,
+}) => {
+  const dropdownRef = useRef(null);
+  const menuButtonRef = useRef(null);
+
   const handleCopy = (e) => {
     e.stopPropagation();
     onCopy(link.linkId);
+    setOpenMenuId(null);
   };
 
   const handleView = (e) => {
     e.stopPropagation();
     onView(link);
+    setOpenMenuId(null);
   };
 
   const handleDelete = (e) => {
@@ -324,53 +337,59 @@ const LinkTableRow = ({ link, onCopy, onView, onDelete }) => {
     ) {
       onDelete(link._id);
     }
+    setOpenMenuId(null);
   };
 
-  // Debug: Log the link data to see what we're getting
-  console.log("Link data:", {
-    id: link.linkId,
-    title: link.title,
-    transactions: link.transactions,
-    totalCollected: link.totalCollected,
-    totalPayments: link.totalPayments,
-  });
+  const toggleMenu = (e) => {
+    e.stopPropagation();
+    setOpenMenuId(openMenuId === link._id ? null : link._id);
+  };
 
-  // Safely access transactions - handle both array and undefined
+  // Handle keyboard navigation
+  const handleKeyDown = (e, action) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      action(e);
+    }
+    if (e.key === "Escape" && openMenuId === link._id) {
+      setOpenMenuId(null);
+      menuButtonRef.current?.focus();
+    }
+  };
+
+  // Safely access transactions
   const transactions = Array.isArray(link.transactions)
     ? link.transactions
     : [];
-
-  // Filter successful transactions (status === "success")
   const successfulTransactions = transactions.filter(
     (tx) => tx && tx.status === "success",
   );
 
-  // Calculate total collected from successful transactions
+  // 🔐 Prevent deletion of links with successful payments
+  const hasSuccessfulPayments = successfulTransactions.length > 0;
+
   const totalCollected = successfulTransactions.reduce(
     (sum, tx) => sum + (Number(tx.amount) || 0),
     0,
   );
 
-  // Get the most recent successful transaction
+  // ✅ Prevent array mutation when sorting
   const lastSuccessfulTx =
     successfulTransactions.length > 0
-      ? successfulTransactions.sort((a, b) => {
+      ? [...successfulTransactions].sort((a, b) => {
           const dateA = a.createdAt || a.paidAt || a.updatedAt;
           const dateB = b.createdAt || b.paidAt || b.updatedAt;
           return new Date(dateB) - new Date(dateA);
         })[0]
       : null;
 
-  // Format the last payment date
   const getLastPaymentDate = () => {
     if (!lastSuccessfulTx) return null;
-
     const dateStr =
       lastSuccessfulTx.paidAt ||
       lastSuccessfulTx.createdAt ||
       lastSuccessfulTx.updatedAt;
     if (!dateStr) return null;
-
     try {
       const date = new Date(dateStr);
       return date.toLocaleDateString("en-US", {
@@ -458,31 +477,65 @@ const LinkTableRow = ({ link, onCopy, onView, onDelete }) => {
       </td>
 
       <td className="actions-cell">
-        <div className="action-buttons-group">
+        <div className="dropdown-wrapper" ref={dropdownRef}>
           <button
-            onClick={handleCopy}
-            className="action-btn copy"
-            title="Copy payment link"
+            ref={menuButtonRef}
+            onClick={toggleMenu}
+            onKeyDown={(e) => handleKeyDown(e, toggleMenu)}
+            className="action-menu-btn"
+            aria-label="More actions"
+            aria-expanded={openMenuId === link._id}
+            aria-haspopup="true"
+            title="More actions"
           >
-            <Copy size={16} />
-            <span className="action-tooltip">Copy</span>
+            <MoreVertical size={18} />
           </button>
-          <button
-            onClick={handleView}
-            className="action-btn view"
-            title="View link details"
-          >
-            <Eye size={16} />
-            <span className="action-tooltip">Details</span>
-          </button>
-          <button
-            onClick={handleDelete}
-            className="action-btn delete"
-            title="Delete link"
-          >
-            <Trash2 size={16} />
-            <span className="action-tooltip">Delete</span>
-          </button>
+
+          {openMenuId === link._id && (
+            <div
+              className="dropdown-menu"
+              role="menu"
+              aria-label="Link actions"
+            >
+              <button
+                onClick={handleCopy}
+                onKeyDown={(e) => handleKeyDown(e, handleCopy)}
+                className="dropdown-item"
+                role="menuitem"
+              >
+                <Copy size={14} className="dropdown-icon" />
+                Copy Link
+              </button>
+
+              <button
+                onClick={handleView}
+                onKeyDown={(e) => handleKeyDown(e, handleView)}
+                className="dropdown-item"
+                role="menuitem"
+              >
+                <Eye size={14} className="dropdown-icon" />
+                View Details
+              </button>
+
+              <div className="dropdown-divider" />
+
+              <button
+                onClick={handleDelete}
+                onKeyDown={(e) => handleKeyDown(e, handleDelete)}
+                className="dropdown-item delete"
+                role="menuitem"
+                disabled={hasSuccessfulPayments}
+                title={
+                  hasSuccessfulPayments
+                    ? "Cannot delete links with successful payments"
+                    : "Delete link"
+                }
+              >
+                <Trash2 size={14} className="dropdown-icon" />
+                Delete Link
+              </button>
+            </div>
+          )}
         </div>
       </td>
     </tr>
@@ -522,32 +575,24 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 const LinkDetailsModal = ({ link, onClose, onCopy }) => {
   if (!link) return null;
 
-  // Debug: Log the link data in modal
-  console.log("Modal link data:", link);
-
   const statusConfig = {
     active: { className: "bg-green-100 text-green-800" },
     disabled: { className: "bg-red-100 text-red-800" },
     expired: { className: "bg-gray-100 text-gray-800" },
   };
 
-  // Safely access transactions
   const transactions = Array.isArray(link.transactions)
     ? link.transactions
     : [];
-
-  // Filter successful transactions
   const successfulTransactions = transactions.filter(
     (tx) => tx && tx.status === "success",
   );
 
-  // Calculate totals from successful transactions
   const totalCollected = successfulTransactions.reduce(
     (sum, tx) => sum + (Number(tx.amount) || 0),
     0,
   );
 
-  // Group transactions by status for summary
   const statusCounts = transactions.reduce((acc, tx) => {
     if (tx && tx.status) {
       acc[tx.status] = (acc[tx.status] || 0) + 1;
@@ -556,11 +601,11 @@ const LinkDetailsModal = ({ link, onClose, onCopy }) => {
   }, {});
 
   return (
-    <div className="modal-overlay">
-      <div className="modal modal-lg">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Payment Link Details</h2>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
@@ -600,7 +645,6 @@ const LinkDetailsModal = ({ link, onClose, onCopy }) => {
             </div>
           </section>
 
-          {/* Transaction Summary */}
           {transactions.length > 0 && (
             <section className="details-section">
               <h3>Transaction Summary</h3>
@@ -649,8 +693,9 @@ const LinkDetailsModal = ({ link, onClose, onCopy }) => {
               <code className="url-text">{getPaymentUrl(link.linkId)}</code>
               <button
                 onClick={() => onCopy(link.linkId)}
-                className="action-btn copy"
+                className="icon-button"
                 title="Copy link"
+                aria-label="Copy link"
               >
                 <Copy size={16} />
               </button>
@@ -709,7 +754,6 @@ const DetailItem = ({ label, value, className, isStatus, statusClassName }) => (
 const TransactionRow = ({ transaction }) => {
   if (!transaction) return null;
 
-  // Safely access transaction properties
   const status = transaction.status || "unknown";
   const amount = transaction.amount || 0;
   const ref = transaction.internalRef || transaction.reference || "N/A";
@@ -718,7 +762,9 @@ const TransactionRow = ({ transaction }) => {
 
   return (
     <div className="transaction-row">
-      <span className="tx-ref">{ref}</span>
+      <span className="tx-ref" title={ref}>
+        {ref}
+      </span>
       <span className="tx-amount">{formatCurrency(amount)}</span>
       <span className={`tx-status ${status}`}>{status}</span>
       <span className="tx-date">{formatDateTime(date)}</span>
@@ -760,6 +806,19 @@ export default function PaymentLinks() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLink, setSelectedLink] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  // Click outside handler for dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".dropdown-wrapper")) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Custom hooks
   const {
@@ -777,10 +836,7 @@ export default function PaymentLinks() {
   // Computed values
   const filteredLinks = useMemo(() => {
     return links.filter((link) => {
-      // Tab filter
       if (activeTab !== "all" && link.type !== activeTab) return false;
-
-      // Search filter
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
         return (
@@ -789,7 +845,6 @@ export default function PaymentLinks() {
           link.amount?.toString().includes(term)
         );
       }
-
       return true;
     });
   }, [links, activeTab, searchTerm]);
@@ -820,18 +875,19 @@ export default function PaymentLinks() {
     try {
       await navigator.clipboard.writeText(getPaymentUrl(linkId));
       // You could add a toast notification here
-      console.log("Link copied to clipboard");
     } catch (err) {
-      console.error("Failed to copy link:", err);
+      setError("Failed to copy link");
     }
   };
 
   const handleViewLink = (link) => {
+    setOpenMenuId(null); // Close dropdown when opening modal
     setSelectedLink(link);
     setShowDetailsModal(true);
   };
 
   const handleDeleteLink = async (linkId) => {
+    setOpenMenuId(null); // Prevent race UI issues
     const success = await deleteLink(linkId);
     if (success && selectedLink?._id === linkId) {
       setShowDetailsModal(false);
@@ -885,7 +941,7 @@ export default function PaymentLinks() {
         </button>
       </header>
 
-      {/* Stats - Using dashboardStats from backend */}
+      {/* Stats */}
       <div className="stats-grid">
         <StatCard
           icon={Link2}
@@ -966,6 +1022,8 @@ export default function PaymentLinks() {
                       onCopy={handleCopyLink}
                       onView={handleViewLink}
                       onDelete={handleDeleteLink}
+                      openMenuId={openMenuId}
+                      setOpenMenuId={setOpenMenuId}
                     />
                   ))}
                 </tbody>
@@ -1455,73 +1513,129 @@ export default function PaymentLinks() {
           color: #9ca3af;
         }
 
-        .action-buttons-group {
-          display: flex;
-          gap: 8px;
+        /* Dropdown Styles */
+        .dropdown-wrapper {
           position: relative;
+          display: inline-block;
         }
 
-        .action-btn {
+        .action-menu-btn {
+          width: 36px;
+          height: 36px;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+          background: white;
+          color: #6b7280;
+          cursor: pointer;
+          transition: all 0.2s;
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 36px;
-          height: 36px;
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          color: #4b5563;
-          cursor: pointer;
-          transition: all 0.2s;
-          position: relative;
         }
 
-        .action-btn:hover {
+        .action-menu-btn:hover {
           background: #f9fafb;
-          transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          border-color: #d1d5db;
+          color: #374151;
         }
 
-        .action-btn.copy:hover {
-          color: #059669;
-          border-color: #059669;
-          background: #ecfdf5;
+        .action-menu-btn:focus-visible {
+          outline: 2px solid #059669;
+          outline-offset: 2px;
         }
 
-        .action-btn.view:hover {
-          color: #3b82f6;
-          border-color: #3b82f6;
-          background: #eff6ff;
+        .dropdown-menu {
+          position: absolute;
+          right: 0;
+          top: 42px;
+          width: 200px;
+          background: white;
+          border-radius: 10px;
+          border: 1px solid #e5e7eb;
+          box-shadow:
+            0 10px 25px -5px rgba(0, 0, 0, 0.1),
+            0 8px 10px -6px rgba(0, 0, 0, 0.02);
+          padding: 6px;
+          z-index: 50;
+          opacity: 0;
+          transform: translateY(-5px);
+          animation: dropdownFade 0.15s ease forwards;
         }
 
-        .action-btn.delete:hover {
+        @keyframes dropdownFade {
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .dropdown-item {
+          width: 100%;
+          padding: 10px 12px;
+          border: none;
+          background: none;
+          text-align: left;
+          font-size: 13px;
+          font-weight: 500;
+          color: #374151;
+          cursor: pointer;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          transition: background 0.15s;
+        }
+
+        .dropdown-item:hover:not(:disabled) {
+          background: #f3f4f6;
+        }
+
+        .dropdown-item:focus-visible {
+          outline: 2px solid #059669;
+          outline-offset: -2px;
+        }
+
+        .dropdown-item:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .dropdown-item.delete {
           color: #dc2626;
-          border-color: #dc2626;
+        }
+
+        .dropdown-item.delete:hover:not(:disabled) {
           background: #fee2e2;
         }
 
-        .action-tooltip {
-          position: absolute;
-          bottom: -30px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: #1f2937;
-          color: white;
-          font-size: 11px;
-          padding: 4px 8px;
-          border-radius: 4px;
-          white-space: nowrap;
-          opacity: 0;
-          visibility: hidden;
-          transition: all 0.2s;
-          pointer-events: none;
-          z-index: 10;
+        .dropdown-icon {
+          opacity: 0.7;
         }
 
-        .action-btn:hover .action-tooltip {
-          opacity: 1;
-          visibility: visible;
-          bottom: -35px;
+        .dropdown-divider {
+          height: 1px;
+          background: #e5e7eb;
+          margin: 6px 0;
+        }
+
+        .icon-button {
+          width: 32px;
+          height: 32px;
+          border-radius: 6px;
+          border: 1px solid #e5e7eb;
+          background: white;
+          color: #6b7280;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+
+        .icon-button:hover {
+          background: #f9fafb;
+          color: #059669;
+          border-color: #059669;
         }
 
         .loading-state {
@@ -1629,6 +1743,7 @@ export default function PaymentLinks() {
           justify-content: center;
           z-index: 1000;
           padding: 20px;
+          backdrop-filter: blur(4px);
         }
 
         .modal {
@@ -1651,6 +1766,10 @@ export default function PaymentLinks() {
           align-items: center;
           padding: 20px 24px;
           border-bottom: 1px solid #e5e7eb;
+          position: sticky;
+          top: 0;
+          background: white;
+          z-index: 10;
         }
 
         .modal-header h2 {
@@ -1673,11 +1792,13 @@ export default function PaymentLinks() {
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: all 0.2s;
         }
 
         .modal-close:hover {
           background: #f9fafb;
           color: #111827;
+          border-color: #9ca3af;
         }
 
         .modal-body {
@@ -1690,6 +1811,10 @@ export default function PaymentLinks() {
           gap: 12px;
           padding: 20px 24px;
           border-top: 1px solid #e5e7eb;
+          position: sticky;
+          bottom: 0;
+          background: white;
+          z-index: 10;
         }
 
         .details-section {
@@ -1725,11 +1850,55 @@ export default function PaymentLinks() {
         .detail-value {
           font-size: 14px;
           color: #111827;
+          font-weight: 500;
         }
 
         .detail-value.amount {
           font-weight: 600;
           color: #059669;
+        }
+
+        .summary-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+          gap: 16px;
+          padding: 16px;
+          background: #f9fafb;
+          border-radius: 12px;
+        }
+
+        .summary-item {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .summary-label {
+          font-size: 11px;
+          color: #6b7280;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .summary-value {
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        .summary-value.success {
+          color: #059669;
+        }
+
+        .summary-value.failed {
+          color: #dc2626;
+        }
+
+        .summary-value.processing {
+          color: #f59e0b;
+        }
+
+        .summary-value.initialized {
+          color: #3b82f6;
         }
 
         .url-box {
@@ -1747,6 +1916,7 @@ export default function PaymentLinks() {
           font-size: 13px;
           color: #374151;
           word-break: break-all;
+          font-family: monospace;
         }
 
         .transactions-preview {
@@ -1761,10 +1931,11 @@ export default function PaymentLinks() {
           padding: 12px 16px;
           background: #f9fafb;
           border-bottom: 1px solid #e5e7eb;
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 600;
           color: #6b7280;
           text-transform: uppercase;
+          letter-spacing: 0.5px;
         }
 
         .transaction-row {
@@ -1774,6 +1945,11 @@ export default function PaymentLinks() {
           padding: 12px 16px;
           border-bottom: 1px solid #e5e7eb;
           font-size: 13px;
+          transition: background 0.15s;
+        }
+
+        .transaction-row:hover {
+          background: #f9fafb;
         }
 
         .transaction-row:last-child {
@@ -1784,18 +1960,21 @@ export default function PaymentLinks() {
           font-family: monospace;
           font-size: 12px;
           color: #374151;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         .tx-amount {
-          font-weight: 500;
+          font-weight: 600;
           color: #111827;
         }
 
         .tx-status {
-          padding: 2px 8px;
-          border-radius: 12px;
+          padding: 4px 8px;
+          border-radius: 20px;
           font-size: 11px;
-          font-weight: 500;
+          font-weight: 600;
           text-transform: capitalize;
           width: fit-content;
         }
@@ -1820,9 +1999,23 @@ export default function PaymentLinks() {
           color: #0369a1;
         }
 
+        .tx-status.unknown {
+          background: #f3f4f6;
+          color: #6b7280;
+        }
+
         .tx-date {
           font-size: 11px;
           color: #6b7280;
+        }
+
+        .no-transactions {
+          text-align: center;
+          padding: 48px;
+          background: #f9fafb;
+          border-radius: 8px;
+          color: #6b7280;
+          font-size: 14px;
         }
 
         @media (max-width: 1024px) {
@@ -1858,6 +2051,10 @@ export default function PaymentLinks() {
             grid-template-columns: 1fr;
           }
 
+          .summary-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
           .modal {
             margin: 20px;
           }
@@ -1866,6 +2063,52 @@ export default function PaymentLinks() {
           .transaction-row {
             grid-template-columns: 1fr;
             gap: 8px;
+          }
+
+          .transactions-header {
+            display: none;
+          }
+
+          .transaction-row {
+            grid-template-columns: 1fr;
+            gap: 8px;
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+          }
+
+          .tx-ref,
+          .tx-amount,
+          .tx-status,
+          .tx-date {
+            padding: 4px 0;
+          }
+
+          .tx-ref::before {
+            content: "Ref: ";
+            font-weight: 600;
+            color: #6b7280;
+            margin-right: 4px;
+          }
+
+          .tx-amount::before {
+            content: "Amount: ";
+            font-weight: 600;
+            color: #6b7280;
+            margin-right: 4px;
+          }
+
+          .tx-status::before {
+            content: "Status: ";
+            font-weight: 600;
+            color: #6b7280;
+            margin-right: 4px;
+          }
+
+          .tx-date::before {
+            content: "Date: ";
+            font-weight: 600;
+            color: #6b7280;
+            margin-right: 4px;
           }
         }
       `}</style>
