@@ -1,5 +1,6 @@
 // src/pages/PaymentLinks.jsx
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import ReactDOM from "react-dom"; // Add this import
 import { useNavigate } from "react-router-dom";
 import { privateApi as api } from "../api/api";
 import {
@@ -24,7 +25,7 @@ import {
   ArchiveRestore,
 } from "lucide-react";
 
-// Constants
+// Constants (keep as is)
 const API_ENDPOINTS = {
   LINKS: "/links",
   ARCHIVED_LINKS: "/links/archived",
@@ -43,7 +44,7 @@ const TAB_CONFIG = [
   { id: "archived", label: "Archived", icon: Archive },
 ];
 
-// Utility functions
+// Utility functions (keep as is)
 const formatDate = (dateString, options = {}) => {
   if (!dateString) return "N/A";
   const date = new Date(dateString);
@@ -106,8 +107,162 @@ const getPaymentUrl = (linkId) => {
   return `${window.location.origin}/pay/${linkId}`;
 };
 
-// Custom Hooks
+// ===================== DROPDOWN COMPONENTS =====================
+// Place these at the top level, before the custom hooks
+
+// Enhanced Dropdown Menu Component
+const DropdownMenu = ({
+  isOpen,
+  onClose,
+  children,
+  triggerRef,
+  className = "",
+}) => {
+  const menuRef = useRef(null);
+  const [menuStyle, setMenuStyle] = useState({});
+
+  // Position the menu based on trigger button position
+  useEffect(() => {
+    if (isOpen && triggerRef.current && menuRef.current) {
+      const triggerRect = triggerRef.current.getBoundingClientRect();
+      const menuRect = menuRef.current.getBoundingClientRect();
+
+      let top = triggerRect.bottom + 8; // 8px gap
+      let left = triggerRect.right - menuRect.width; // Align right
+
+      // Adjust if menu goes off screen
+      if (left < 8) left = 8;
+      if (top + menuRect.height > window.innerHeight - 8) {
+        top = triggerRect.top - menuRect.height - 8; // Show above
+      }
+
+      setMenuStyle({
+        top: `${top}px`,
+        left: `${left}px`,
+      });
+    }
+  }, [isOpen, triggerRef]);
+
+  // Handle click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        isOpen &&
+        menuRef.current &&
+        !menuRef.current.contains(event.target) &&
+        !triggerRef.current?.contains(event.target)
+      ) {
+        onClose();
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (isOpen && event.key === "Escape") {
+        onClose();
+        triggerRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen, onClose, triggerRef]);
+
+  if (!isOpen) return null;
+
+  return ReactDOM.createPortal(
+    <div
+      ref={menuRef}
+      className={`dropdown-menu ${className}`}
+      style={menuStyle}
+      role="menu"
+      aria-orientation="vertical"
+      aria-labelledby={triggerRef.current?.id}
+    >
+      {children}
+    </div>,
+    document.body,
+  );
+};
+
+// Menu Item Component
+const MenuItem = ({
+  onClick,
+  children,
+  icon: Icon,
+  danger = false,
+  disabled = false,
+  shortcut,
+  ...props
+}) => {
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (!disabled && onClick) {
+        onClick(e);
+      }
+    }
+  };
+
+  return (
+    <button
+      className={`dropdown-item ${danger ? "danger" : ""} ${disabled ? "disabled" : ""}`}
+      onClick={disabled ? undefined : onClick}
+      onKeyDown={handleKeyDown}
+      role="menuitem"
+      disabled={disabled}
+      aria-disabled={disabled}
+      {...props}
+    >
+      {Icon && <Icon size={14} className="dropdown-icon" aria-hidden="true" />}
+      <span className="dropdown-item-text">{children}</span>
+      {shortcut && <span className="dropdown-shortcut">{shortcut}</span>}
+    </button>
+  );
+};
+
+// Divider Component
+const MenuDivider = () => <div className="dropdown-divider" role="separator" />;
+
+// Action Button Component
+const ActionButton = ({
+  onClick,
+  isOpen,
+  buttonRef,
+  ariaLabel = "More actions",
+}) => {
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+      e.preventDefault();
+      onClick(e);
+    }
+  };
+
+  return (
+    <button
+      ref={buttonRef}
+      onClick={onClick}
+      onKeyDown={handleKeyDown}
+      className={`action-menu-btn ${isOpen ? "active" : ""}`}
+      aria-label={ariaLabel}
+      aria-haspopup="true"
+      aria-expanded={isOpen}
+      aria-controls="action-menu"
+      type="button"
+    >
+      <MoreVertical size={18} aria-hidden="true" />
+      <span className="sr-only">{ariaLabel}</span>
+    </button>
+  );
+};
+
+// ===================== CUSTOM HOOKS =====================
 const usePaymentLinks = () => {
+  // ... (keep your existing usePaymentLinks hook implementation)
   const [links, setLinks] = useState([]);
   const [archivedLinks, setArchivedLinks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -191,7 +346,6 @@ const usePaymentLinks = () => {
         );
 
         if (response.data.success) {
-          // Refresh both active and archived links
           await Promise.all([
             fetchLinks(),
             fetchArchivedLinks(),
@@ -216,7 +370,6 @@ const usePaymentLinks = () => {
         );
 
         if (response.data.success) {
-          // Refresh both active and archived links
           await Promise.all([
             fetchLinks(),
             fetchArchivedLinks(),
@@ -233,7 +386,6 @@ const usePaymentLinks = () => {
     [fetchLinks, fetchArchivedLinks, fetchDashboardStats],
   );
 
-  // Fetch dashboard stats on mount
   useEffect(() => {
     fetchDashboardStats();
   }, [fetchDashboardStats]);
@@ -253,6 +405,8 @@ const usePaymentLinks = () => {
     setError,
   };
 };
+
+// ===================== UI COMPONENTS =====================
 
 // StatCard component
 const StatCard = ({ icon: Icon, label, value, color, subValue }) => (
@@ -377,7 +531,7 @@ const StatusBadge = ({ status, expiresAt, isArchived }) => {
   );
 };
 
-// Active Link Table Row (with Archive option)
+// Enhanced Active Link Table Row (with Archive option)
 const ActiveLinkTableRow = ({
   link,
   onCopy,
@@ -388,21 +542,29 @@ const ActiveLinkTableRow = ({
 }) => {
   const dropdownRef = useRef(null);
   const menuButtonRef = useRef(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
-  const handleCopy = (e) => {
-    e.stopPropagation();
-    onCopy(link.linkId);
-    setOpenMenuId(null);
+  const isOpen = openMenuId === link._id;
+
+  const handleCopy = async (e) => {
+    e?.stopPropagation();
+    try {
+      await onCopy(link.linkId);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } finally {
+      setOpenMenuId(null);
+    }
   };
 
   const handleView = (e) => {
-    e.stopPropagation();
+    e?.stopPropagation();
     onView(link);
     setOpenMenuId(null);
   };
 
   const handleArchive = (e) => {
-    e.stopPropagation();
+    e?.stopPropagation();
     if (
       window.confirm(
         "Are you sure you want to archive this link? It will be hidden from the main list but all transaction data will be preserved.",
@@ -415,18 +577,7 @@ const ActiveLinkTableRow = ({
 
   const toggleMenu = (e) => {
     e.stopPropagation();
-    setOpenMenuId(openMenuId === link._id ? null : link._id);
-  };
-
-  const handleKeyDown = (e, action) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      action(e);
-    }
-    if (e.key === "Escape" && openMenuId === link._id) {
-      setOpenMenuId(null);
-      menuButtonRef.current?.focus();
-    }
+    setOpenMenuId(isOpen ? null : link._id);
   };
 
   const transactions = Array.isArray(link.transactions)
@@ -435,42 +586,18 @@ const ActiveLinkTableRow = ({
   const successfulTransactions = transactions.filter(
     (tx) => tx && tx.status === "success",
   );
-
-  const hasSuccessfulPayments = successfulTransactions.length > 0;
   const totalCollected = successfulTransactions.reduce(
     (sum, tx) => sum + (Number(tx.amount) || 0),
     0,
   );
-
-  const lastSuccessfulTx =
+  const lastPaymentDate =
     successfulTransactions.length > 0
-      ? [...successfulTransactions].sort((a, b) => {
-          const dateA = a.createdAt || a.paidAt || a.updatedAt;
-          const dateB = b.createdAt || b.paidAt || b.updatedAt;
-          return new Date(dateB) - new Date(dateA);
-        })[0]
+      ? formatDate(
+          successfulTransactions[successfulTransactions.length - 1]?.paidAt ||
+            successfulTransactions[successfulTransactions.length - 1]
+              ?.createdAt,
+        )
       : null;
-
-  const getLastPaymentDate = () => {
-    if (!lastSuccessfulTx) return null;
-    const dateStr =
-      lastSuccessfulTx.paidAt ||
-      lastSuccessfulTx.createdAt ||
-      lastSuccessfulTx.updatedAt;
-    if (!dateStr) return null;
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-    } catch (e) {
-      return null;
-    }
-  };
-
-  const lastPaymentDate = getLastPaymentDate();
 
   return (
     <tr className="table-row" onClick={handleView}>
@@ -548,66 +675,43 @@ const ActiveLinkTableRow = ({
 
       <td className="actions-cell">
         <div className="dropdown-wrapper" ref={dropdownRef}>
-          <button
-            ref={menuButtonRef}
+          <ActionButton
+            buttonRef={menuButtonRef}
             onClick={toggleMenu}
-            onKeyDown={(e) => handleKeyDown(e, toggleMenu)}
-            className="action-menu-btn"
-            aria-label="More actions"
-            aria-expanded={openMenuId === link._id}
-            aria-haspopup="true"
-            title="More actions"
+            isOpen={isOpen}
+            ariaLabel={`Actions for ${link.title || "link"}`}
+          />
+
+          <DropdownMenu
+            isOpen={isOpen}
+            onClose={() => setOpenMenuId(null)}
+            triggerRef={menuButtonRef}
           >
-            <MoreVertical size={18} />
-          </button>
-
-          {openMenuId === link._id && (
-            <div
-              className="dropdown-menu"
-              role="menu"
-              aria-label="Link actions"
+            <MenuItem
+              onClick={handleCopy}
+              icon={copySuccess ? CheckCircle : Copy}
+              shortcut="⌘C"
             >
-              <button
-                onClick={handleCopy}
-                onKeyDown={(e) => handleKeyDown(e, handleCopy)}
-                className="dropdown-item"
-                role="menuitem"
-              >
-                <Copy size={14} className="dropdown-icon" />
-                Copy Link
-              </button>
+              {copySuccess ? "Copied!" : "Copy Link"}
+            </MenuItem>
 
-              <button
-                onClick={handleView}
-                onKeyDown={(e) => handleKeyDown(e, handleView)}
-                className="dropdown-item"
-                role="menuitem"
-              >
-                <Eye size={14} className="dropdown-icon" />
-                View Details
-              </button>
+            <MenuItem onClick={handleView} icon={Eye} shortcut="⌘V">
+              View Details
+            </MenuItem>
 
-              <div className="dropdown-divider" />
+            <MenuDivider />
 
-              <button
-                onClick={handleArchive}
-                onKeyDown={(e) => handleKeyDown(e, handleArchive)}
-                className="dropdown-item archive"
-                role="menuitem"
-                title="Archive link"
-              >
-                <Archive size={14} className="dropdown-icon" />
-                Archive Link
-              </button>
-            </div>
-          )}
+            <MenuItem onClick={handleArchive} icon={Archive}>
+              Archive Link
+            </MenuItem>
+          </DropdownMenu>
         </div>
       </td>
     </tr>
   );
 };
 
-// Archived Link Table Row (with Unarchive option)
+// Enhanced Archived Link Table Row (with Unarchive option)
 const ArchivedLinkTableRow = ({
   link,
   onView,
@@ -618,6 +722,8 @@ const ArchivedLinkTableRow = ({
   const dropdownRef = useRef(null);
   const menuButtonRef = useRef(null);
 
+  const isOpen = openMenuId === link._id;
+
   const handleView = (e) => {
     e.stopPropagation();
     onView(link);
@@ -627,7 +733,6 @@ const ArchivedLinkTableRow = ({
   const handleUnarchive = (e) => {
     e.stopPropagation();
 
-    // Check if this is a paid one-time link (cannot be unarchived)
     if (link.type === "one_time" && link.isPaid) {
       alert("Paid one-time links cannot be unarchived");
       return;
@@ -645,18 +750,7 @@ const ArchivedLinkTableRow = ({
 
   const toggleMenu = (e) => {
     e.stopPropagation();
-    setOpenMenuId(openMenuId === link._id ? null : link._id);
-  };
-
-  const handleKeyDown = (e, action) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      action(e);
-    }
-    if (e.key === "Escape" && openMenuId === link._id) {
-      setOpenMenuId(null);
-      menuButtonRef.current?.focus();
-    }
+    setOpenMenuId(isOpen ? null : link._id);
   };
 
   const transactions = Array.isArray(link.transactions)
@@ -665,12 +759,10 @@ const ArchivedLinkTableRow = ({
   const successfulTransactions = transactions.filter(
     (tx) => tx && tx.status === "success",
   );
-
   const totalCollected = successfulTransactions.reduce(
     (sum, tx) => sum + (Number(tx.amount) || 0),
     0,
   );
-
   const canUnarchive =
     link.type === "reusable" || (link.type === "one_time" && !link.isPaid);
 
@@ -741,52 +833,31 @@ const ArchivedLinkTableRow = ({
 
       <td className="actions-cell">
         <div className="dropdown-wrapper" ref={dropdownRef}>
-          <button
-            ref={menuButtonRef}
+          <ActionButton
+            buttonRef={menuButtonRef}
             onClick={toggleMenu}
-            onKeyDown={(e) => handleKeyDown(e, toggleMenu)}
-            className="action-menu-btn"
-            aria-label="More actions"
-            aria-expanded={openMenuId === link._id}
-            aria-haspopup="true"
-            title="More actions"
+            isOpen={isOpen}
+            ariaLabel={`Actions for archived ${link.title || "link"}`}
+          />
+
+          <DropdownMenu
+            isOpen={isOpen}
+            onClose={() => setOpenMenuId(null)}
+            triggerRef={menuButtonRef}
           >
-            <MoreVertical size={18} />
-          </button>
+            <MenuItem onClick={handleView} icon={Eye} shortcut="⌘V">
+              View Details
+            </MenuItem>
 
-          {openMenuId === link._id && (
-            <div
-              className="dropdown-menu"
-              role="menu"
-              aria-label="Link actions"
-            >
-              <button
-                onClick={handleView}
-                onKeyDown={(e) => handleKeyDown(e, handleView)}
-                className="dropdown-item"
-                role="menuitem"
-              >
-                <Eye size={14} className="dropdown-icon" />
-                View Details
-              </button>
-
-              {canUnarchive && (
-                <>
-                  <div className="dropdown-divider" />
-                  <button
-                    onClick={handleUnarchive}
-                    onKeyDown={(e) => handleKeyDown(e, handleUnarchive)}
-                    className="dropdown-item unarchive"
-                    role="menuitem"
-                    title="Unarchive link"
-                  >
-                    <ArchiveRestore size={14} className="dropdown-icon" />
-                    Unarchive Link
-                  </button>
-                </>
-              )}
-            </div>
-          )}
+            {canUnarchive && (
+              <>
+                <MenuDivider />
+                <MenuItem onClick={handleUnarchive} icon={ArchiveRestore}>
+                  Unarchive Link
+                </MenuItem>
+              </>
+            )}
+          </DropdownMenu>
         </div>
       </td>
     </tr>
@@ -824,7 +895,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   );
 };
 
-// Modal Components (keep your existing LinkDetailsModal, DetailItem, TransactionRow)
+// Modal Components
 const DetailItem = ({ label, value, className, isStatus, statusClassName }) => (
   <div className="detail-item">
     <span className="detail-label">{label}:</span>
@@ -872,7 +943,6 @@ const LinkDetailsModal = ({ link, onClose, onCopy }) => {
   const successfulTransactions = transactions.filter(
     (tx) => tx && tx.status === "success",
   );
-
   const totalCollected = successfulTransactions.reduce(
     (sum, tx) => sum + (Number(tx.amount) || 0),
     0,
@@ -1060,7 +1130,7 @@ const LoadingState = () => (
   </div>
 );
 
-// Main Component
+// ===================== MAIN COMPONENT =====================
 export default function PaymentLinks() {
   const navigate = useNavigate();
 
@@ -1071,7 +1141,7 @@ export default function PaymentLinks() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
 
-  // Click outside handler for dropdowns
+  // Click outside handler for dropdowns (fallback)
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest(".dropdown-wrapper")) {
@@ -1379,6 +1449,7 @@ export default function PaymentLinks() {
       )}
 
       <style jsx>{`
+        /* Keep all your existing styles here */
         .payment-links-page {
           width: 100%;
         }
@@ -1873,28 +1944,39 @@ export default function PaymentLinks() {
           outline-offset: 2px;
         }
 
-        .dropdown-menu {
+        .sr-only {
           position: absolute;
-          right: 0;
-          top: 42px;
-          width: 200px;
-          background: white;
-          border-radius: 10px;
-          border: 1px solid #e5e7eb;
-          box-shadow:
-            0 10px 25px -5px rgba(0, 0, 0, 0.1),
-            0 8px 10px -6px rgba(0, 0, 0, 0.02);
-          padding: 6px;
-          z-index: 50;
-          opacity: 0;
-          transform: translateY(-5px);
-          animation: dropdownFade 0.15s ease forwards;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border-width: 0;
         }
 
-        @keyframes dropdownFade {
+        /* Enhanced dropdown styles */
+        .dropdown-menu {
+          position: fixed;
+          min-width: 220px;
+          background: white;
+          border-radius: 12px;
+          border: 1px solid #e5e7eb;
+          box-shadow:
+            0 20px 25px -5px rgba(0, 0, 0, 0.1),
+            0 8px 10px -6px rgba(0, 0, 0, 0.02);
+          padding: 6px;
+          z-index: 9999;
+          opacity: 0;
+          transform: scale(0.95);
+          animation: dropdownAppear 0.1s ease forwards;
+        }
+
+        @keyframes dropdownAppear {
           to {
             opacity: 1;
-            transform: translateY(0);
+            transform: scale(1);
           }
         }
 
@@ -1908,14 +1990,15 @@ export default function PaymentLinks() {
           font-weight: 500;
           color: #374151;
           cursor: pointer;
-          border-radius: 6px;
+          border-radius: 8px;
           display: flex;
           align-items: center;
-          gap: 8px;
-          transition: background 0.15s;
+          gap: 10px;
+          transition: all 0.15s;
+          position: relative;
         }
 
-        .dropdown-item:hover:not(:disabled) {
+        .dropdown-item:hover:not(:disabled):not(.disabled) {
           background: #f3f4f6;
         }
 
@@ -1924,27 +2007,64 @@ export default function PaymentLinks() {
           outline-offset: -2px;
         }
 
+        .dropdown-item.danger {
+          color: #dc2626;
+        }
+
+        .dropdown-item.danger:hover:not(:disabled):not(.disabled) {
+          background: #fee2e2;
+        }
+
+        .dropdown-item.disabled,
         .dropdown-item:disabled {
           opacity: 0.5;
           cursor: not-allowed;
         }
 
-        .dropdown-item.delete {
-          color: #dc2626;
-        }
-
-        .dropdown-item.delete:hover:not(:disabled) {
-          background: #fee2e2;
-        }
-
         .dropdown-icon {
           opacity: 0.7;
+          flex-shrink: 0;
+        }
+
+        .dropdown-item-text {
+          flex: 1;
+          white-space: nowrap;
+        }
+
+        .dropdown-shortcut {
+          font-size: 11px;
+          color: #9ca3af;
+          letter-spacing: 0.5px;
+          margin-left: 12px;
         }
 
         .dropdown-divider {
           height: 1px;
           background: #e5e7eb;
           margin: 6px 0;
+        }
+
+        .action-menu-btn.active {
+          background: #f3f4f6;
+          border-color: #059669;
+          color: #059669;
+        }
+
+        /* Copy success animation */
+        @keyframes copySuccess {
+          0% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.1);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+
+        .copy-success {
+          animation: copySuccess 0.3s ease;
         }
 
         .icon-button {
@@ -2347,6 +2467,54 @@ export default function PaymentLinks() {
           font-size: 14px;
         }
 
+        /* Add archive button style */
+        .dropdown-item.archive {
+          color: #6b7280;
+        }
+
+        .dropdown-item.archive:hover:not(:disabled) {
+          background: #f3f4f6;
+          color: #374151;
+        }
+
+        .dropdown-item.archive:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .stat-icon.gray {
+          background: #f3f4f6;
+          color: #6b7280;
+        }
+
+        .link-icon.archived {
+          background: #f3f4f6;
+          color: #6b7280;
+        }
+
+        .dropdown-item.unarchive {
+          color: #059669;
+        }
+
+        .dropdown-item.unarchive:hover:not(:disabled) {
+          background: #ecfdf5;
+        }
+
+        .paid-badge {
+          padding: 2px 6px;
+          background: #fef3c7;
+          color: #92400e;
+          border-radius: 12px;
+          font-size: 10px;
+          font-weight: 500;
+          margin-left: 6px;
+        }
+
+        .archived-date {
+          font-size: 11px;
+          color: #9ca3af;
+        }
+
         @media (max-width: 1024px) {
           .stats-grid {
             grid-template-columns: repeat(2, 1fr);
@@ -2405,13 +2573,6 @@ export default function PaymentLinks() {
             border-bottom: 1px solid #e5e7eb;
           }
 
-          .tx-ref,
-          .tx-amount,
-          .tx-status,
-          .tx-date {
-            padding: 4px 0;
-          }
-
           .tx-ref::before {
             content: "Ref: ";
             font-weight: 600;
@@ -2439,56 +2600,6 @@ export default function PaymentLinks() {
             color: #6b7280;
             margin-right: 4px;
           }
-        
-      
-        /* ... (keep all your existing styles) ... */
-
-        /* Add archive button style */
-        .dropdown-item.archive {
-          color: #6b7280;
-        }
-
-        .dropdown-item.archive:hover:not(:disabled) {
-          background: #f3f4f6;
-          color: #374151;
-        }
-
-        .dropdown-item.archive:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .stat-icon.gray {
-          background: #f3f4f6;
-          color: #6b7280;
-        }
-
-        .link-icon.archived {
-          background: #f3f4f6;
-          color: #6b7280;
-        }
-
-        .dropdown-item.unarchive {
-          color: #059669;
-        }
-
-        .dropdown-item.unarchive:hover:not(:disabled) {
-          background: #ecfdf5;
-        }
-
-        .paid-badge {
-          padding: 2px 6px;
-          background: #fef3c7;
-          color: #92400e;
-          border-radius: 12px;
-          font-size: 10px;
-          font-weight: 500;
-          margin-left: 6px;
-        }
-
-        .archived-date {
-          font-size: 11px;
-          color: #9ca3af;
         }
       `}</style>
     </div>
