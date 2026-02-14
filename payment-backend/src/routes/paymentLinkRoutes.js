@@ -7,6 +7,7 @@ import {
   createLinkController,
   getAllLinksController,
   getLinkDetailsController,
+  archivePaymentLinkController,
 } from "../controllers/paymentLinkController.js";
 import { checkMerchantActive } from "../middleware/checkMerchantActive.js";
 
