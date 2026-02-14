@@ -326,15 +326,66 @@ const LinkTableRow = ({ link, onCopy, onView, onDelete }) => {
     }
   };
 
-  // Calculate successful payments from transactions
-  const successfulPayments =
-    link.transactions?.filter((tx) => tx.status === PAYMENT_STATUS.SUCCESS)
-      .length || 0;
+  // Debug: Log the link data to see what we're getting
+  console.log("Link data:", {
+    id: link.linkId,
+    title: link.title,
+    transactions: link.transactions,
+    totalCollected: link.totalCollected,
+    totalPayments: link.totalPayments,
+  });
 
-  // Get the most recent successful transaction if any
-  const lastSuccessfulTx = link.transactions
-    ?.filter((tx) => tx.status === PAYMENT_STATUS.SUCCESS)
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+  // Safely access transactions - handle both array and undefined
+  const transactions = Array.isArray(link.transactions)
+    ? link.transactions
+    : [];
+
+  // Filter successful transactions (status === "success")
+  const successfulTransactions = transactions.filter(
+    (tx) => tx && tx.status === "success",
+  );
+
+  // Calculate total collected from successful transactions
+  const totalCollected = successfulTransactions.reduce(
+    (sum, tx) => sum + (Number(tx.amount) || 0),
+    0,
+  );
+
+  // Get the most recent successful transaction
+  const lastSuccessfulTx =
+    successfulTransactions.length > 0
+      ? successfulTransactions.sort((a, b) => {
+          const dateA = a.createdAt || a.paidAt || a.updatedAt;
+          const dateB = b.createdAt || b.paidAt || b.updatedAt;
+          return new Date(dateB) - new Date(dateA);
+        })[0]
+      : null;
+
+  // Format the last payment date
+  const getLastPaymentDate = () => {
+    if (!lastSuccessfulTx) return null;
+
+    const dateStr =
+      lastSuccessfulTx.paidAt ||
+      lastSuccessfulTx.createdAt ||
+      lastSuccessfulTx.updatedAt;
+    if (!dateStr) return null;
+
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const lastPaymentDate = getLastPaymentDate();
 
   return (
     <tr className="table-row" onClick={handleView}>
@@ -361,34 +412,42 @@ const LinkTableRow = ({ link, onCopy, onView, onDelete }) => {
           </div>
         </div>
       </td>
+
       <td className="amount-cell">
         <div className="amount">{formatCurrency(link.amount)}</div>
-        {link.totalCollected > 0 && (
+        {totalCollected > 0 && (
           <div className="collected">
-            Collected: {formatCurrency(link.totalCollected)}
+            Collected: {formatCurrency(totalCollected)}
           </div>
         )}
       </td>
+
       <td className="status-cell">
         <StatusBadge status={link.status} expiresAt={link.expiresAt} />
       </td>
+
       <td className="performance-cell">
         <div className="payments-count">
-          {successfulPayments > 0 ? (
-            <span className="success-badge">{successfulPayments} paid</span>
+          {successfulTransactions.length > 0 ? (
+            <>
+              <span className="success-badge">
+                {successfulTransactions.length}{" "}
+                {successfulTransactions.length === 1 ? "payment" : "payments"}
+              </span>
+              {lastPaymentDate && (
+                <div className="last-paid">Last: {lastPaymentDate}</div>
+              )}
+            </>
           ) : (
-            <span className="no-payments">0 payments</span>
+            <span className="no-payments">No payments yet</span>
           )}
         </div>
         <div className="attempts-count">
-          {link.transactions?.length || 0} attempts
+          {transactions.length}{" "}
+          {transactions.length === 1 ? "attempt" : "attempts"}
         </div>
-        {lastSuccessfulTx && (
-          <div className="last-paid">
-            Last: {formatDateTime(lastSuccessfulTx.createdAt)}
-          </div>
-        )}
       </td>
+
       <td className="date-cell">
         <div className="created-date">{formatDate(link.createdAt)}</div>
         {link.expiresAt && (
@@ -397,6 +456,7 @@ const LinkTableRow = ({ link, onCopy, onView, onDelete }) => {
           </div>
         )}
       </td>
+
       <td className="actions-cell">
         <div className="action-buttons-group">
           <button
@@ -462,22 +522,38 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 const LinkDetailsModal = ({ link, onClose, onCopy }) => {
   if (!link) return null;
 
+  // Debug: Log the link data in modal
+  console.log("Modal link data:", link);
+
   const statusConfig = {
     active: { className: "bg-green-100 text-green-800" },
     disabled: { className: "bg-red-100 text-red-800" },
     expired: { className: "bg-gray-100 text-gray-800" },
   };
 
-  // Filter successful transactions
-  const successfulTransactions =
-    link.transactions?.filter((tx) => tx.status === PAYMENT_STATUS.SUCCESS) ||
-    [];
+  // Safely access transactions
+  const transactions = Array.isArray(link.transactions)
+    ? link.transactions
+    : [];
 
-  // Calculate totals
+  // Filter successful transactions
+  const successfulTransactions = transactions.filter(
+    (tx) => tx && tx.status === "success",
+  );
+
+  // Calculate totals from successful transactions
   const totalCollected = successfulTransactions.reduce(
-    (sum, tx) => sum + (tx.amount || 0),
+    (sum, tx) => sum + (Number(tx.amount) || 0),
     0,
   );
+
+  // Group transactions by status for summary
+  const statusCounts = transactions.reduce((acc, tx) => {
+    if (tx && tx.status) {
+      acc[tx.status] = (acc[tx.status] || 0) + 1;
+    }
+    return acc;
+  }, {});
 
   return (
     <div className="modal-overlay">
@@ -521,21 +597,51 @@ const LinkDetailsModal = ({ link, onClose, onCopy }) => {
                   value={formatDateTime(link.expiresAt)}
                 />
               )}
-              <DetailItem
-                label="Total Collected"
-                value={formatCurrency(totalCollected)}
-                className="amount"
-              />
-              <DetailItem
-                label="Successful Payments"
-                value={successfulTransactions.length}
-              />
-              <DetailItem
-                label="Total Attempts"
-                value={link.transactions?.length || 0}
-              />
             </div>
           </section>
+
+          {/* Transaction Summary */}
+          {transactions.length > 0 && (
+            <section className="details-section">
+              <h3>Transaction Summary</h3>
+              <div className="summary-grid">
+                <div className="summary-item">
+                  <span className="summary-label">Total Collected</span>
+                  <span className="summary-value success">
+                    {formatCurrency(totalCollected)}
+                  </span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-label">Successful</span>
+                  <span className="summary-value success">
+                    {successfulTransactions.length}
+                  </span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-label">Failed</span>
+                  <span className="summary-value failed">
+                    {statusCounts.failed || 0}
+                  </span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-label">Processing</span>
+                  <span className="summary-value processing">
+                    {statusCounts.processing || 0}
+                  </span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-label">Initialized</span>
+                  <span className="summary-value initialized">
+                    {statusCounts.initialized || 0}
+                  </span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-label">Total Attempts</span>
+                  <span className="summary-value">{transactions.length}</span>
+                </div>
+              </div>
+            </section>
+          )}
 
           <section className="details-section">
             <h3>Payment URL</h3>
@@ -551,9 +657,9 @@ const LinkDetailsModal = ({ link, onClose, onCopy }) => {
             </div>
           </section>
 
-          {link.transactions && link.transactions.length > 0 && (
+          {transactions.length > 0 ? (
             <section className="details-section">
-              <h3>All Transactions ({link.transactions.length})</h3>
+              <h3>All Transactions ({transactions.length})</h3>
               <div className="transactions-preview">
                 <div className="transactions-header">
                   <span>Reference</span>
@@ -561,9 +667,15 @@ const LinkDetailsModal = ({ link, onClose, onCopy }) => {
                   <span>Status</span>
                   <span>Date</span>
                 </div>
-                {link.transactions.map((tx, idx) => (
-                  <TransactionRow key={idx} transaction={tx} />
+                {transactions.map((tx, idx) => (
+                  <TransactionRow key={tx._id || idx} transaction={tx} />
                 ))}
+              </div>
+            </section>
+          ) : (
+            <section className="details-section">
+              <div className="no-transactions">
+                <p>No transactions yet for this payment link.</p>
               </div>
             </section>
           )}
@@ -594,16 +706,25 @@ const DetailItem = ({ label, value, className, isStatus, statusClassName }) => (
   </div>
 );
 
-const TransactionRow = ({ transaction }) => (
-  <div className="transaction-row">
-    <span className="tx-ref">{transaction.internalRef || "N/A"}</span>
-    <span className="tx-amount">{formatCurrency(transaction.amount)}</span>
-    <span className={`tx-status ${transaction.status}`}>
-      {transaction.status}
-    </span>
-    <span className="tx-date">{formatDateTime(transaction.createdAt)}</span>
-  </div>
-);
+const TransactionRow = ({ transaction }) => {
+  if (!transaction) return null;
+
+  // Safely access transaction properties
+  const status = transaction.status || "unknown";
+  const amount = transaction.amount || 0;
+  const ref = transaction.internalRef || transaction.reference || "N/A";
+  const date =
+    transaction.paidAt || transaction.createdAt || transaction.updatedAt;
+
+  return (
+    <div className="transaction-row">
+      <span className="tx-ref">{ref}</span>
+      <span className="tx-amount">{formatCurrency(amount)}</span>
+      <span className={`tx-status ${status}`}>{status}</span>
+      <span className="tx-date">{formatDateTime(date)}</span>
+    </div>
+  );
+};
 
 const EmptyState = ({ searchTerm, onCreate }) => (
   <div className="empty-state">
