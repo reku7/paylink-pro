@@ -164,6 +164,7 @@ export default function CreatePaymentLink() {
 
   const shareLink = async () => {
     if (!link) return;
+
     if (navigator.share) {
       try {
         await navigator.share({
@@ -171,14 +172,21 @@ export default function CreatePaymentLink() {
           text: "Here's a payment link for you:",
           url: link,
         });
-        alert("Link shared successfully!");
+        // Remove the immediate success alert
+        console.log("Share dialog closed"); // optional log
       } catch (err) {
         console.error("Share failed:", err);
         alert("Sharing failed. Try copying the link instead.");
       }
     } else {
-      navigator.clipboard.writeText(link);
-      alert("Link copied to clipboard (share not supported in this browser)");
+      // If share API is not supported, fallback to clipboard
+      try {
+        await navigator.clipboard.writeText(link);
+        alert("Link copied to clipboard (share not supported in this browser)");
+      } catch (err) {
+        console.error("Copy failed:", err);
+        alert("Failed to copy the link. Please copy manually.");
+      }
     }
   };
 
