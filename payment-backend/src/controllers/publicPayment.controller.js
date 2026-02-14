@@ -41,9 +41,18 @@ export async function startPublicPaymentController(req, res) {
     const failureUrl = `${process.env.DEFAULT_FAILURE_URL}?linkId=${link.linkId}`;
 
     // 6️⃣ Start payment via gateway
+    const notifyUrl =
+      process.env.DEFAULT_NOTIFY_URL ||
+      `${process.env.WEBHOOK_BASE_URL}/api/webhooks/santimpay`;
+
     const gatewayResponse = await startPayment({
       transaction,
-      returnUrls: { successUrl, cancelUrl, failureUrl },
+      returnUrls: {
+        successUrl,
+        cancelUrl,
+        failureUrl,
+        notifyUrl,
+      },
     });
 
     return res.json({
